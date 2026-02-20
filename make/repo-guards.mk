@@ -10,3 +10,14 @@ guard-no-submodules:
 		exit 2; \
 	fi
 
+.PHONY: guard-version-file
+guard-version-file:
+	@if [ ! -f VERSION ]; then \
+		echo "ERROR: VERSION file missing."; \
+		echo "Fix: add VERSION (single line, e.g. 0.0.0)."; \
+		exit 2; \
+	fi
+	@if [ ! -s VERSION ]; then \
+		echo "ERROR: VERSION file is empty."; \
+		exit 2; \
+	fi

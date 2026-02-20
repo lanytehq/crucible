@@ -9,7 +9,7 @@ Status: Proposed
 
 ## Decision
 
-1. We will create an org-level repo: `lanytehq/.github` (public).
+1. We will create an org-level repo: `lanytehq/.github` (bootstrap private, target public).
 2. `lanytehq/.github` will contain only public-safe content:
    - org profile (`profile/README.md`)
    - baseline community health files (`SECURITY.md`, `SUPPORT.md`, etc.)
@@ -28,4 +28,3 @@ Status: Proposed
 
 - Each repo remains self-contained (CI and contributor flows do not rely on local filesystem layouts).
 - We need a lightweight “sync templates” process later (candidate home: `lanyte-tools-internal`).
-

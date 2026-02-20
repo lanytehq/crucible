@@ -1,13 +1,15 @@
 SHELL := /bin/sh
 
-# Vendor guardrails so CI does not depend on sibling repos.
 -include make/repo-guards.mk
 
-.PHONY: build
-build: guard-no-submodules
-	@echo "No build configured for crucible yet."
-
 .PHONY: check
-check: guard-no-submodules
+check: guard-no-submodules guard-version-file
 	@echo "OK"
 
+.PHONY: dev
+dev: guard-no-submodules guard-version-file
+	kitfly dev . --no-open
+
+.PHONY: build
+build: guard-no-submodules guard-version-file
+	kitfly build .
