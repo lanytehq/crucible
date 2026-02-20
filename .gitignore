@@ -1,0 +1,28 @@
+# Build output (kitfly)
+dist/
+bundles/
+
+# Dependencies (if using kitfly as dependency)
+node_modules/
+
+# Local-only agent instructions
+AGENTS.local.md
+
+# Local environment files
+.env.local
+.env.*.local
+
+# Local scratch
+.scratch/
+tmp/
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Logs
+*.log
+
