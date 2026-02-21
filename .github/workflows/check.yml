@@ -16,11 +16,7 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Install Kitfly (if kitsite)
-        if: ${{ hashFiles('site.yaml') != '' }}
+      - name: Repo Checks
         run: |
-          bun install -g kitfly
-          kitfly version
-
-      - name: Pre-push Checks
-        run: make prepush
+          make check
+          make quality
