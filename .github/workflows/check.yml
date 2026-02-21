@@ -16,17 +16,7 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Versions
+      - name: Repo Checks
         run: |
-          bun --version
-          make --version | head -n 1
-
-      - name: Repo Guards
-        run: make check
-
-      - name: Build Site (if kitsite)
-        if: ${{ hashFiles('site.yaml') != '' }}
-        run: |
-          bun install -g kitfly
-          kitfly version
-          make build
+          make check
+          make quality

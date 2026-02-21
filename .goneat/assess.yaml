@@ -1,0 +1,50 @@
+# goneat assess configuration (LanyteHQ)
+#
+# Philosophy: phased adoption.
+# - Enforce repo hygiene files first (GitHub Actions workflows, YAML configs).
+# - Keep Makefile checks lightweight (checkmake) without forcing the full Fulmen Makefile Standard yet.
+# - Bring in shell linting later once scripts inventory stabilizes.
+version: 1
+lint:
+  yamllint:
+    enabled: true
+    strict: true
+    paths:
+      - ".github/workflows/**/*.yml"
+      - ".github/workflows/**/*.yaml"
+      - ".goneat/**/*.yaml"
+      - "site.yaml"
+    ignore: []
+
+  github_actions:
+    actionlint:
+      enabled: true
+      paths:
+        - ".github/workflows/**/*.yml"
+        - ".github/workflows/**/*.yaml"
+      ignore: []
+
+  make:
+    checkmake:
+      enabled: true
+      config:
+        # Allow compact guard-only Makefiles early on.
+        max_body_length: 140
+        min_phony_targets:
+          - help
+          - check
+          - precommit
+          - prepush
+    paths:
+      - "Makefile"
+    ignore: []
+
+  shell:
+    shfmt:
+      enabled: false
+      fix: false
+    shellcheck:
+      enabled: false
+      path: ""
+    paths: []
+    ignore: []
