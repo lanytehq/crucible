@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/ipc/v1/control.schema.json",
+  "title": "CONTROL Channel (0)",
+  "description": "Peer lifecycle and keepalive messages on ipcprims channel 0. All peers must implement hello/hello_ack. The control channel is the first channel active after connect and the last before disconnect.",
+  "$defs": {
+    "peer_id": {
+      "type": "string",
+      "description": "Stable identifier for a connected peer (e.g. mlvoy, fulminar, lanyte-admin)",
+      "minLength": 1,
+      "maxLength": 256
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "title": "hello",
+      "description": "Sent by a peer immediately after connecting. Declares the peer's identity and the channels it will use.",
+      "required": ["type", "peer_id", "channels", "protocol_version"],
+      "additionalProperties": false,
+      "properties": {
+        "type":             { "const": "hello" },
+        "peer_id":          { "$ref": "#/$defs/peer_id" },
+        "channels":         {
+          "type": "array",
+          "description": "Channel IDs this peer intends to use",
+          "items": { "type": "integer", "minimum": 0, "maximum": 65535 },
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "protocol_version": { "type": "string", "description": "ipcprims wire protocol version (e.g. 0.1)", "maxLength": 16 },
+        "capabilities":     {
+          "type": "array",
+          "description": "Optional peer feature flags",
+          "items": { "type": "string", "maxLength": 64 },
+          "maxItems": 32
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "hello_ack",
+      "description": "Sent by lanyte-core in response to hello. Confirms accepted channels. If a requested channel is not in accepted_channels, the peer must not use it.",
+      "required": ["type", "peer_id", "accepted_channels"],
+      "additionalProperties": false,
+      "properties": {
+        "type":              { "const": "hello_ack" },
+        "peer_id":           { "$ref": "#/$defs/peer_id" },
+        "accepted_channels": {
+          "type": "array",
+          "description": "Channels core will accept from this peer",
+          "items": { "type": "integer", "minimum": 0, "maximum": 65535 },
+          "maxItems": 64
+        },
+        "session_id":        { "type": "string", "maxLength": 256, "description": "Opaque session identifier for log correlation" }
+      }
+    },
+    {
+      "type": "object",
+      "title": "ping",
+      "description": "Keepalive probe. The receiver must respond with pong on the same channel.",
+      "required": ["type", "seq"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "ping" },
+        "seq":  { "type": "integer", "minimum": 0, "description": "Monotonically increasing sequence number" }
+      }
+    },
+    {
+      "type": "object",
+      "title": "pong",
+      "description": "Keepalive response to ping.",
+      "required": ["type", "seq"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "pong" },
+        "seq":  { "type": "integer", "minimum": 0, "description": "Must echo the seq from the corresponding ping" }
+      }
+    },
+    {
+      "type": "object",
+      "title": "disconnect",
+      "description": "Graceful disconnect notification. Either side may send. The connection is closed after this message is sent.",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type":   { "const": "disconnect" },
+        "reason": { "type": "string", "maxLength": 512 }
+      }
+    }
+  ]
+}

@@ -1,0 +1,254 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/ipc/v1/channel_256.schema.json",
+  "title": "MAIL Channel (256)",
+  "description": "Messages between lanyte-core and mlvoy. Both request and response frames on channel 256 are validated by this schema.",
+  "$defs": {
+    "request_id": {
+      "type": "string",
+      "description": "UUID v4 correlation identifier for request/response matching",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "delegation_id": {
+      "type": "string",
+      "description": "Opaque identifier for the mlvoy delegation scope",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "message_summary": {
+      "type": "object",
+      "required": ["message_id", "from", "subject", "date"],
+      "additionalProperties": false,
+      "properties": {
+        "message_id":      { "type": "string", "maxLength": 512 },
+        "from":            { "type": "string", "maxLength": 512 },
+        "to":              { "type": "array", "items": { "type": "string", "maxLength": 512 }, "maxItems": 100 },
+        "subject":         { "type": "string", "maxLength": 998 },
+        "date":            { "type": "string" },
+        "snippet":         { "type": "string", "maxLength": 300 },
+        "has_attachments": { "type": "boolean" },
+        "folder":          { "type": "string", "maxLength": 256 }
+      }
+    },
+    "attachment_meta": {
+      "type": "object",
+      "required": ["name", "content_type", "size_bytes"],
+      "additionalProperties": false,
+      "properties": {
+        "name":         { "type": "string", "maxLength": 512 },
+        "content_type": { "type": "string", "maxLength": 256 },
+        "size_bytes":   { "type": "integer", "minimum": 0 },
+        "attachment_id":{ "type": "string", "maxLength": 256 }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "title": "mail_search_request",
+      "description": "Core asks mlvoy to search emails within a delegation scope",
+      "required": ["type", "request_id", "delegation_id", "query"],
+      "additionalProperties": false,
+      "properties": {
+        "type":          { "const": "mail_search_request" },
+        "request_id":    { "$ref": "#/$defs/request_id" },
+        "delegation_id": { "$ref": "#/$defs/delegation_id" },
+        "query":         { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "folder":        { "type": "string", "maxLength": 256 },
+        "limit":         { "type": "integer", "minimum": 1, "maximum": 100 },
+        "offset":        { "type": "integer", "minimum": 0 }
+      }
+    },
+    {
+      "type": "object",
+      "title": "mail_read_request",
+      "description": "Core asks mlvoy to fetch full message content",
+      "required": ["type", "request_id", "delegation_id", "message_id"],
+      "additionalProperties": false,
+      "properties": {
+        "type":                { "const": "mail_read_request" },
+        "request_id":          { "$ref": "#/$defs/request_id" },
+        "delegation_id":       { "$ref": "#/$defs/delegation_id" },
+        "message_id":          { "type": "string", "minLength": 1, "maxLength": 512 },
+        "include_body":        { "type": "boolean" },
+        "include_attachments": { "type": "boolean" }
+      }
+    },
+    {
+      "type": "object",
+      "title": "mail_draft_request",
+      "description": "Core asks mlvoy to create an email draft",
+      "required": ["type", "request_id", "delegation_id", "to", "subject"],
+      "additionalProperties": false,
+      "properties": {
+        "type":                { "const": "mail_draft_request" },
+        "request_id":          { "$ref": "#/$defs/request_id" },
+        "delegation_id":       { "$ref": "#/$defs/delegation_id" },
+        "to":                  { "type": "array", "items": { "type": "string", "maxLength": 512 }, "minItems": 1, "maxItems": 50 },
+        "cc":                  { "type": "array", "items": { "type": "string", "maxLength": 512 }, "maxItems": 50 },
+        "bcc":                 { "type": "array", "items": { "type": "string", "maxLength": 512 }, "maxItems": 50 },
+        "subject":             { "type": "string", "minLength": 1, "maxLength": 998 },
+        "body_text":           { "type": "string", "maxLength": 524288 },
+        "body_html":           { "type": "string", "maxLength": 524288 },
+        "reply_to_message_id": { "type": "string", "maxLength": 512 }
+      }
+    },
+    {
+      "type": "object",
+      "title": "mail_send_request",
+      "description": "Core asks mlvoy to send a previously created draft. Requires orchestrator autonomy gate approval token.",
+      "required": ["type", "request_id", "delegation_id", "draft_id", "gate_token"],
+      "additionalProperties": false,
+      "properties": {
+        "type":          { "const": "mail_send_request" },
+        "request_id":    { "$ref": "#/$defs/request_id" },
+        "delegation_id": { "$ref": "#/$defs/delegation_id" },
+        "draft_id":      { "type": "string", "minLength": 1, "maxLength": 512 },
+        "gate_token":    { "type": "string", "minLength": 1, "maxLength": 512, "description": "Opaque token issued by orchestrator autonomy gate on human approval" }
+      }
+    },
+    {
+      "type": "object",
+      "title": "mail_list_folders_request",
+      "required": ["type", "request_id", "delegation_id"],
+      "additionalProperties": false,
+      "properties": {
+        "type":          { "const": "mail_list_folders_request" },
+        "request_id":    { "$ref": "#/$defs/request_id" },
+        "delegation_id": { "$ref": "#/$defs/delegation_id" }
+      }
+    },
+    {
+      "type": "object",
+      "title": "mail_archive_request",
+      "required": ["type", "request_id", "delegation_id", "message_id"],
+      "additionalProperties": false,
+      "properties": {
+        "type":          { "const": "mail_archive_request" },
+        "request_id":    { "$ref": "#/$defs/request_id" },
+        "delegation_id": { "$ref": "#/$defs/delegation_id" },
+        "message_id":    { "type": "string", "minLength": 1, "maxLength": 512 }
+      }
+    },
+    {
+      "type": "object",
+      "title": "mail_move_request",
+      "required": ["type", "request_id", "delegation_id", "message_id", "target_folder"],
+      "additionalProperties": false,
+      "properties": {
+        "type":          { "const": "mail_move_request" },
+        "request_id":    { "$ref": "#/$defs/request_id" },
+        "delegation_id": { "$ref": "#/$defs/delegation_id" },
+        "message_id":    { "type": "string", "minLength": 1, "maxLength": 512 },
+        "target_folder": { "type": "string", "minLength": 1, "maxLength": 256 }
+      }
+    },
+    {
+      "type": "object",
+      "title": "mail_search_response",
+      "required": ["type", "request_id", "messages"],
+      "additionalProperties": false,
+      "properties": {
+        "type":       { "const": "mail_search_response" },
+        "request_id": { "$ref": "#/$defs/request_id" },
+        "messages":   { "type": "array", "items": { "$ref": "#/$defs/message_summary" }, "maxItems": 100 },
+        "total":      { "type": "integer", "minimum": 0 }
+      }
+    },
+    {
+      "type": "object",
+      "title": "mail_read_response",
+      "required": ["type", "request_id", "message_id"],
+      "additionalProperties": false,
+      "properties": {
+        "type":        { "const": "mail_read_response" },
+        "request_id":  { "$ref": "#/$defs/request_id" },
+        "message_id":  { "type": "string", "maxLength": 512 },
+        "from":        { "type": "string", "maxLength": 512 },
+        "to":          { "type": "array", "items": { "type": "string", "maxLength": 512 }, "maxItems": 100 },
+        "cc":          { "type": "array", "items": { "type": "string", "maxLength": 512 }, "maxItems": 100 },
+        "subject":     { "type": "string", "maxLength": 998 },
+        "date":        { "type": "string" },
+        "body_text":   { "type": "string", "maxLength": 524288 },
+        "body_html":   { "type": "string", "maxLength": 524288 },
+        "attachments": { "type": "array", "items": { "$ref": "#/$defs/attachment_meta" }, "maxItems": 100 }
+      }
+    },
+    {
+      "type": "object",
+      "title": "mail_draft_response",
+      "required": ["type", "request_id", "draft_id"],
+      "additionalProperties": false,
+      "properties": {
+        "type":       { "const": "mail_draft_response" },
+        "request_id": { "$ref": "#/$defs/request_id" },
+        "draft_id":   { "type": "string", "maxLength": 512 }
+      }
+    },
+    {
+      "type": "object",
+      "title": "mail_send_response",
+      "required": ["type", "request_id", "sent"],
+      "additionalProperties": false,
+      "properties": {
+        "type":        { "const": "mail_send_response" },
+        "request_id":  { "$ref": "#/$defs/request_id" },
+        "sent":        { "type": "boolean" },
+        "message_id":  { "type": "string", "maxLength": 512 }
+      }
+    },
+    {
+      "type": "object",
+      "title": "mail_list_folders_response",
+      "required": ["type", "request_id", "folders"],
+      "additionalProperties": false,
+      "properties": {
+        "type":       { "const": "mail_list_folders_response" },
+        "request_id": { "$ref": "#/$defs/request_id" },
+        "folders": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "additionalProperties": false,
+            "properties": {
+              "name":          { "type": "string", "maxLength": 256 },
+              "path":          { "type": "string", "maxLength": 512 },
+              "message_count": { "type": "integer", "minimum": 0 },
+              "unread_count":  { "type": "integer", "minimum": 0 }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "mail_ack_response",
+      "description": "Acknowledgement for archive and move operations",
+      "required": ["type", "request_id", "success"],
+      "additionalProperties": false,
+      "properties": {
+        "type":       { "const": "mail_ack_response" },
+        "request_id": { "$ref": "#/$defs/request_id" },
+        "success":    { "type": "boolean" }
+      }
+    },
+    {
+      "type": "object",
+      "title": "mail_error",
+      "required": ["type", "request_id", "error_code", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "type":       { "const": "mail_error" },
+        "request_id": { "$ref": "#/$defs/request_id" },
+        "error_code": {
+          "type": "string",
+          "enum": ["not_found", "permission_denied", "delegation_expired", "provider_error", "rate_limited", "invalid_request", "send_blocked"]
+        },
+        "message":   { "type": "string", "maxLength": 1024 },
+        "retryable": { "type": "boolean" }
+      }
+    }
+  ]
+}

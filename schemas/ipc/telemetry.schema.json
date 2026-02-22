@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/ipc/v1/telemetry.schema.json",
+  "title": "TELEMETRY Channel (3)",
+  "description": "Observability and audit frames pushed by peers to lanyte-core on ipcprims channel 3. No request/response: all messages are one-way pushes. Core persists audit_events to the hot tier (hash-chained) and forwards metrics to the telemetry sink.",
+  "$defs": {
+    "timestamp": {
+      "type": "string",
+      "description": "RFC 3339 timestamp with millisecond precision (e.g. 2026-02-22T14:30:00.123Z)"
+    },
+    "peer_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "label_map": {
+      "type": "object",
+      "description": "Metric dimension labels as string key/value pairs",
+      "additionalProperties": { "type": "string", "maxLength": 256 },
+      "maxProperties": 32
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "title": "metric_event",
+      "description": "A single metric observation (counter, gauge, or histogram sample). Core aggregates and forwards to the telemetry sink.",
+      "required": ["type", "peer_id", "timestamp", "name", "kind", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "type":      { "const": "metric_event" },
+        "peer_id":   { "$ref": "#/$defs/peer_id" },
+        "timestamp": { "$ref": "#/$defs/timestamp" },
+        "name":      { "type": "string", "minLength": 1, "maxLength": 256, "description": "Dot-namespaced metric name (e.g. lanyte.mail.messages_sent)" },
+        "kind":      { "type": "string", "enum": ["counter", "gauge", "histogram"] },
+        "value":     { "type": "number" },
+        "unit":      { "type": "string", "maxLength": 64, "description": "UCUM unit (e.g. bytes, ms, 1)" },
+        "labels":    { "$ref": "#/$defs/label_map" }
+      }
+    },
+    {
+      "type": "object",
+      "title": "trace_span",
+      "description": "A completed distributed tracing span. Follows OpenTelemetry conventions.",
+      "required": ["type", "peer_id", "trace_id", "span_id", "name", "start_time", "end_time"],
+      "additionalProperties": false,
+      "properties": {
+        "type":          { "const": "trace_span" },
+        "peer_id":       { "$ref": "#/$defs/peer_id" },
+        "trace_id":      { "type": "string", "maxLength": 64, "description": "128-bit trace ID as 32-char hex" },
+        "span_id":       { "type": "string", "maxLength": 32, "description": "64-bit span ID as 16-char hex" },
+        "parent_span_id":{ "type": "string", "maxLength": 32 },
+        "name":          { "type": "string", "maxLength": 256 },
+        "start_time":    { "$ref": "#/$defs/timestamp" },
+        "end_time":      { "$ref": "#/$defs/timestamp" },
+        "status":        { "type": "string", "enum": ["ok", "error", "unset"] },
+        "labels":        { "$ref": "#/$defs/label_map" }
+      }
+    },
+    {
+      "type": "object",
+      "title": "audit_event",
+      "description": "Tamper-evident audit log entry. Core verifies prev_hash against the previous stored entry, computes and stores this entry's hash, and appends to the hash-chained hot-tier audit log. Peers must compute prev_hash correctly or the entry is rejected.",
+      "required": ["type", "entry_id", "peer_id", "timestamp", "action", "prev_hash"],
+      "additionalProperties": false,
+      "properties": {
+        "type":      { "const": "audit_event" },
+        "entry_id":  {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "description": "UUID v4 unique to this entry"
+        },
+        "peer_id":   { "$ref": "#/$defs/peer_id" },
+        "timestamp": { "$ref": "#/$defs/timestamp" },
+        "action":    { "type": "string", "minLength": 1, "maxLength": 256, "description": "Dot-namespaced action name (e.g. mail.draft_created, skill.executed, proxy.request_blocked)" },
+        "actor":     { "type": "string", "maxLength": 256, "description": "Who triggered the action — skill_id, agent_id, or 'human'" },
+        "prev_hash": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "SHA-256 (hex) of the previous audit entry in this peer's chain, or 64 zeros for the first entry" },
+        "details":   {
+          "type": "object",
+          "description": "Action-specific detail fields — open object",
+          "additionalProperties": true
+        },
+        "severity":  { "type": "string", "enum": ["info", "notice", "warning", "critical"] }
+      }
+    },
+    {
+      "type": "object",
+      "title": "health_report",
+      "description": "Periodic health report from a peer. Core uses this for liveness tracking; peers that stop sending health reports within their declared interval are considered suspect.",
+      "required": ["type", "peer_id", "timestamp", "healthy"],
+      "additionalProperties": false,
+      "properties": {
+        "type":           { "const": "health_report" },
+        "peer_id":        { "$ref": "#/$defs/peer_id" },
+        "timestamp":      { "$ref": "#/$defs/timestamp" },
+        "healthy":        { "type": "boolean" },
+        "report_interval_secs": { "type": "integer", "minimum": 1, "description": "How often this peer sends health reports" },
+        "checks": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "required": ["name", "ok"],
+            "additionalProperties": false,
+            "properties": {
+              "name":    { "type": "string", "maxLength": 128 },
+              "ok":      { "type": "boolean" },
+              "message": { "type": "string", "maxLength": 512 }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
