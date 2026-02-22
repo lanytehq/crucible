@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/ipc/v1/error.schema.json",
+  "title": "ERROR Channel (4)",
+  "description": "Error notification frames on ipcprims channel 4. Used for out-of-band errors that cannot be correlated to a specific request (e.g. connection failures, unrecoverable internal state). For request-correlated errors, use the error message type in the relevant application channel schema instead.",
+  "$defs": {
+    "peer_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "RFC 3339 timestamp"
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "title": "peer_error",
+      "description": "A recoverable or non-fatal error from a peer. Core logs the event and may take corrective action (e.g. reconnect, notify admin).",
+      "required": ["type", "peer_id", "timestamp", "error_code", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "type":       { "const": "peer_error" },
+        "peer_id":    { "$ref": "#/$defs/peer_id" },
+        "timestamp":  { "$ref": "#/$defs/timestamp" },
+        "error_code": {
+          "type": "string",
+          "enum": [
+            "provider_unavailable",
+            "auth_expired",
+            "rate_limited",
+            "quota_exceeded",
+            "config_invalid",
+            "dependency_failed",
+            "internal_error"
+          ]
+        },
+        "message":   { "type": "string", "maxLength": 1024 },
+        "retryable": { "type": "boolean" },
+        "context":   { "type": "string", "maxLength": 2048, "description": "Additional diagnostic context (e.g. stack trace excerpt, upstream error message)" }
+      }
+    },
+    {
+      "type": "object",
+      "title": "fatal_error",
+      "description": "An unrecoverable error. The peer is about to exit or has already exited. Core should notify the admin channel and remove the peer from its registry.",
+      "required": ["type", "peer_id", "timestamp", "error_code", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "type":       { "const": "fatal_error" },
+        "peer_id":    { "$ref": "#/$defs/peer_id" },
+        "timestamp":  { "$ref": "#/$defs/timestamp" },
+        "error_code": {
+          "type": "string",
+          "enum": [
+            "out_of_memory",
+            "panic",
+            "corrupt_state",
+            "dependency_missing",
+            "auth_failure",
+            "config_missing",
+            "startup_failed"
+          ]
+        },
+        "message":   { "type": "string", "maxLength": 1024 },
+        "context":   { "type": "string", "maxLength": 4096 }
+      }
+    }
+  ]
+}
