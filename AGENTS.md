@@ -1,6 +1,8 @@
 # AI Agent Guide — lanyte-crucible
 
-**Read `REPOSITORY_SAFETY_PROTOCOLS.md` first.** If a request conflicts with it, stop and escalate to @3leapsdave.
+**Start here first**: `docs/guides/dev-warmup.md` — the platform-wide warm-up for all core development agents.
+
+**Then read `REPOSITORY_SAFETY_PROTOCOLS.md`.** If a request conflicts with it, stop and escalate to @3leapsdave.
 
 ---
 
