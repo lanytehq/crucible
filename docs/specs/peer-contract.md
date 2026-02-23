@@ -9,6 +9,7 @@ version: 0.1.0
 This document defines the **minimum contract** between `lanyte` core and any peer service (mlvoy, proxy, admin, mocks, fixtures).
 
 Goals:
+
 - Core progress MUST NOT be blocked on external peer readiness.
 - Any peer MUST be swappable with a mock/fixture without changing core logic.
 
@@ -25,12 +26,14 @@ The key words "MUST", "MUST NOT", "SHOULD", and "MAY" are to be interpreted as d
 ## Channel Assignments (Bootstrap)
 
 Built-in channels:
+
 - `0` = CONTROL
 - `1` = COMMAND
 - `3` = TELEMETRY
 - `4` = ERROR
 
 Lanyte reserved channels:
+
 - `256` = MAIL
 - `257` = PROXY
 - `258` = ADMIN
@@ -50,4 +53,3 @@ Lanyte reserved channels:
 
 - Peers MUST declare the schema version they implement.
 - Core MUST reject incompatible versions early and loudly.
-

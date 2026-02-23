@@ -33,4 +33,3 @@ What was decided and why.
 - Positive:
 - Negative:
 - Risks:
-

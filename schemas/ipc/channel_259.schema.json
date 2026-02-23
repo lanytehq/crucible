@@ -16,16 +16,46 @@
     },
     "skill_summary": {
       "type": "object",
-      "required": ["skill_id", "name", "version", "tier"],
+      "required": [
+        "skill_id",
+        "name",
+        "version",
+        "tier"
+      ],
       "additionalProperties": false,
       "properties": {
-        "skill_id":     { "$ref": "#/$defs/skill_id" },
-        "name":         { "type": "string", "maxLength": 256 },
-        "version":      { "type": "string", "maxLength": 64 },
-        "description":  { "type": "string", "maxLength": 1024 },
-        "tier":         { "type": "integer", "minimum": 0, "maximum": 4 },
-        "author":       { "type": "string", "maxLength": 256 },
-        "capabilities": { "type": "array", "items": { "type": "string", "maxLength": 64 }, "maxItems": 20 }
+        "skill_id": {
+          "$ref": "#/$defs/skill_id"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "version": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "tier": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "author": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "maxItems": 20
+        }
       }
     }
   },
@@ -34,132 +64,275 @@
       "type": "object",
       "title": "skill_install_request",
       "description": "Install a .lanyte-skill package into the executor. The package is base64-encoded. Requires admin privilege.",
-      "required": ["type", "request_id", "package_b64"],
+      "required": [
+        "type",
+        "request_id",
+        "package_b64"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":           { "const": "skill_install_request" },
-        "request_id":     { "$ref": "#/$defs/request_id" },
-        "package_b64":    { "type": "string", "description": "Base64-encoded .lanyte-skill package (gzipped tar)", "maxLength": 52428800 },
-        "force_reinstall":{ "type": "boolean", "description": "If true, overwrite an existing skill with the same skill_id and version" }
+        "type": {
+          "const": "skill_install_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "package_b64": {
+          "type": "string",
+          "description": "Base64-encoded .lanyte-skill package (gzipped tar)",
+          "maxLength": 52428800
+        },
+        "force_reinstall": {
+          "type": "boolean",
+          "description": "If true, overwrite an existing skill with the same skill_id and version"
+        }
       }
     },
     {
       "type": "object",
       "title": "skill_install_response",
-      "required": ["type", "request_id", "skill_id", "version", "tier"],
+      "required": [
+        "type",
+        "request_id",
+        "skill_id",
+        "version",
+        "tier"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "skill_install_response" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "skill_id":   { "$ref": "#/$defs/skill_id" },
-        "version":    { "type": "string", "maxLength": 64 },
-        "tier":       { "type": "integer", "minimum": 0, "maximum": 4 }
+        "type": {
+          "const": "skill_install_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "skill_id": {
+          "$ref": "#/$defs/skill_id"
+        },
+        "version": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "tier": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4
+        }
       }
     },
     {
       "type": "object",
       "title": "skill_uninstall_request",
       "description": "Remove an installed skill. Requires admin privilege.",
-      "required": ["type", "request_id", "skill_id"],
+      "required": [
+        "type",
+        "request_id",
+        "skill_id"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "skill_uninstall_request" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "skill_id":   { "$ref": "#/$defs/skill_id" }
+        "type": {
+          "const": "skill_uninstall_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "skill_id": {
+          "$ref": "#/$defs/skill_id"
+        }
       }
     },
     {
       "type": "object",
       "title": "skill_uninstall_response",
-      "required": ["type", "request_id", "success"],
+      "required": [
+        "type",
+        "request_id",
+        "success"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "skill_uninstall_response" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "success":    { "type": "boolean" }
+        "type": {
+          "const": "skill_uninstall_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "success": {
+          "type": "boolean"
+        }
       }
     },
     {
       "type": "object",
       "title": "skill_invoke_request",
       "description": "Invoke an installed skill with a JSON input payload. The orchestrator schedules execution; the executor enforces fuel, memory, and time limits.",
-      "required": ["type", "request_id", "skill_id"],
+      "required": [
+        "type",
+        "request_id",
+        "skill_id"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "skill_invoke_request" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "skill_id":   { "$ref": "#/$defs/skill_id" },
-        "input":      { "description": "Skill input payload — any JSON value; skill-specific schema applied at executor boundary" },
-        "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 300000, "description": "Caller-requested timeout cap in milliseconds; executor enforces its own absolute limit" }
+        "type": {
+          "const": "skill_invoke_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "skill_id": {
+          "$ref": "#/$defs/skill_id"
+        },
+        "input": {
+          "description": "Skill input payload — any JSON value; skill-specific schema applied at executor boundary"
+        },
+        "timeout_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 300000,
+          "description": "Caller-requested timeout cap in milliseconds; executor enforces its own absolute limit"
+        }
       }
     },
     {
       "type": "object",
       "title": "skill_invoke_response",
-      "required": ["type", "request_id", "skill_id"],
+      "required": [
+        "type",
+        "request_id",
+        "skill_id"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":        { "const": "skill_invoke_response" },
-        "request_id":  { "$ref": "#/$defs/request_id" },
-        "skill_id":    { "$ref": "#/$defs/skill_id" },
-        "output":      { "description": "Skill output payload — any JSON value" },
-        "elapsed_ms":  { "type": "integer", "minimum": 0 },
-        "fuel_used":   { "type": "integer", "minimum": 0, "description": "WASM fuel units consumed" }
+        "type": {
+          "const": "skill_invoke_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "skill_id": {
+          "$ref": "#/$defs/skill_id"
+        },
+        "output": {
+          "description": "Skill output payload — any JSON value"
+        },
+        "elapsed_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fuel_used": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "WASM fuel units consumed"
+        }
       }
     },
     {
       "type": "object",
       "title": "skill_list_request",
-      "required": ["type", "request_id"],
+      "required": [
+        "type",
+        "request_id"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "skill_list_request" },
-        "request_id": { "$ref": "#/$defs/request_id" }
+        "type": {
+          "const": "skill_list_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        }
       }
     },
     {
       "type": "object",
       "title": "skill_list_response",
-      "required": ["type", "request_id", "skills"],
+      "required": [
+        "type",
+        "request_id",
+        "skills"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "skill_list_response" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "skills":     { "type": "array", "items": { "$ref": "#/$defs/skill_summary" }, "maxItems": 1000 }
+        "type": {
+          "const": "skill_list_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/skill_summary"
+          },
+          "maxItems": 1000
+        }
       }
     },
     {
       "type": "object",
       "title": "skill_describe_request",
-      "required": ["type", "request_id", "skill_id"],
+      "required": [
+        "type",
+        "request_id",
+        "skill_id"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "skill_describe_request" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "skill_id":   { "$ref": "#/$defs/skill_id" }
+        "type": {
+          "const": "skill_describe_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "skill_id": {
+          "$ref": "#/$defs/skill_id"
+        }
       }
     },
     {
       "type": "object",
       "title": "skill_describe_response",
       "description": "Full skill manifest as returned by the WASM describe() call",
-      "required": ["type", "request_id", "skill_id", "manifest"],
+      "required": [
+        "type",
+        "request_id",
+        "skill_id",
+        "manifest"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "skill_describe_response" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "skill_id":   { "$ref": "#/$defs/skill_id" },
-        "manifest":   { "$ref": "#/$defs/skill_summary" }
+        "type": {
+          "const": "skill_describe_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "skill_id": {
+          "$ref": "#/$defs/skill_id"
+        },
+        "manifest": {
+          "$ref": "#/$defs/skill_summary"
+        }
       }
     },
     {
       "type": "object",
       "title": "skill_error",
-      "required": ["type", "request_id", "error_code", "message"],
+      "required": [
+        "type",
+        "request_id",
+        "error_code",
+        "message"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "skill_error" },
-        "request_id": { "$ref": "#/$defs/request_id" },
+        "type": {
+          "const": "skill_error"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
         "error_code": {
           "type": "string",
           "enum": [
@@ -178,8 +351,13 @@
             "rate_limited"
           ]
         },
-        "message":   { "type": "string", "maxLength": 1024 },
-        "retryable": { "type": "boolean" }
+        "message": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "retryable": {
+          "type": "boolean"
+        }
       }
     }
   ]

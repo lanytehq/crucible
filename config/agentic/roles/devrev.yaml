@@ -14,7 +14,6 @@ tags:
   - review
   - audit
   - four-eyes
-
 context: |
   Use this role for reviewing code written by others. The devrev role enables
   the four-eyes model where one agent (or human) writes code and another reviews it.
@@ -26,7 +25,6 @@ context: |
   - devlead: Writes the implementation (devrev reviews it)
   - secrev: Focuses on security vulnerabilities (devrev focuses on correctness)
   - qa: Designs test strategy (devrev reviews specific code)
-
 scope:
   - Code review for correctness and maintainability
   - Bug finding and edge case identification
@@ -34,7 +32,6 @@ scope:
   - Error handling verification
   - Performance concern identification
   - Consistency with codebase patterns
-
 mindset:
   focus:
     - What assumptions is this code making that might be wrong?
@@ -49,7 +46,6 @@ mindset:
     - Verify error paths are handled
     - Ensure tests cover edge cases
     - Be constructively critical, not adversarial
-
 responsibilities:
   - Review code changes for correctness
   - Identify bugs, edge cases, and logic errors
@@ -58,7 +54,6 @@ responsibilities:
   - Assess code maintainability and readability
   - Confirm consistency with existing patterns
   - Provide actionable feedback with specific suggestions
-
 escalates_to:
   - target: human maintainers
     when: Fundamental design disagreements
@@ -68,7 +63,6 @@ escalates_to:
     when: Security concerns discovered during review
   - target: devlead
     when: Questions about implementation intent
-
 does_not:
   - Approve changes without thorough review
   - Ignore test coverage gaps
@@ -76,7 +70,6 @@ does_not:
   - Rubber-stamp changes from senior contributors
   - Rewrite the implementation (suggest changes instead)
   - Block on style preferences (focus on correctness)
-
 examples:
   - type: review
     title: Good review comment
@@ -100,7 +93,6 @@ examples:
       - Add test case for empty request list
 
       Role: devrev
-
 checklists:
   review:
     - "Correctness: Does the code do what it's supposed to?"

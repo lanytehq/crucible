@@ -10,13 +10,33 @@
     },
     "peer_summary": {
       "type": "object",
-      "required": ["peer_id", "channels", "connected_at"],
+      "required": [
+        "peer_id",
+        "channels",
+        "connected_at"
+      ],
       "additionalProperties": false,
       "properties": {
-        "peer_id":      { "type": "string", "maxLength": 256 },
-        "channels":     { "type": "array", "items": { "type": "integer", "minimum": 0, "maximum": 65535 }, "maxItems": 64 },
-        "connected_at": { "type": "string", "description": "RFC 3339 timestamp" },
-        "healthy":      { "type": "boolean" }
+        "peer_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "maxItems": 64
+        },
+        "connected_at": {
+          "type": "string",
+          "description": "RFC 3339 timestamp"
+        },
+        "healthy": {
+          "type": "boolean"
+        }
       }
     }
   },
@@ -24,133 +44,298 @@
     {
       "type": "object",
       "title": "admin_status_request",
-      "required": ["type", "request_id"],
+      "required": [
+        "type",
+        "request_id"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "admin_status_request" },
-        "request_id": { "$ref": "#/$defs/request_id" }
+        "type": {
+          "const": "admin_status_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        }
       }
     },
     {
       "type": "object",
       "title": "admin_status_response",
-      "required": ["type", "request_id", "version", "uptime_secs", "peer_count", "skill_count"],
+      "required": [
+        "type",
+        "request_id",
+        "version",
+        "uptime_secs",
+        "peer_count",
+        "skill_count"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":         { "const": "admin_status_response" },
-        "request_id":   { "$ref": "#/$defs/request_id" },
-        "version":      { "type": "string", "maxLength": 64 },
-        "uptime_secs":  { "type": "integer", "minimum": 0 },
-        "peer_count":   { "type": "integer", "minimum": 0 },
-        "skill_count":  { "type": "integer", "minimum": 0 },
-        "gate_pending": { "type": "integer", "minimum": 0, "description": "Number of actions pending autonomy gate approval" },
-        "healthy":      { "type": "boolean" }
+        "type": {
+          "const": "admin_status_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "version": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "uptime_secs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "peer_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skill_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "gate_pending": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of actions pending autonomy gate approval"
+        },
+        "healthy": {
+          "type": "boolean"
+        }
       }
     },
     {
       "type": "object",
       "title": "admin_peer_list_request",
-      "required": ["type", "request_id"],
+      "required": [
+        "type",
+        "request_id"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "admin_peer_list_request" },
-        "request_id": { "$ref": "#/$defs/request_id" }
+        "type": {
+          "const": "admin_peer_list_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        }
       }
     },
     {
       "type": "object",
       "title": "admin_peer_list_response",
-      "required": ["type", "request_id", "peers"],
+      "required": [
+        "type",
+        "request_id",
+        "peers"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "admin_peer_list_response" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "peers":      { "type": "array", "items": { "$ref": "#/$defs/peer_summary" }, "maxItems": 256 }
+        "type": {
+          "const": "admin_peer_list_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "peers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/peer_summary"
+          },
+          "maxItems": 256
+        }
       }
     },
     {
       "type": "object",
       "title": "admin_config_get_request",
-      "required": ["type", "request_id", "key"],
+      "required": [
+        "type",
+        "request_id",
+        "key"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "admin_config_get_request" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "key":        { "type": "string", "minLength": 1, "maxLength": 256, "description": "Dot-separated config key (e.g. proxy.max_response_bytes)" }
+        "type": {
+          "const": "admin_config_get_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "description": "Dot-separated config key (e.g. proxy.max_response_bytes)"
+        }
       }
     },
     {
       "type": "object",
       "title": "admin_config_get_response",
-      "required": ["type", "request_id", "key"],
+      "required": [
+        "type",
+        "request_id",
+        "key"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "admin_config_get_response" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "key":        { "type": "string", "maxLength": 256 },
-        "value":      { "type": "string", "maxLength": 4096 },
-        "found":      { "type": "boolean" }
+        "type": {
+          "const": "admin_config_get_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "key": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "value": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "found": {
+          "type": "boolean"
+        }
       }
     },
     {
       "type": "object",
       "title": "admin_config_set_request",
       "description": "Update a runtime configuration value. Requires admin_token.",
-      "required": ["type", "request_id", "key", "value", "admin_token"],
+      "required": [
+        "type",
+        "request_id",
+        "key",
+        "value",
+        "admin_token"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":        { "const": "admin_config_set_request" },
-        "request_id":  { "$ref": "#/$defs/request_id" },
-        "key":         { "type": "string", "minLength": 1, "maxLength": 256 },
-        "value":       { "type": "string", "maxLength": 4096 },
-        "admin_token": { "type": "string", "minLength": 1, "maxLength": 512 }
+        "type": {
+          "const": "admin_config_set_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "value": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "admin_token": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
       }
     },
     {
       "type": "object",
       "title": "admin_log_level_set_request",
       "description": "Change the active log level. Requires admin_token.",
-      "required": ["type", "request_id", "level", "admin_token"],
+      "required": [
+        "type",
+        "request_id",
+        "level",
+        "admin_token"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":        { "const": "admin_log_level_set_request" },
-        "request_id":  { "$ref": "#/$defs/request_id" },
-        "level":       { "type": "string", "enum": ["trace", "debug", "info", "warn", "error"] },
-        "admin_token": { "type": "string", "minLength": 1, "maxLength": 512 }
+        "type": {
+          "const": "admin_log_level_set_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "level": {
+          "type": "string",
+          "enum": [
+            "trace",
+            "debug",
+            "info",
+            "warn",
+            "error"
+          ]
+        },
+        "admin_token": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
       }
     },
     {
       "type": "object",
       "title": "admin_gate_status_request",
       "description": "Query the autonomy gate — what actions are pending human approval",
-      "required": ["type", "request_id"],
+      "required": [
+        "type",
+        "request_id"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "admin_gate_status_request" },
-        "request_id": { "$ref": "#/$defs/request_id" }
+        "type": {
+          "const": "admin_gate_status_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        }
       }
     },
     {
       "type": "object",
       "title": "admin_gate_status_response",
-      "required": ["type", "request_id", "pending"],
+      "required": [
+        "type",
+        "request_id",
+        "pending"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "admin_gate_status_response" },
-        "request_id": { "$ref": "#/$defs/request_id" },
+        "type": {
+          "const": "admin_gate_status_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
         "pending": {
           "type": "array",
           "maxItems": 1000,
           "items": {
             "type": "object",
-            "required": ["gate_id", "action", "requested_at", "skill_id"],
+            "required": [
+              "gate_id",
+              "action",
+              "requested_at",
+              "skill_id"
+            ],
             "additionalProperties": false,
             "properties": {
-              "gate_id":       { "type": "string", "maxLength": 256 },
-              "action":        { "type": "string", "maxLength": 256, "description": "Human-readable action description (e.g. send_email, http_post)" },
-              "skill_id":      { "type": "string", "maxLength": 256 },
-              "requested_at":  { "type": "string", "description": "RFC 3339 timestamp" },
-              "summary":       { "type": "string", "maxLength": 1024 }
+              "gate_id": {
+                "type": "string",
+                "maxLength": 256
+              },
+              "action": {
+                "type": "string",
+                "maxLength": 256,
+                "description": "Human-readable action description (e.g. send_email, http_post)"
+              },
+              "skill_id": {
+                "type": "string",
+                "maxLength": 256
+              },
+              "requested_at": {
+                "type": "string",
+                "description": "RFC 3339 timestamp"
+              },
+              "summary": {
+                "type": "string",
+                "maxLength": 1024
+              }
             }
           }
         }
@@ -160,80 +345,181 @@
       "type": "object",
       "title": "admin_gate_approve_request",
       "description": "Approve a pending autonomy gate action. Issues a gate_token returned to core. Requires admin_token.",
-      "required": ["type", "request_id", "gate_id", "admin_token"],
+      "required": [
+        "type",
+        "request_id",
+        "gate_id",
+        "admin_token"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":        { "const": "admin_gate_approve_request" },
-        "request_id":  { "$ref": "#/$defs/request_id" },
-        "gate_id":     { "type": "string", "minLength": 1, "maxLength": 256 },
-        "admin_token": { "type": "string", "minLength": 1, "maxLength": 512 }
+        "type": {
+          "const": "admin_gate_approve_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "gate_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "admin_token": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
       }
     },
     {
       "type": "object",
       "title": "admin_gate_approve_response",
-      "required": ["type", "request_id", "gate_id", "gate_token"],
+      "required": [
+        "type",
+        "request_id",
+        "gate_id",
+        "gate_token"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "admin_gate_approve_response" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "gate_id":    { "type": "string", "maxLength": 256 },
-        "gate_token": { "type": "string", "maxLength": 512, "description": "Opaque token passed to the peer that requested gate approval (e.g. mail_send_request.gate_token)" }
+        "type": {
+          "const": "admin_gate_approve_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "gate_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "gate_token": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "Opaque token passed to the peer that requested gate approval (e.g. mail_send_request.gate_token)"
+        }
       }
     },
     {
       "type": "object",
       "title": "admin_gate_deny_request",
       "description": "Deny a pending autonomy gate action. Requires admin_token.",
-      "required": ["type", "request_id", "gate_id", "admin_token"],
+      "required": [
+        "type",
+        "request_id",
+        "gate_id",
+        "admin_token"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":        { "const": "admin_gate_deny_request" },
-        "request_id":  { "$ref": "#/$defs/request_id" },
-        "gate_id":     { "type": "string", "minLength": 1, "maxLength": 256 },
-        "reason":      { "type": "string", "maxLength": 512 },
-        "admin_token": { "type": "string", "minLength": 1, "maxLength": 512 }
+        "type": {
+          "const": "admin_gate_deny_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "gate_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "admin_token": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
       }
     },
     {
       "type": "object",
       "title": "admin_shutdown_request",
       "description": "Request graceful shutdown of lanyte-core. Requires admin_token.",
-      "required": ["type", "request_id", "admin_token"],
+      "required": [
+        "type",
+        "request_id",
+        "admin_token"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":        { "const": "admin_shutdown_request" },
-        "request_id":  { "$ref": "#/$defs/request_id" },
-        "admin_token": { "type": "string", "minLength": 1, "maxLength": 512 },
-        "reason":      { "type": "string", "maxLength": 512 }
+        "type": {
+          "const": "admin_shutdown_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "admin_token": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 512
+        }
       }
     },
     {
       "type": "object",
       "title": "admin_ack_response",
       "description": "Generic acknowledgement for admin write operations (config set, log level, gate deny, shutdown)",
-      "required": ["type", "request_id", "success"],
+      "required": [
+        "type",
+        "request_id",
+        "success"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "admin_ack_response" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "success":    { "type": "boolean" },
-        "message":    { "type": "string", "maxLength": 512 }
+        "type": {
+          "const": "admin_ack_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "success": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 512
+        }
       }
     },
     {
       "type": "object",
       "title": "admin_error",
-      "required": ["type", "request_id", "error_code", "message"],
+      "required": [
+        "type",
+        "request_id",
+        "error_code",
+        "message"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "admin_error" },
-        "request_id": { "$ref": "#/$defs/request_id" },
+        "type": {
+          "const": "admin_error"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
         "error_code": {
           "type": "string",
-          "enum": ["unauthorized", "not_found", "invalid_key", "invalid_value", "invalid_token", "rate_limited", "internal_error"]
+          "enum": [
+            "unauthorized",
+            "not_found",
+            "invalid_key",
+            "invalid_value",
+            "invalid_token",
+            "rate_limited",
+            "internal_error"
+          ]
         },
-        "message":   { "type": "string", "maxLength": 1024 }
+        "message": {
+          "type": "string",
+          "maxLength": 1024
+        }
       }
     }
   ]

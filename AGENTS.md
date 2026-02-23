@@ -11,6 +11,7 @@
 `lanyte-crucible` is the **single source of truth (SSOT)** for all Lanyte platform contracts. Nothing is implemented before its contract exists here. All other repos are downstream consumers.
 
 Contents:
+
 - `schemas/ipc/` — JSON Schema 2020-12 files for all IPC channels (loaded by ipcprims at runtime)
 - `schemas/agentic/` — Role prompt schema and capability taxonomy schema
 - `docs/decisions/` — ADRs (Architecture Decision Records), SDRs, DDRs
@@ -31,16 +32,16 @@ Lanyte is a **secure, self-hosted autonomous AI agent platform**. Key architectu
 
 **IPC channel assignments:**
 
-| Channel | File | Peer |
-|---------|------|------|
-| 0 | `control.schema.json` | all peers (handshake) |
-| 1 | `command.schema.json` | all peers (generic commands) |
-| 3 | `telemetry.schema.json` | all peers (metrics, audit) |
-| 4 | `error.schema.json` | all peers (out-of-band errors) |
-| 256 | `channel_256.schema.json` | mlvoy (email bridge) |
-| 257 | `channel_257.schema.json` | fulminar (HTTP proxy) |
-| 258 | `channel_258.schema.json` | lanyte-admin (admin UI) |
-| 259 | `channel_259.schema.json` | skill executor I/O |
+| Channel | File                      | Peer                           |
+| ------- | ------------------------- | ------------------------------ |
+| 0       | `control.schema.json`     | all peers (handshake)          |
+| 1       | `command.schema.json`     | all peers (generic commands)   |
+| 3       | `telemetry.schema.json`   | all peers (metrics, audit)     |
+| 4       | `error.schema.json`       | all peers (out-of-band errors) |
+| 256     | `channel_256.schema.json` | mlvoy (email bridge)           |
+| 257     | `channel_257.schema.json` | fulminar (HTTP proxy)          |
+| 258     | `channel_258.schema.json` | lanyte-admin (admin UI)        |
+| 259     | `channel_259.schema.json` | skill executor I/O             |
 
 **Schema naming**: user channels MUST be `channel_NNN.schema.json`. Do not use logical names — ipcprims will silently ignore them. See ADR-0006.
 
@@ -53,6 +54,7 @@ Lanyte is a **secure, self-hosted autonomous AI agent platform**. Key architectu
 If you are a core maintainer on a dev machine, check for `AGENTS.local.md` in this directory (gitignored). It contains local paths and private repo references.
 
 Typical sibling repos on a dev machine:
+
 ```
 ~/dev/lanytehq/lanyte-crucible/   ← you are here (or a repo-seed)
 ~/dev/lanytehq/lanyte/             ← Rust workspace (main core)

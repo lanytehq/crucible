@@ -1,11 +1,9 @@
 # Lanyte Crucible - Site Configuration (Seed)
 docroot: "docs"
 title: "Lanyte Crucible"
-
 brand:
   name: "Lanyte Crucible"
   url: "/"
-
 sections:
   - name: "Specs"
     path: "specs"
@@ -17,8 +15,6 @@ sections:
     path: "decisions"
   - name: "Guides"
     path: "guides"
-
 home: "index.md"
-
 server:
   port: 4012

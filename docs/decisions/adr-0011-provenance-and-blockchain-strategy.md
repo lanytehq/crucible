@@ -16,6 +16,7 @@ Skill packages (`.lanyte-skill`) need provenance guarantees: who built it, when,
 ### v1 (Sprint 1-4): Sigstore/Cosign only
 
 Skill package provenance is anchored via:
+
 - **Sigstore/Cosign** — keyless signing using OIDC identity (GitHub Actions or maintainer identity). The signature is embedded in the `.lanyte-skill` package alongside the SBOM.
 - The Cosign transparency log (Rekor) provides an append-only, publicly auditable record of all signatures.
 - Skillsentry (the static analysis tool) verifies the signature before any grant phase begins.
@@ -25,6 +26,7 @@ This is sufficient for Sprint 1-4. No blockchain dependency.
 ### v1 schema: `chain_provenance` is optional and chain-agnostic
 
 The skill package manifest includes a `chain_provenance` object:
+
 ```json
 {
   "chain_provenance": {

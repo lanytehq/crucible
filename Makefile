@@ -25,6 +25,15 @@ clean: ## Remove build artifacts (placeholder)
 check: guard-no-submodules guard-version-file ## Repo guards
 	@echo "OK"
 
+.PHONY: fmt
+fmt: ## Format all files (goneat: yaml, json, markdown)
+	@if command -v goneat >/dev/null 2>&1; then \
+		goneat format --types yaml,json,markdown --folders . --finalize-eof --quiet 2>&1 | grep -v "encountered the following formatting errors" || true; \
+		echo "[ok] fmt done"; \
+	else \
+		echo "[--] goneat not found, skipping"; \
+	fi
+
 .PHONY: quality
 quality: ## Run goneat lint checks (optional)
 	@if command -v goneat >/dev/null 2>&1; then \
@@ -34,7 +43,7 @@ quality: ## Run goneat lint checks (optional)
 	fi
 
 .PHONY: precommit
-precommit: check ## Pre-commit checks (fast)
+precommit: check fmt quality ## Pre-commit checks: guards + fmt + lint
 	@echo "[ok] Pre-commit checks passed"
 
 .PHONY: prepush
