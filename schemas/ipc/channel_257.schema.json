@@ -11,7 +11,9 @@
     "http_headers": {
       "type": "object",
       "description": "HTTP headers as lowercase-name to value pairs",
-      "additionalProperties": { "type": "string" }
+      "additionalProperties": {
+        "type": "string"
+      }
     }
   },
   "oneOf": [
@@ -19,86 +21,207 @@
       "type": "object",
       "title": "http_get_request",
       "description": "Core requests proxy to perform HTTP GET on behalf of a skill. Proxy enforces domain allowlist against skill_id's permitted domains.",
-      "required": ["type", "request_id", "url", "skill_id"],
+      "required": [
+        "type",
+        "request_id",
+        "url",
+        "skill_id"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "http_get_request" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "url":        { "type": "string", "format": "uri", "maxLength": 2048 },
-        "skill_id":   { "type": "string", "minLength": 1, "maxLength": 256, "description": "Identifies which skill is making the request; used for per-skill domain allowlisting" },
-        "headers":    { "$ref": "#/$defs/http_headers" }
+        "type": {
+          "const": "http_get_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 2048
+        },
+        "skill_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "description": "Identifies which skill is making the request; used for per-skill domain allowlisting"
+        },
+        "headers": {
+          "$ref": "#/$defs/http_headers"
+        }
       }
     },
     {
       "type": "object",
       "title": "http_post_request",
       "description": "Core requests proxy to perform HTTP POST on behalf of a skill",
-      "required": ["type", "request_id", "url", "skill_id"],
+      "required": [
+        "type",
+        "request_id",
+        "url",
+        "skill_id"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":         { "const": "http_post_request" },
-        "request_id":   { "$ref": "#/$defs/request_id" },
-        "url":          { "type": "string", "format": "uri", "maxLength": 2048 },
-        "skill_id":     { "type": "string", "minLength": 1, "maxLength": 256 },
-        "content_type": { "type": "string", "maxLength": 256 },
-        "headers":      { "$ref": "#/$defs/http_headers" },
-        "body_b64":     { "type": "string", "description": "Request body, base64-encoded", "maxLength": 1048576 }
+        "type": {
+          "const": "http_post_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "maxLength": 2048
+        },
+        "skill_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "content_type": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "headers": {
+          "$ref": "#/$defs/http_headers"
+        },
+        "body_b64": {
+          "type": "string",
+          "description": "Request body, base64-encoded",
+          "maxLength": 1048576
+        }
       }
     },
     {
       "type": "object",
       "title": "http_response",
       "description": "Proxy returns the HTTP response to core",
-      "required": ["type", "request_id", "status_code"],
+      "required": [
+        "type",
+        "request_id",
+        "status_code"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":           { "const": "http_response" },
-        "request_id":     { "$ref": "#/$defs/request_id" },
-        "status_code":    { "type": "integer", "minimum": 100, "maximum": 599 },
-        "headers":        { "$ref": "#/$defs/http_headers" },
-        "body_b64":       { "type": "string", "description": "Response body base64-encoded; may be truncated at proxy size limit (default 5 MiB)", "maxLength": 10485760 },
-        "truncated":      { "type": "boolean", "description": "true if body was truncated at the proxy response size limit" },
-        "bytes_received": { "type": "integer", "minimum": 0 }
+        "type": {
+          "const": "http_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "status_code": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "headers": {
+          "$ref": "#/$defs/http_headers"
+        },
+        "body_b64": {
+          "type": "string",
+          "description": "Response body base64-encoded; may be truncated at proxy size limit (default 5 MiB)",
+          "maxLength": 10485760
+        },
+        "truncated": {
+          "type": "boolean",
+          "description": "true if body was truncated at the proxy response size limit"
+        },
+        "bytes_received": {
+          "type": "integer",
+          "minimum": 0
+        }
       }
     },
     {
       "type": "object",
       "title": "http_error",
       "description": "Proxy reports a transport or policy error (not an HTTP error status)",
-      "required": ["type", "request_id", "error_code", "message"],
+      "required": [
+        "type",
+        "request_id",
+        "error_code",
+        "message"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "http_error" },
-        "request_id": { "$ref": "#/$defs/request_id" },
+        "type": {
+          "const": "http_error"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
         "error_code": {
           "type": "string",
-          "enum": ["domain_blocked", "connection_failed", "tls_error", "timeout", "rate_limited", "invalid_url", "response_too_large"]
+          "enum": [
+            "domain_blocked",
+            "connection_failed",
+            "tls_error",
+            "timeout",
+            "rate_limited",
+            "invalid_url",
+            "response_too_large"
+          ]
         },
-        "message":   { "type": "string", "maxLength": 1024 },
-        "retryable": { "type": "boolean" }
+        "message": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "retryable": {
+          "type": "boolean"
+        }
       }
     },
     {
       "type": "object",
       "title": "proxy_policy_query_request",
       "description": "Core queries the proxy's current active policy",
-      "required": ["type", "request_id"],
+      "required": [
+        "type",
+        "request_id"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "proxy_policy_query_request" },
-        "request_id": { "$ref": "#/$defs/request_id" }
+        "type": {
+          "const": "proxy_policy_query_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        }
       }
     },
     {
       "type": "object",
       "title": "proxy_policy_query_response",
-      "required": ["type", "request_id", "allowed_domains"],
+      "required": [
+        "type",
+        "request_id",
+        "allowed_domains"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":            { "const": "proxy_policy_query_response" },
-        "request_id":      { "$ref": "#/$defs/request_id" },
-        "allowed_domains": { "type": "array", "items": { "type": "string", "maxLength": 256 }, "maxItems": 10000 },
-        "blocked_domains": { "type": "array", "items": { "type": "string", "maxLength": 256 }, "maxItems": 10000 }
+        "type": {
+          "const": "proxy_policy_query_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "allowed_domains": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "maxItems": 10000
+        },
+        "blocked_domains": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "maxItems": 10000
+        }
       }
     }
   ]

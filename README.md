@@ -3,6 +3,7 @@
 This seed represents the intended structure for the **public** `lanytehq/lanyte-crucible` repo.
 
 Goals:
+
 - Contract-first: specs + schemas land before implementations.
 - Kitfly renders `docs/` (like Hugo/Docusaurus); machine artifacts live in `schemas/` and `config/`.
 
@@ -21,6 +22,7 @@ kitfly dev . --port 4012
 ## Licensing And Marks
 
 Copy the standard Crucible pattern:
+
 - CC0 for docs/data/schemas
 - MIT OR Apache-2.0 for code/scripts
 - Trademark notice reserving `Lanyte`/`LanyteHQ`

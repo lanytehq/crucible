@@ -14,7 +14,7 @@ Schemas are SSOT artifacts intended for **machine consumption**. The canonical f
 ## Policy
 
 Default stance for IPC and config schemas:
+
 - Prefer `additionalProperties: false`
 - Prefer explicit `required` fields
 - Version schemas intentionally (no silent drift)
-

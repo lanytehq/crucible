@@ -16,12 +16,14 @@ ipcprims `SchemaRegistry::from_directory()` validates every frame at the IPC bou
 ### 1. File naming
 
 User channels (256–259) use the numeric form required by ipcprims:
+
 - `channel_256.schema.json` (MAIL)
 - `channel_257.schema.json` (PROXY)
 - `channel_258.schema.json` (ADMIN)
 - `channel_259.schema.json` (SKILL_IO)
 
 Built-in channels use their ipcprims name:
+
 - `control.schema.json`, `command.schema.json`, `telemetry.schema.json`, `error.schema.json`
 
 Logical names (`mail.schema.json`, `proxy.schema.json`) are NOT used. ipcprims will silently ignore files it cannot map.
@@ -37,6 +39,7 @@ This avoids per-direction schema files and keeps the channel contract self-conta
 ipcprims strict mode recursively adds `"additionalProperties": false` to any JSON Schema object that does not already have that key. This is the desired default (prevents data exfiltration via extra fields).
 
 Exceptions — where an object must remain open — require explicit `"additionalProperties": true` in the schema. Current cases:
+
 - `skill_invoke_request.input` and `skill_invoke_response.output` (skill-specific, validated at executor boundary)
 - `command.args` and `command.result` (open command channel, handler-specific)
 - `telemetry.audit_event.details` (action-specific fields)
@@ -50,6 +53,7 @@ Binary payloads are base64-encoded strings with a `_b64` suffix on the field nam
 ### 5. Request correlation
 
 All request/response pairs use a `request_id` field typed as UUID v4:
+
 ```
 pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
 ```

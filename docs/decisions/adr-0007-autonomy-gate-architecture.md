@@ -25,6 +25,7 @@ The autonomy gate is implemented as a request/approval/token flow across two IPC
 ### What requires a gate token
 
 Any action that cannot be undone or that touches external systems with real-world consequences:
+
 - `mail_send_request` — sends email to external recipients
 - Future: HTTP POST/PUT/DELETE to external services beyond read-only
 - Future: skill installation from unsigned packages

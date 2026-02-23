@@ -16,10 +16,12 @@ Lanyte agents must produce an auditable record of every consequential action. Th
 The hash chain is managed **at the wire level** by the emitting peer, not by core alone.
 
 Each `audit_event` message on the TELEMETRY channel (3) carries:
+
 - `entry_id` — UUID v4 unique to this entry
 - `prev_hash` — SHA-256 (lowercase hex) of the canonical JSON encoding of the previous `audit_event` emitted by this peer. The genesis entry uses `"0" * 64`.
 
 Core:
+
 1. Receives the `audit_event` frame.
 2. Looks up the most recently stored entry for this `peer_id`.
 3. Computes `SHA-256(canonical_json(previous_entry))` and compares to `prev_hash`.

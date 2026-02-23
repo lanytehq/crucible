@@ -14,13 +14,26 @@
       "type": "object",
       "title": "invoke",
       "description": "Execute a named command on the remote side. Args are command-specific and validated by the handler.",
-      "required": ["type", "request_id", "command"],
+      "required": [
+        "type",
+        "request_id",
+        "command"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "invoke" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "command":    { "type": "string", "minLength": 1, "maxLength": 256, "description": "Dot-namespaced command name (e.g. core.reload_policy, skill.purge_cache)" },
-        "args":       {
+        "type": {
+          "const": "invoke"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "description": "Dot-namespaced command name (e.g. core.reload_policy, skill.purge_cache)"
+        },
+        "args": {
           "type": "object",
           "description": "Command arguments — open object, schema is command-specific",
           "additionalProperties": true
@@ -31,13 +44,24 @@
       "type": "object",
       "title": "invoke_result",
       "description": "Result of a successful command invocation.",
-      "required": ["type", "request_id", "command"],
+      "required": [
+        "type",
+        "request_id",
+        "command"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "invoke_result" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "command":    { "type": "string", "maxLength": 256 },
-        "result":     {
+        "type": {
+          "const": "invoke_result"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "command": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "result": {
           "type": "object",
           "description": "Command result payload — open object, command-specific",
           "additionalProperties": true
@@ -47,18 +71,42 @@
     {
       "type": "object",
       "title": "invoke_error",
-      "required": ["type", "request_id", "command", "error_code", "message"],
+      "required": [
+        "type",
+        "request_id",
+        "command",
+        "error_code",
+        "message"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "invoke_error" },
-        "request_id": { "$ref": "#/$defs/request_id" },
-        "command":    { "type": "string", "maxLength": 256 },
+        "type": {
+          "const": "invoke_error"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "command": {
+          "type": "string",
+          "maxLength": 256
+        },
         "error_code": {
           "type": "string",
-          "enum": ["unknown_command", "invalid_args", "permission_denied", "internal_error", "rate_limited"]
+          "enum": [
+            "unknown_command",
+            "invalid_args",
+            "permission_denied",
+            "internal_error",
+            "rate_limited"
+          ]
         },
-        "message":   { "type": "string", "maxLength": 1024 },
-        "retryable": { "type": "boolean" }
+        "message": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "retryable": {
+          "type": "boolean"
+        }
       }
     }
   ]

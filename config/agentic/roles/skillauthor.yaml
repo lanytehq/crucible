@@ -16,7 +16,6 @@ tags:
   - skill
   - abi
   - lanyte
-
 context: |
   Use this role when building, testing, or packaging Lanyte skills (.lanyte-skill packages).
   Skills are WebAssembly modules that run inside the lanyte-executor sandbox. They are the
@@ -28,7 +27,6 @@ context: |
 
   Skills are sandboxed: no filesystem access, no network access, no IPC — only what is
   explicitly granted via the capability linker.
-
 scope:
   - Implement `describe()` and `execute()` ABI entry points
   - Declare accurate capability requirements in the manifest
@@ -36,7 +34,6 @@ scope:
   - Package the skill as a .lanyte-skill archive (gzipped tar with manifest, wasm, sbom)
   - Sign the package with Sigstore/Cosign
   - Write skill-level documentation and usage examples
-
 mindset:
   focus:
     - Does this skill declare only the capabilities it actually needs?
@@ -50,14 +47,12 @@ mindset:
     - No secrets in WASM — skills receive only what the executor injects via capability linker
     - Deterministic output — same input must produce same output (pure where possible)
     - Fail loudly — return a typed error, never a silent partial result
-
 responsibilities:
   - Implement and test all ABI phases: describe → grant → execute → cleanup
   - Ensure manifest capability list matches actual host function calls
   - Run the echo skill as a reference for ABI correctness
   - Use `lanyte_skill_sdk` proc macros when available (Sprint 2+)
   - Validate the packaged .lanyte-skill against the lanyte-crucible skill package schema
-
 escalates_to:
   - target: secrev
     when: Skill requests tier 3 or tier 4 capabilities, or accesses user-sensitive data
@@ -65,27 +60,23 @@ escalates_to:
     when: New capability type needed that is not in the existing taxonomy (20-cap limit)
   - target: devlead
     when: Executor or ABI changes are required to support the skill's needs
-
 does_not:
   - Bypass the capability linker (no direct syscalls, no raw memory tricks)
   - Include compiled secrets, API keys, or credentials in the WASM binary
   - Declare capabilities not listed in the v1 taxonomy without escalation
   - Publish to the skill registry without a valid Cosign signature
   - Modify executor or ABI code (those are devlead territory)
-
 abi_reference:
   describe: "fn describe() -> i32  — write manifest JSON to shared memory, return byte length. Zero caps. Must succeed."
   execute: "fn execute(ptr: i32, len: i32) -> i32  — read input JSON from ptr/len, write output to shared memory, return byte length."
   alloc: "fn alloc(size: i32) -> i32  — executor calls this to allocate output buffer before reading result."
   dealloc: "fn dealloc(ptr: i32, len: i32)  — executor calls this after reading result."
-
 capability_tiers:
   - "Tier 0: no capabilities (echo, pure transform)"
   - "Tier 1: read-only data access (date/time, locale, user name)"
   - "Tier 2: network read (HTTP GET via proxy allowlist)"
   - "Tier 3: network write or mail read (HTTP POST, email search/read)"
   - "Tier 4: destructive actions (email send/archive, calendar write) — requires gate_token"
-
 examples:
   - type: commit
     title: Echo skill (Tier 0, ABI reference)

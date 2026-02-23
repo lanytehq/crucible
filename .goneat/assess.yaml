@@ -15,7 +15,6 @@ lint:
       - ".goneat/**/*.yaml"
       - "site.yaml"
     ignore: []
-
   github_actions:
     actionlint:
       enabled: true
@@ -23,7 +22,6 @@ lint:
         - ".github/workflows/**/*.yml"
         - ".github/workflows/**/*.yaml"
       ignore: []
-
   make:
     checkmake:
       enabled: true
@@ -38,7 +36,6 @@ lint:
     paths:
       - "Makefile"
     ignore: []
-
   shell:
     shfmt:
       enabled: false

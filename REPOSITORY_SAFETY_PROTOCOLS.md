@@ -17,9 +17,9 @@ This repo is intended to be **public SSOT**. Treat it as an external-facing arti
 ## Decisions
 
 Decision records live in `docs/decisions/`:
+
 - `ADR-####-...` for architecture decisions
 - `SDR-####-...` for standards decisions
 - `DDR-####-...` for deep design decisions
 
 If unsure, start with an ADR.
-

@@ -14,16 +14,15 @@ tags:
   - testing
   - quality
   - validation
-
 context: >
   Use this role for testing and quality assurance work. The qa role focuses on test coverage, edge cases, and quality gate enforcement. #magic___^_^___line
+
 scope:
   - Test case design and implementation
   - Edge case identification
   - Quality gate verification
   - Test coverage analysis
   - Regression testing
-
 mindset:
   focus:
     - What could go wrong here?
@@ -35,14 +34,12 @@ mindset:
     - Cover edge cases explicitly
     - Make tests deterministic
     - Keep tests fast and focused
-
 responsibilities:
   - Design comprehensive test cases
   - Identify edge cases and boundary conditions
   - Verify quality gates are passing
   - Analyze and improve test coverage
   - Review test code for effectiveness
-
 escalates_to:
   - target: devlead
     when: Implementation questions during test design
@@ -50,7 +47,6 @@ escalates_to:
     when: Quality gate failures blocking release
   - target: secrev
     when: Security-related test requirements
-
 does_not:
   - Approve code with failing tests
   - Skip test review for trivial changes

@@ -10,6 +10,7 @@ Status: Accepted
 ## Context
 
 Agent memory must be:
+
 - **Append-only** — entries are never overwritten, only superseded by later entries
 - **Tamper-evident** — the hash chain (per ADR-0008) makes modification detectable
 - **Queryable** — fast lookup by time, topic, association, and agent ID
@@ -22,6 +23,7 @@ The question is whether SQLite (already a dependency for state storage) is adequ
 Use **SQLite WAL mode with application-enforced INSERT-only policy** for the hot tier.
 
 Enforcement mechanism:
+
 1. The `lanyte-state` crate opens the DB in WAL mode.
 2. On schema migration, it installs triggers that raise errors on `UPDATE` and `DELETE` against the `memory_entries` table.
 3. Supersession is modelled as a new INSERT with a `supersedes_id` foreign key, not as an UPDATE.
@@ -35,6 +37,7 @@ When the hot tier exceeds its size limit, the oldest entries are exported to the
 ### Deferred: `memprims` library
 
 A purpose-built immutable append-only store (`3leaps/memprims` or `3leaps/auditprims`) would provide structural enforcement rather than application-level enforcement. This is deferred until one of these triggers occurs:
+
 - Multi-agent shared memory with cross-agent chain verification is required.
 - Compliance certification requires structural (not application-level) immutability guarantees.
 - The application-enforcement layer experiences a correctness failure in production.

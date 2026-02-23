@@ -19,12 +19,24 @@
       "type": "object",
       "title": "peer_error",
       "description": "A recoverable or non-fatal error from a peer. Core logs the event and may take corrective action (e.g. reconnect, notify admin).",
-      "required": ["type", "peer_id", "timestamp", "error_code", "message"],
+      "required": [
+        "type",
+        "peer_id",
+        "timestamp",
+        "error_code",
+        "message"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "peer_error" },
-        "peer_id":    { "$ref": "#/$defs/peer_id" },
-        "timestamp":  { "$ref": "#/$defs/timestamp" },
+        "type": {
+          "const": "peer_error"
+        },
+        "peer_id": {
+          "$ref": "#/$defs/peer_id"
+        },
+        "timestamp": {
+          "$ref": "#/$defs/timestamp"
+        },
         "error_code": {
           "type": "string",
           "enum": [
@@ -37,21 +49,42 @@
             "internal_error"
           ]
         },
-        "message":   { "type": "string", "maxLength": 1024 },
-        "retryable": { "type": "boolean" },
-        "context":   { "type": "string", "maxLength": 2048, "description": "Additional diagnostic context (e.g. stack trace excerpt, upstream error message)" }
+        "message": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "context": {
+          "type": "string",
+          "maxLength": 2048,
+          "description": "Additional diagnostic context (e.g. stack trace excerpt, upstream error message)"
+        }
       }
     },
     {
       "type": "object",
       "title": "fatal_error",
       "description": "An unrecoverable error. The peer is about to exit or has already exited. Core should notify the admin channel and remove the peer from its registry.",
-      "required": ["type", "peer_id", "timestamp", "error_code", "message"],
+      "required": [
+        "type",
+        "peer_id",
+        "timestamp",
+        "error_code",
+        "message"
+      ],
       "additionalProperties": false,
       "properties": {
-        "type":       { "const": "fatal_error" },
-        "peer_id":    { "$ref": "#/$defs/peer_id" },
-        "timestamp":  { "$ref": "#/$defs/timestamp" },
+        "type": {
+          "const": "fatal_error"
+        },
+        "peer_id": {
+          "$ref": "#/$defs/peer_id"
+        },
+        "timestamp": {
+          "$ref": "#/$defs/timestamp"
+        },
         "error_code": {
           "type": "string",
           "enum": [
@@ -64,8 +97,14 @@
             "startup_failed"
           ]
         },
-        "message":   { "type": "string", "maxLength": 1024 },
-        "context":   { "type": "string", "maxLength": 4096 }
+        "message": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "context": {
+          "type": "string",
+          "maxLength": 4096
+        }
       }
     }
   ]

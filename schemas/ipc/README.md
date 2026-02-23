@@ -3,6 +3,7 @@
 This folder is intended to contain JSON Schemas for each channel used at the core gateway boundary.
 
 Bootstrap channels to define early:
+
 - CONTROL/COMMAND/TELEMETRY/ERROR (built-in)
 - MAIL (256)
 - PROXY (257)
@@ -10,4 +11,3 @@ Bootstrap channels to define early:
 - SKILL_IO (259)
 
 These schemas should be validated during development via `ipcprims echo --validate <schema_dir>`.
-
