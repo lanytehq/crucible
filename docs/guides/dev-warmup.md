@@ -32,14 +32,23 @@ Lanyte is a **secure, self-hosted autonomous AI agent platform**. The architectu
   lanyte/                   ← Rust workspace (TCB) — CRT-001 creates this
   lanyte-productbook-internal/ ← Sprint boards, gate status
   lanyte-*/                 ← other platform repos
+  chat/                     ← file-based inter-role messaging (not a git repo)
+  context/<role>/           ← per-role persistent state (not a git repo)
 
-~/dev/3leaps/ipcprims/      ← IPC library v0.1.3 (MSRV 1.85.0)
+~/dev/3leaps/ipcprims/      ← IPC library v0.1.2 (MSRV 1.85.0)
 ~/dev/fulmenhq/mlvoy/       ← email bridge peer (channel 256)
 ~/dev/fulmenhq/fulminar/    ← HTTP proxy peer (channel 257)
 ```
 
 If you don't see `lanyte/`, it hasn't been created yet — that's CRT-001.
 Check `AGENTS.local.md` in your working repo for any machine-specific path overrides.
+
+**Agent coordination**: Read `docs/specs/agent-coordination-bootstrap.md` for the full
+messaging, context, and role conventions. At minimum:
+
+- Read `~/dev/lanytehq/context/<your-role>/STATE.md` at session start
+- Check `~/dev/lanytehq/chat/` for pending messages addressed to your role
+- Update `STATE.md` and write handoff notes at session end
 
 ---
 
