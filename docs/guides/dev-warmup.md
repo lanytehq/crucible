@@ -29,7 +29,7 @@ Lanyte is a **secure, self-hosted autonomous AI agent platform**. The architectu
 ```
 ~/dev/lanytehq/
   lanyte-crucible/          ← SSOT: schemas, ADRs, roles (you are here or close)
-  lanyte/                   ← Rust workspace (TCB) — CRT-001 creates this
+  lanyte/                   ← Rust workspace (TCB) — created (CRT-001 merged)
   lanyte-productbook-internal/ ← Sprint boards, gate status
   lanyte-*/                 ← other platform repos
   chat/                     ← file-based inter-role messaging (not a git repo)
@@ -40,7 +40,6 @@ Lanyte is a **secure, self-hosted autonomous AI agent platform**. The architectu
 ~/dev/fulmenhq/fulminar/    ← HTTP proxy peer (channel 257)
 ```
 
-If you don't see `lanyte/`, it hasn't been created yet — that's CRT-001.
 Check `AGENTS.local.md` in your working repo for any machine-specific path overrides.
 
 **Agent coordination**: Read `docs/specs/agent-coordination-bootstrap.md` for the full
@@ -86,9 +85,9 @@ Check before touching any task:
 
 **Current gate status (as of 2026-02-22):**
 
-- G1 ✅ ipcprims v0.1.3 available
+- G1 ✅ ipcprims v0.1.2 available
 - G2 ✅ IPC schemas — all 8 written and merged to lanyte-crucible main
-- G3 🟡 Ready — lanyte Rust workspace + gateway (CRT-001 through CRT-006)
+- G3 🟡 In progress — CRT-001 merged; CRT-002 through CRT-006 remain
 - G4 🔴 Blocked on G3 — executor runs echo skill
 - G5 🔴 Blocked on G4 — stack alive
 
@@ -164,7 +163,7 @@ ipcprims echo /tmp/lanyte-test.sock \
   --validate ~/dev/lanytehq/lanyte-crucible/schemas/ipc/
 # Expect: "INFO listening on unix domain socket" with no errors, then Ctrl-C
 
-# In lanyte/ workspace (once CRT-001 is done):
+# In lanyte/ workspace:
 make check   # cargo fmt --check + cargo clippy -D warnings + cargo test + cargo deny
 ```
 
