@@ -12,7 +12,7 @@ Baseline role prompts for AI agent sessions.
 | **Days - Week**        | dispatch, secrev    | Session handoffs, security reviews, coordination               |
 | **Sprint (1-4w)**      | deliverylead, cicd  | Sprint planning, delivery coordination, pipelines              |
 | **Quarter (3mo)**      | releng, prodmktg    | Release planning, marketing campaigns, roadmaps                |
-| **Strategic (6-18mo)** | cxotech, entarch    | Architecture decisions, product direction, cross-repo strategy |
+| **Strategic (6-18mo)** | cxotech             | Architecture decisions, product direction, cross-repo strategy |
 
 ## Role Categories
 
@@ -55,6 +55,7 @@ Roles are organized across these business process domains:
 | [Delivery Lead](deliverylead.yaml)                  | `deliverylead` | governance | coordination, delivery          | Sprint-Quarter | Project lifecycle, sprint coordination     |
 | [Release Engineering](releng.yaml)                  | `releng`       | automation | delivery, development           | Quarter        | Versioning, releases                       |
 | [Product Marketing](prodmktg.yaml)                  | `prodmktg`     | agentic    | delivery, marketing             | Quarter        | Branding, messaging, personas              |
+| [Skill Author](skillauthor.yaml)                    | `skillauthor`  | agentic    | development, implementation     | Hours-Days     | WASM skill dev, ABI compliance             |
 | [Chief Experience Technology Officer](cxotech.yaml) | `cxotech`      | governance | strategy, architecture, product | Strategic      | Strategic fulcrum for product-architecture |
 
 ## When to Use Which Role
@@ -74,7 +75,7 @@ Roles are organized across these business process domains:
 | **Architecture decision**      | cxotech          | human maintainers              | Weeks-months  |
 | **Documentation**              | infoarch         | prodmktg (messaging)           | Days-sprint   |
 | **Multi-project coordination** | deliverylead     | dispatch (session routing)     | Sprint        |
-| **Cross-repo strategy**        | cxotech          | entarch (ecosystem-wide)       | Quarter       |
+| **Cross-repo strategy**        | cxotech          | human maintainers              | Quarter       |
 
 ### By Decision Type
 

@@ -28,7 +28,7 @@ Lanyte is a **secure, self-hosted autonomous AI agent platform**. Key architectu
 - **Core** (`lanyte`, Rust, TCB) — the only fully trusted component. Everything else is a peer.
 - **Peers** connect to core via ipcprims IPC sockets. Each peer gets a schema-validated channel.
 - **Skills** are WASM modules that run inside the executor sandbox inside core.
-- **ipcprims** (`3leaps/ipcprims`, v0.1.3) — the IPC framing library. SchemaRegistry loads files from `schemas/ipc/` at startup.
+- **ipcprims** (`3leaps/ipcprims`, v0.1.2) — the IPC framing library. SchemaRegistry loads files from `schemas/ipc/` at startup.
 
 **IPC channel assignments:**
 
