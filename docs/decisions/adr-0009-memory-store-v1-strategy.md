@@ -25,10 +25,11 @@ Use **SQLite WAL mode with application-enforced INSERT-only policy** for the hot
 Enforcement mechanism:
 
 1. The `lanyte-state` crate opens the DB in WAL mode.
-2. On schema migration, it installs triggers that raise errors on `UPDATE` and `DELETE` against the `memory_entries` table.
-3. Supersession is modelled as a new INSERT with a `supersedes_id` foreign key, not as an UPDATE.
-4. The hash chain is maintained in application code (`lanyte-state` computes `prev_hash` before inserting).
-5. No external process or user has direct DB write access; all access is through the `lanyte-state` API.
+2. The hot-tier schema is managed by versioned SQLite migrations embedded at compile time (no runtime file I/O) and tracked via `state_metadata.schema_version`.
+3. On schema migration, it installs triggers that raise errors on `UPDATE` and `DELETE` against the `memory_entries` table, and blocks REPLACE-style overwrites (e.g., `INSERT OR REPLACE`) on existing `entry_id` rows.
+4. Supersession is modelled as a new INSERT with a `supersedes_id` foreign key, not as an UPDATE.
+5. The hash chain is maintained in application code (`lanyte-state` computes `prev_hash` before inserting).
+6. No external process or user has direct DB write access; all access is through the `lanyte-state` API.
 
 ### Eviction to warm/cold
 
