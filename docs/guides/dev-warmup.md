@@ -83,11 +83,11 @@ Check before touching any task:
   → STD task board (STD-001/002/003 done; STD-004/005/006 ready)
 ```
 
-**Current gate status (as of 2026-02-22):**
+**Current gate status (as of 2026-02-25):**
 
 - G1 ✅ ipcprims v0.1.2 available
 - G2 ✅ IPC schemas — all 8 written and merged to lanyte-crucible main
-- G3 🟡 In progress — CRT-001 merged; CRT-002 through CRT-006 remain
+- G3 🟡 In progress — CRT-001/002/003/007/010 merged; CRT-004 (gateway) awaits ipcprims v0.2.0
 - G4 🔴 Blocked on G3 — executor runs echo skill
 - G5 🔴 Blocked on G4 — stack alive
 
