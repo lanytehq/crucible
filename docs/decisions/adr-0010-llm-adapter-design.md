@@ -33,7 +33,9 @@ Each adapter implements `LlmBackend` directly against the provider's native API 
 - **Model**: configured via `lanyte-common` config key `llm.claude.model` (default: `claude-sonnet-4-6`). Changed by config, not code.
 - **API**: Anthropic Messages API, `POST /v1/messages`.
 - **Auth**: API key injected at adapter init from the gateway secret store; never persisted by the adapter.
-- **Retry**: exponential backoff on 429 and 503, max 3 attempts, base delay 1 s.
+- **Retry**: bounded exponential backoff on `429` and selected upstream `5xx` (`500/502/503/504`), max 3 attempts, base delay 1 s with jitter.
+  - Rationale: `500` is often a blanket "unknown failure" during partial upstream outages; a longer baseline backoff reduces load amplification and helps decorrelate concurrent agents from narrower/localized failures.
+  - `500` uses a longer baseline backoff than other retryable statuses.
 - **Streaming**: native server-sent events.
 
 ## Options Considered
@@ -54,4 +56,5 @@ Each adapter implements `LlmBackend` directly against the provider's native API 
 - Positive: Model-specific features (structured output, caching, extended context) are available as soon as the provider ships them, without waiting for an abstraction layer to catch up.
 - Negative: Adding a second LLM provider (GPT-4o, Grok, Gemini) requires writing a new adapter. This is intentional — we do not want to accidentally commit to a multi-provider abstraction before we know which models matter.
 - Risk: If the Anthropic Messages API makes a breaking change, only the Claude adapter needs updating. This is easier than a shared abstraction layer that must accommodate multiple providers simultaneously.
+- Risk: Retrying on some upstream `5xx` can increase the chance of duplicate provider billing if the request was processed server-side but failed at the transport boundary. Lanyte keeps retries bounded and expects the orchestrator to handle sustained outages via higher-level scheduling.
 - Note: The `LlmBackend` trait is the abstraction. The abstraction is the trait, not a library.
