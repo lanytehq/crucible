@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.3leaps.dev/agentic/v0/agent-state.schema.json",
+  "title": "Agent Role State",
+  "description": "Structured checkpoint for agent role state. Written after each deliverable, read at session start for fast resume. Replaces freeform STATE.md.",
+  "type": "object",
+  "required": [
+    "role",
+    "updated",
+    "active_task",
+    "status_summary"
+  ],
+  "properties": {
+    "role": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*$",
+      "description": "Role slug (matches role-prompt.schema.json slug)"
+    },
+    "scope": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9/_-]*$",
+      "description": "Org or org/project scope for the role. Examples: 'lanytehq', '3leaps/ipcprims'. Default: 'default'. Hash chain is per (role, scope)."
+    },
+    "agent_id": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Identity of the entity writing this checkpoint. Autonomous agent ('agent-rust'), human ('3leapsdave'), or model name. Metadata only — does not affect the hash chain."
+    },
+    "updated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of last checkpoint"
+    },
+    "session_type": {
+      "type": "string",
+      "enum": ["cold_start", "resume", "handoff"],
+      "description": "How the writing session ended. Guides the next session's warm-up path."
+    },
+    "status_summary": {
+      "type": "string",
+      "maxLength": 512,
+      "description": "One-paragraph summary of current state. The single thing a resuming agent reads first."
+    },
+    "active_task": {
+      "type": "object",
+      "required": ["id", "title", "status"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Task ID from the workstream board (e.g., CRT-004, AGI-011)"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "status": {
+          "type": "string",
+          "enum": ["not_started", "in_progress", "blocked", "in_review", "done"],
+          "description": "Task status at checkpoint time"
+        },
+        "next_action": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "The specific next thing to do when resuming this task"
+        }
+      },
+      "additionalProperties": false
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["summary"],
+        "properties": {
+          "summary": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "ref": {
+            "type": "string",
+            "description": "Reference to ADR, brief, or chat thread (e.g., ADR-0010, AGI-011)"
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Decisions made since last checkpoint. Prevents re-derivation on resume."
+    },
+    "pending_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["action"],
+        "properties": {
+          "action": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "blocked_by": {
+            "type": "string",
+            "description": "What this action is waiting on (task ID, person, event)"
+          },
+          "owner": {
+            "type": "string",
+            "description": "Role slug or person responsible"
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Actions this role is tracking but hasn't completed yet"
+    },
+    "modified_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["repo", "description"],
+        "properties": {
+          "repo": {
+            "type": "string",
+            "description": "Repository name (e.g., lanyte-crucible, lanyte-productbook-internal)"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "pushed": {
+            "type": "boolean",
+            "description": "Whether changes have been pushed to remote"
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Repos with uncommitted or unpushed changes at checkpoint time"
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 256
+      },
+      "description": "Current blockers preventing progress. Empty array = unblocked."
+    },
+    "context_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "File paths or URLs a resuming agent should read to rebuild context. Keep this minimal — only files needed for the active task, not the full warm-up sequence."
+    }
+  },
+  "additionalProperties": false
+}
