@@ -20,5 +20,5 @@ Decisions are recorded as ADRs when they are hard to reverse or when multiple vi
 | ADR-0007 | Autonomy gate architecture (gate_token flow via ADMIN channel)             | Accepted |
 | ADR-0008 | Audit event integrity via wire-level hash chain                            | Accepted |
 | ADR-0009 | Agent memory store v1 strategy (SQLite + app-enforced INSERT-only)         | Accepted |
-| ADR-0010 | LLM adapter design (direct-to-frontier-model, no abstraction intermediary) | Accepted |
+| ADR-0010 | LLM adapter design (direct-to-frontier-model, no abstraction intermediary) | Accepted + Addendum |
 | ADR-0011 | Provenance and blockchain strategy (Sigstore v1, blockchain Sprint 5+)     | Accepted |
