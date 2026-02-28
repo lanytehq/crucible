@@ -21,10 +21,43 @@
       "pattern": "^[a-z0-9][a-z0-9/_-]*$",
       "description": "Org or org/project scope for the role. Examples: 'lanytehq', '3leaps/ipcprims'. Default: 'default'. Hash chain is per (role, scope)."
     },
-    "agent_id": {
+    "authored_by": {
+      "type": "object",
+      "description": "Attribution for the entity writing this checkpoint. Structured for parseability but NOT a verified identity — trust level depends on whether the session is attested (see session_ref). Does not affect the hash chain.",
+      "required": ["actor_type"],
+      "properties": {
+        "actor_type": {
+          "type": "string",
+          "enum": ["human", "supervised_agent", "autonomous_agent"],
+          "description": "Category of actor. 'supervised_agent' = model operating under human supervision (Claude Code, Codex). 'human' = person acting directly. 'autonomous_agent' = persistent process with its own identity (future)."
+        },
+        "supervisor": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Handle of the human supervisor for supervised_agent sessions. This is the trust anchor — the human who attested or could attest the session."
+        },
+        "model": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Self-reported model name (e.g., 'claude-opus-4-6', 'gpt-5-codex'). Unreliable — models may misidentify. Treat as best-effort metadata."
+        },
+        "tool": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Agentic tool used (e.g., 'claude-code', 'codex', 'lanyte-orchestrator'). Also self-reported."
+        },
+        "handle": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "User handle for human actors (e.g., '3leapsdave'). For autonomous agents, their registered identity ref (future)."
+        }
+      },
+      "additionalProperties": false
+    },
+    "session_ref": {
       "type": "string",
-      "maxLength": 64,
-      "description": "Identity of the entity writing this checkpoint. Autonomous agent ('agent-rust'), human ('3leapsdave'), or model name. Metadata only — does not affect the hash chain."
+      "maxLength": 2048,
+      "description": "Session attestation token (JWT) or its hash. When present, indicates the session was attested by a human supervisor via lanyte-attest. When absent, the checkpoint is unattested — attribution is self-reported only. See CRT-012 for the attestation mechanism."
     },
     "updated": {
       "type": "string",
