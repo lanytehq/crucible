@@ -1,8 +1,8 @@
 ---
-title: ADR-0013 CLI stdout purity policy
+title: ADR-0012 CLI stdout purity policy
 ---
 
-# ADR-0013: CLI stdout purity policy
+# ADR-0012: CLI stdout purity policy
 
 ## Status
 
