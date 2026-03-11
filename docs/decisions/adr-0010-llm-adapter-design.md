@@ -250,14 +250,14 @@ pub enum LlmError {
 
 **Mapping rules (each adapter implements):**
 
-| Provider signal | LlmError variant |
-|----------------|-----------------|
-| HTTP 401 / 403 / invalid key | `AuthenticationFailed` |
-| HTTP 429 | `RateLimited { retry_after }` |
-| HTTP 503 / 529 / overloaded | `ServiceUnavailable` |
-| Model not found (provider-specific) | `InvalidModel` |
-| Content filter refusal | `ContentFiltered` |
-| Anything else non-2xx | `Upstream { status, message }` |
+| Provider signal                     | LlmError variant               |
+| ----------------------------------- | ------------------------------ |
+| HTTP 401 / 403 / invalid key        | `AuthenticationFailed`         |
+| HTTP 429                            | `RateLimited { retry_after }`  |
+| HTTP 503 / 529 / overloaded         | `ServiceUnavailable`           |
+| Model not found (provider-specific) | `InvalidModel`                 |
+| Content filter refusal              | `ContentFiltered`              |
+| Anything else non-2xx               | `Upstream { status, message }` |
 
 The orchestrator uses typed matching for retry decisions, circuit breaking, and user-facing
 error messages. The `Upstream` variant is the escape hatch — new provider error codes don't
