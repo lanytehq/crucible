@@ -24,7 +24,7 @@
     },
     "role-slug": {
       "type": "string",
-      "pattern": "^[a-z][a-z0-9-]{0,62}$",
+      "pattern": "^[a-z]([a-z0-9-]*[a-z0-9])?$",
       "maxLength": 63,
       "description": "Role identifier. Starts with a letter (not a digit) to avoid ambiguity with channel numbers and numeric identifiers in logs and queries. Slug-compatible. Examples: 'cxotech', 'devlead', 'secrev'."
     }

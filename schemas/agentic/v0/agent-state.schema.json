@@ -13,7 +13,7 @@
   "$defs": {
     "role-slug": {
       "type": "string",
-      "pattern": "^[a-z][a-z0-9-]{0,62}$",
+      "pattern": "^[a-z]([a-z0-9-]*[a-z0-9])?$",
       "maxLength": 63,
       "description": "Role identifier. Starts with a letter. Slug-compatible. Canonical source: naming.schema.json."
     },
