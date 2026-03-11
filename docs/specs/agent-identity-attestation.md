@@ -35,11 +35,11 @@ increases confidence in that assessment. Identity and attestation are the founda
 
 ## Three Actor Types
 
-| Actor type | Example | Identity persistence | Trust anchor |
-|-----------|---------|---------------------|-------------|
-| **Human** | Dave (@3leapsdave) | Persistent — known person | Physical access, credentials, MFA |
-| **Supervised agent** | Claude Opus 4.6 in Claude Code | Ephemeral — session-scoped | The human supervisor |
-| **Autonomous agent** | (future) persistent process | Persistent — registered entity | Its own cryptographic identity |
+| Actor type           | Example                        | Identity persistence           | Trust anchor                      |
+| -------------------- | ------------------------------ | ------------------------------ | --------------------------------- |
+| **Human**            | Dave (@3leapsdave)             | Persistent — known person      | Physical access, credentials, MFA |
+| **Supervised agent** | Claude Opus 4.6 in Claude Code | Ephemeral — session-scoped     | The human supervisor              |
+| **Autonomous agent** | (future) persistent process    | Persistent — registered entity | Its own cryptographic identity    |
 
 ### Key insight: role is not identity
 
@@ -52,6 +52,7 @@ identities. Supervised agent sessions are ephemeral — the model in a Claude Co
 has no persistent identity beyond the session.
 
 This separation means:
+
 - Role state chains are keyed by `(role, scope)` — identity-free
 - Identity is captured as attribution metadata, with assurance proportional to attestation
 - The two concerns can be developed independently
@@ -88,6 +89,7 @@ LANYTE_SESSION_TOKEN injected.
 ```
 
 Under the hood:
+
 1. A signing key lives in [seclusor](../../README.md#seclusor) (age-encrypted at rest)
 2. `lanyte-attest begin` mints a JWT: `{ role, scope, supervisor, iat, exp }`
 3. JWT injected as env var via seclusor's `run` mechanism (not in shell history)
@@ -103,11 +105,11 @@ assessments, not identity.
 
 ### Tampering considerations
 
-| Vector | Risk level | v1 mitigation | Future mitigation |
-|--------|-----------|--------------|-------------------|
-| Model reads env var, exfiltrates | Medium | Short-lived JWT; human supervises | Socket-based daemon (token never in env) |
-| Token replay | Medium | Context binding (session start hash) | Single-use nonces via attestation daemon |
-| Signing key compromise | High impact, low prob | seclusor passphrase; key rotation | HSM, per-supervisor keys |
+| Vector                           | Risk level            | v1 mitigation                        | Future mitigation                        |
+| -------------------------------- | --------------------- | ------------------------------------ | ---------------------------------------- |
+| Model reads env var, exfiltrates | Medium                | Short-lived JWT; human supervises    | Socket-based daemon (token never in env) |
+| Token replay                     | Medium                | Context binding (session start hash) | Single-use nonces via attestation daemon |
+| Signing key compromise           | High impact, low prob | seclusor passphrase; key rotation    | HSM, per-supervisor keys                 |
 
 The strongest future architecture is an **ssh-agent pattern**: `lanyte-attest` runs as a
 UDS daemon, `lanyte-ctx` requests per-checkpoint attestations via socket, the token/key
@@ -139,13 +141,13 @@ but will be addressed in the near term.
 
 ## Implementation Roadmap
 
-| Artifact | Scope | Status |
-|----------|-------|--------|
-| `agent-state.schema.json` — structured `authored_by` + `session_ref` | Schema | In progress (crucible) |
-| CRT-011 — `lanyte-ctx` agent state CLI | Role state with attribution | Brief ready |
-| CRT-012 — `lanyte-attest` session attestation | JWT minting, seclusor integration | Brief in progress |
-| ADR — Agent identity model | Supervised + autonomous identity design | Draft pending |
-| ADR — Autonomous agent trust anchors | Blockchain/PKI for persistent agents | Not started |
+| Artifact                                                             | Scope                                   | Status                 |
+| -------------------------------------------------------------------- | --------------------------------------- | ---------------------- |
+| `agent-state.schema.json` — structured `authored_by` + `session_ref` | Schema                                  | In progress (crucible) |
+| CRT-011 — `lanyte-ctx` agent state CLI                               | Role state with attribution             | Brief ready            |
+| CRT-012 — `lanyte-attest` session attestation                        | JWT minting, seclusor integration       | Brief in progress      |
+| ADR — Agent identity model                                           | Supervised + autonomous identity design | Draft pending          |
+| ADR — Autonomous agent trust anchors                                 | Blockchain/PKI for persistent agents    | Not started            |
 
 ## Background References
 

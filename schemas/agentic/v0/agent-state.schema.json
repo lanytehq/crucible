@@ -25,12 +25,10 @@
     }
   },
   "properties": {
-
     "_comment_header": {
       "const": "--- identity / provenance / session header ---",
       "description": "Fields above this point are lightweight metadata used for indexing, search, eviction evaluation, and session grouping. They map directly to indexed columns in role_state table."
     },
-
     "role": {
       "$ref": "#/$defs/role-slug",
       "description": "Role slug (matches role-prompt.schema.json slug). First component of the hash chain key."
@@ -47,11 +45,17 @@
     "authored_by": {
       "type": "object",
       "description": "Attribution for the entity writing this checkpoint. Structured for parseability but NOT a verified identity — trust level depends on whether the session is attested (see session_ref). Does not affect the hash chain.",
-      "required": ["actor_type"],
+      "required": [
+        "actor_type"
+      ],
       "properties": {
         "actor_type": {
           "type": "string",
-          "enum": ["human", "supervised_agent", "autonomous_agent"],
+          "enum": [
+            "human",
+            "supervised_agent",
+            "autonomous_agent"
+          ],
           "description": "Category of actor. 'supervised_agent' = model operating under human supervision (Claude Code, Codex). 'human' = person acting directly. 'autonomous_agent' = persistent process with its own identity (future)."
         },
         "supervisor": {
@@ -89,15 +93,18 @@
     },
     "session_type": {
       "type": "string",
-      "enum": ["cold_start", "resume", "handoff", "active"],
+      "enum": [
+        "cold_start",
+        "resume",
+        "handoff",
+        "active"
+      ],
       "description": "Session lifecycle state at checkpoint time. 'active' = mid-session checkpoint. 'handoff' = session ending, next session should resume. 'cold_start' = first checkpoint for this role+scope. 'resume' = session that resumed from a prior checkpoint."
     },
-
     "_comment_payload": {
       "const": "--- state payload ---",
       "description": "Fields below this point are the checkpoint data. Heavier arrays that store the actual working state. In SQLite, stored as the state_json blob."
     },
-
     "status_summary": {
       "type": "string",
       "maxLength": 512,
@@ -105,7 +112,11 @@
     },
     "active_task": {
       "type": "object",
-      "required": ["id", "title", "status"],
+      "required": [
+        "id",
+        "title",
+        "status"
+      ],
       "properties": {
         "id": {
           "type": "string",
@@ -117,7 +128,13 @@
         },
         "status": {
           "type": "string",
-          "enum": ["not_started", "in_progress", "blocked", "in_review", "done"],
+          "enum": [
+            "not_started",
+            "in_progress",
+            "blocked",
+            "in_review",
+            "done"
+          ],
           "description": "Task status at checkpoint time"
         },
         "next_action": {
@@ -132,7 +149,9 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["summary"],
+        "required": [
+          "summary"
+        ],
         "properties": {
           "summary": {
             "type": "string",
@@ -151,7 +170,9 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["action"],
+        "required": [
+          "action"
+        ],
         "properties": {
           "action": {
             "type": "string",
@@ -186,7 +207,10 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["repo", "description"],
+        "required": [
+          "repo",
+          "description"
+        ],
         "properties": {
           "repo": {
             "type": "string",
