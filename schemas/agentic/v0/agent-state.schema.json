@@ -10,6 +10,20 @@
     "status_summary",
     "active_task"
   ],
+  "$defs": {
+    "role-slug": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,62}$",
+      "maxLength": 63,
+      "description": "Role identifier. Starts with a letter. Slug-compatible. Canonical source: naming.schema.json."
+    },
+    "scope-path": {
+      "type": "string",
+      "pattern": "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(/[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$",
+      "maxLength": 253,
+      "description": "Slash-separated slug segments. Canonical source: naming.schema.json."
+    }
+  },
   "properties": {
 
     "_comment_header": {
@@ -18,13 +32,11 @@
     },
 
     "role": {
-      "type": "string",
-      "pattern": "^[a-z][a-z0-9]*$",
+      "$ref": "#/$defs/role-slug",
       "description": "Role slug (matches role-prompt.schema.json slug). First component of the hash chain key."
     },
     "scope": {
-      "type": "string",
-      "pattern": "^[a-z0-9][a-z0-9/_-]*$",
+      "$ref": "#/$defs/scope-path",
       "description": "Variable-depth org path for the role. Examples: 'lanytehq' (org-wide), '3leaps/ipcprims' (project-scoped). Second component of the hash chain key."
     },
     "session_id": {

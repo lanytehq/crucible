@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/common/v0/naming.schema.json",
+  "title": "Lanyte Naming Conventions",
+  "description": "Reusable definitions for instance names, scope paths, role slugs, and generic slug identifiers. All segments are lowercase alphanumeric + hyphens, no leading/trailing hyphens, max 63 chars per segment (DNS label compatible). No URL escaping required anywhere.",
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$",
+      "maxLength": 63,
+      "description": "Single slug segment. Lowercase alphanumeric + hyphens, no leading/trailing hyphens. Max 63 chars. DNS label compatible. The atomic building block for all naming conventions."
+    },
+    "instance-name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$",
+      "maxLength": 253,
+      "description": "Dot-separated slug segments (FQDN pattern). Each segment max 63 chars. Total max 253 chars (DNS FQDN limit). Examples: 'dev-local', 'lanytehq.prod', '3leaps.staging.us-east-1'. Valid in S3 paths, CLI flags, DNS, config, logs."
+    },
+    "scope-path": {
+      "type": "string",
+      "pattern": "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(/[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$",
+      "maxLength": 253,
+      "description": "Slash-separated slug segments. Variable-depth org hierarchy. Examples: 'lanytehq' (org-wide), '3leaps/ipcprims' (project-scoped), 'lanytehq/lanyte/crates/gateway' (deep path)."
+    },
+    "role-slug": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,62}$",
+      "maxLength": 63,
+      "description": "Role identifier. Starts with a letter (not a digit) to avoid ambiguity with channel numbers and numeric identifiers in logs and queries. Slug-compatible. Examples: 'cxotech', 'devlead', 'secrev'."
+    }
+  }
+}
