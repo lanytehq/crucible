@@ -22,3 +22,4 @@ Decisions are recorded as ADRs when they are hard to reverse or when multiple vi
 | ADR-0009 | Agent memory store v1 strategy (SQLite + app-enforced INSERT-only)         | Accepted |
 | ADR-0010 | LLM adapter design (direct-to-frontier-model, no abstraction intermediary) | Accepted + Addendum |
 | ADR-0011 | Provenance and blockchain strategy (Sigstore v1, blockchain Sprint 5+)     | Accepted |
+| ADR-0013 | Feature-gated test support in workspace crates                             | Accepted |
