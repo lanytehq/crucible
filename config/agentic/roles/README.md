@@ -6,30 +6,30 @@ Baseline role prompts for AI agent sessions.
 
 ## Quick Reference by Timeline
 
-| Timeline               | Roles               | Use When                                                       |
-| ---------------------- | ------------------- | -------------------------------------------------------------- |
-| **Minutes - Hours**    | devlead, devrev, qa | Writing code, reviewing changes, fixing bugs                   |
-| **Days - Week**        | dispatch, secrev    | Session handoffs, security reviews, coordination               |
-| **Sprint (1-4w)**      | deliverylead, cicd  | Sprint planning, delivery coordination, pipelines              |
-| **Quarter (3mo)**      | releng, prodmktg    | Release planning, marketing campaigns, roadmaps                |
-| **Strategic (6-18mo)** | cxotech             | Architecture decisions, product direction, cross-repo strategy |
+| Timeline               | Roles                       | Use When                                                       |
+| ---------------------- | --------------------------- | -------------------------------------------------------------- |
+| **Minutes - Hours**    | devlead, devrev, qa, uxdev  | Writing code, reviewing changes, fixing bugs, building UI      |
+| **Days - Week**        | dispatch, secrev            | Session handoffs, security reviews, coordination               |
+| **Sprint (1-4w)**      | deliverylead, cicd          | Sprint planning, delivery coordination, pipelines              |
+| **Quarter (3mo)**      | releng, prodmktg            | Release planning, marketing campaigns, roadmaps                |
+| **Strategic (6-18mo)** | cxotech                     | Architecture decisions, product direction, cross-repo strategy |
 
 ## Role Categories
 
-| Category   | Purpose                              | Roles                           |
-| ---------- | ------------------------------------ | ------------------------------- |
-| agentic    | Implementation and creation          | devlead, infoarch, prodmktg     |
-| automation | Pipeline and release automation      | cicd, releng                    |
-| review     | Quality, security, and correctness   | devrev, qa, secrev              |
-| governance | Strategy, coordination, architecture | dispatch, cxotech, deliverylead |
+| Category   | Purpose                              | Roles                               |
+| ---------- | ------------------------------------ | ----------------------------------- |
+| agentic    | Implementation and creation          | devlead, uxdev, infoarch, prodmktg  |
+| automation | Pipeline and release automation      | cicd, releng                        |
+| review     | Quality, security, and correctness   | devrev, qa, secrev                  |
+| governance | Strategy, coordination, architecture | dispatch, cxotech, deliverylead     |
 
 ## Process Domains
 
 Roles are organized across these business process domains:
 
-| Domain         | Description                              | Primary Roles               |
-| -------------- | ---------------------------------------- | --------------------------- |
-| development    | Code creation, testing, implementation   | devlead, devrev, qa, secrev |
+| Domain         | Description                              | Primary Roles                       |
+| -------------- | ---------------------------------------- | ----------------------------------- |
+| development    | Code creation, testing, implementation   | devlead, uxdev, devrev, qa, secrev  |
 | delivery       | Release, deployment, project management  | cicd, releng, deliverylead  |
 | governance     | Strategy, coordination, architecture     | dispatch, cxotech           |
 | strategy       | Long-term decisions, product direction   | cxotech, prodmktg           |
@@ -39,7 +39,7 @@ Roles are organized across these business process domains:
 | documentation  | Schema governance, information structure | infoarch                    |
 | security       | Vulnerability review, infosec            | secrev                      |
 | quality        | Testing, validation, review              | devrev, qa                  |
-| implementation | Code writing, feature delivery           | devlead                     |
+| implementation | Code writing, feature delivery           | devlead, uxdev              |
 
 ## Available Roles
 
@@ -55,6 +55,7 @@ Roles are organized across these business process domains:
 | [Delivery Lead](deliverylead.yaml)                  | `deliverylead` | governance | coordination, delivery          | Sprint-Quarter | Project lifecycle, sprint coordination     |
 | [Release Engineering](releng.yaml)                  | `releng`       | automation | delivery, development           | Quarter        | Versioning, releases                       |
 | [Product Marketing](prodmktg.yaml)                  | `prodmktg`     | agentic    | delivery, marketing             | Quarter        | Branding, messaging, personas              |
+| [UX Developer](uxdev.yaml)                          | `uxdev`        | agentic    | development, implementation     | Hours-Days     | Desktop, web, and TUI interfaces           |
 | [Skill Author](skillauthor.yaml)                    | `skillauthor`  | agentic    | development, implementation     | Hours-Days     | WASM skill dev, ABI compliance             |
 | [Chief Experience Technology Officer](cxotech.yaml) | `cxotech`      | governance | strategy, architecture, product | Strategic      | Strategic fulcrum for product-architecture |
 
@@ -66,6 +67,7 @@ Roles are organized across these business process domains:
 | ------------------------------ | ---------------- | ------------------------------ | ------------- |
 | **Emergency fix**              | devlead          | secrev (security)              | Minutes-hours |
 | **Feature implementation**     | devlead          | devrev (review)                | Hours-days    |
+| **UI/UX implementation**       | uxdev            | devlead (backend), devrev      | Hours-days    |
 | **Bug investigation**          | devlead → devrev | qa (validation)                | Days          |
 | **Security review**            | secrev           | human maintainers              | Days-week     |
 | **Session handoff**            | dispatch         | deliverylead (project context) | Days          |
@@ -94,6 +96,7 @@ Roles are organized across these business process domains:
 ### By Complexity Level
 
 - **Simple coding task**: devlead
+- **UI/frontend task**: uxdev (escalates to devlead for backend changes)
 - **Multi-step feature**: devlead → devrev → qa (sequential)
 - **Cross-role conflict**: cxotech resolves
 - **Multi-session delivery**: deliverylead coordinates, dispatch routes sessions

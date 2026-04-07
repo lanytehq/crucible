@@ -1,0 +1,141 @@
+# refbolt Reference Documentation Workspace
+
+## Overview
+
+[refbolt](https://github.com/fulmenhq/refbolt) archives web documentation sites into clean,
+date-versioned Markdown trees. Every dev machine in the Lanyte ecosystem should maintain a local
+refbolt workspace so that agents and developers can read API reference docs offline, without web
+fetches, and with version-pinned consistency.
+
+## Setup
+
+### Install
+
+```bash
+# From source (fulmenhq/refbolt repo)
+cd ~/dev/fulmenhq/refbolt
+make build
+# Binary: ./bin/refbolt
+```
+
+### Create the workspace
+
+```bash
+mkdir -p ~/docs/refbolt
+```
+
+### Configure Jina API key (for HTML-only providers like OpenAI)
+
+```bash
+# If you have a Jina Reader API key, set it before syncing:
+export JINA_API_KEY="your-key-here"
+```
+
+### Run initial sync
+
+```bash
+cd ~/dev/fulmenhq/refbolt
+REFBOLT_ARCHIVE_ROOT=~/docs/refbolt ./bin/refbolt sync --all --verbose
+```
+
+### Refresh (weekly or before a sprint)
+
+```bash
+cd ~/dev/fulmenhq/refbolt && REFBOLT_ARCHIVE_ROOT=~/docs/refbolt ./bin/refbolt sync --all
+```
+
+## Workspace Convention
+
+Every machine uses the same archive root: **`~/docs/refbolt/`**
+
+```
+~/docs/refbolt/
+├── llm-api/
+│   ├── xai/
+│   │   ├── 2026-03-23/          # Date-versioned snapshot
+│   │   │   ├── llms.txt
+│   │   │   └── developers/...   # Individual .md pages
+│   │   └── latest -> 2026-03-23 # Symlink to most recent
+│   ├── anthropic/
+│   │   ├── 2026-03-23/
+│   │   │   ├── llms-full.txt
+│   │   │   └── en/...           # 488 parsed sections
+│   │   └── latest -> 2026-03-23
+│   └── openai/
+│       ├── 2026-03-23/
+│       │   ├── docs/...         # Jina-converted HTML
+│       │   └── openapi.yaml     # OpenAPI spec from GitHub
+│       └── latest -> 2026-03-23
+├── python-libs/
+│   └── pydantic/latest/
+├── cloud-infra/
+│   └── aws-*/latest/
+├── data-platform/
+│   └── trino/latest/
+└── container-platform/
+    └── kubernetes-kubectl/latest/
+```
+
+### Key properties
+
+- **`latest` symlink**: Always points to the most recent sync date. Use this in briefs,
+  scripts, and agent context — never hardcode a date.
+- **Immutable snapshots**: Files inside a date directory are never modified after creation.
+  Diff between dates to see API changes: `diff -r 2026-03-21/ 2026-03-23/`
+- **Topic/provider hierarchy**: Matches refbolt's `providers.yaml` config. Topic slugs
+  group related providers; provider slugs match the config `slug` field.
+
+## Using Reference Docs in Briefs and Agent Context
+
+### For task briefs
+
+When a brief references a provider API, point to the refbolt archive:
+
+```markdown
+## References
+- xAI Responses API: `~/docs/refbolt/llm-api/xai/latest/developers/rest-api-reference/`
+- Anthropic Messages API: `~/docs/refbolt/llm-api/anthropic/latest/en/api-reference/`
+- OpenAI API Reference: `~/docs/refbolt/llm-api/openai/latest/docs/api-reference/`
+```
+
+### For agent sessions
+
+Agents should read from the `latest` symlink path. Example — before implementing an LLM adapter:
+
+```
+Read ~/docs/refbolt/llm-api/openai/latest/docs/api-reference/responses.md
+```
+
+This replaces ad-hoc web fetches that may return stale or incomplete content.
+
+### For PR reviews
+
+When reviewing adapter code against API contracts, the reviewer reads the archived docs as the
+source of truth for what the provider API actually looks like at the time of implementation.
+
+## What Gets Synced
+
+refbolt's `configs/providers.yaml` defines the active providers. As of v0.0.1:
+
+| Provider | Strategy | Content |
+|----------|----------|---------|
+| xAI/Grok | native (llms.txt + .md pages) | ~100 files, full API reference |
+| Anthropic | native (llms-full.txt, 488 sections) | ~490 files, complete platform docs |
+| OpenAI | jina (HTML→Markdown) + GitHub OpenAPI | API reference pages + openapi.yaml |
+| Pydantic | native (llms-full.txt) | Schema validation reference |
+| AWS Glue/Bedrock | hierarchical llms.txt | Per-service docs |
+| Trino | github-raw | Query engine reference |
+| Kubernetes kubectl | github-raw | CLI reference |
+
+To add a new provider, edit `configs/providers.yaml` in the refbolt repo. See the refbolt
+README for fetch strategy options and provider configuration.
+
+## Not in Scope
+
+- **This guide does not replace refbolt's own documentation.** For fetch strategies, Docker
+  workflows, git-commit mode, and provider quirks, see the refbolt repo.
+- **No CI integration.** refbolt syncs are local, operator-initiated. CI environments should
+  not depend on archived docs being present.
+- **No version pinning across machines.** Each machine syncs independently. The `latest`
+  symlink points to that machine's most recent sync, which may differ between developers.
+  This is acceptable — API docs don't change frequently enough to cause issues within a sprint.

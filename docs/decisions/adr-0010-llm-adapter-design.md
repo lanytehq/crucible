@@ -33,9 +33,7 @@ Each adapter implements `LlmBackend` directly against the provider's native API 
 - **Model**: configured via `lanyte-common` config key `llm.claude.model` (default: `claude-sonnet-4-6`). Changed by config, not code.
 - **API**: Anthropic Messages API, `POST /v1/messages`.
 - **Auth**: API key injected at adapter init from the gateway secret store; never persisted by the adapter.
-- **Retry**: bounded exponential backoff on `429` and selected upstream `5xx` (`500/502/503/504`), max 3 attempts, base delay 1 s with jitter.
-  - Rationale: `500` is often a blanket "unknown failure" during partial upstream outages; a longer baseline backoff reduces load amplification and helps decorrelate concurrent agents from narrower/localized failures.
-  - `500` uses a longer baseline backoff than other retryable statuses.
+- **Retry**: governed by ADR-0014 (Transport Reliability Policy). See ADR-0014 for retry eligibility, backoff algorithm, jitter, timeouts, and idempotency rules.
 - **Streaming**: native server-sent events.
 
 ## Options Considered
@@ -315,7 +313,11 @@ every PR. Live mode is the source of truth; recorded mode is the regression gate
 
 ### G. Retry Addendum
 
-The original ADR specifies retry for the Claude adapter. This applies uniformly to all adapters:
+**Superseded by ADR-0014 (Transport Reliability Policy).** ADR-0014 elevates retry, backoff,
+jitter, timeout, and connection management policy to a cross-cutting standard governing all
+transport paths, not just LLM adapters. Refer to ADR-0014 for the authoritative policy.
+
+The original section G content is preserved below for historical reference only:
 
 - Bounded exponential backoff on `429` and selected `5xx` (500, 502, 503, 504).
 - Max 3 attempts, base delay 1 s with jitter.
