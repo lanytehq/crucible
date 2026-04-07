@@ -33,7 +33,7 @@ Lanyte is a **secure, self-hosted autonomous AI agent platform**. The architectu
   lanyte-productbook-internal/ ← Sprint boards, gate status
   lanyte-*/                 ← other platform repos
   chat/                     ← file-based inter-role messaging (not a git repo)
-  context/<role>/           ← per-role persistent state (not a git repo)
+  context/<role>/           ← per-role working artifacts and briefs (not a git repo)
 
 ~/dev/3leaps/ipcprims/      ← IPC library v0.1.2 (MSRV 1.85.0)
 ~/dev/fulmenhq/mlvoy/       ← email bridge peer (channel 256)
@@ -45,9 +45,9 @@ Check `AGENTS.local.md` in your working repo for any machine-specific path overr
 **Agent coordination**: Read `docs/specs/agent-coordination-bootstrap.md` for the full
 messaging, context, and role conventions. At minimum:
 
-- Read `~/dev/lanytehq/context/<your-role>/STATE.md` at session start
+- Resume context: `lanyte-ctx resume --role "$LANYTE_AGENT_ROLE" --scope "$LANYTE_AGENT_SCOPE"`
 - Check `~/dev/lanytehq/chat/` for pending messages addressed to your role
-- Update `STATE.md` and write handoff notes at session end
+- Checkpoint at session end: `lanyte-ctx checkpoint --role "$LANYTE_AGENT_ROLE" --scope "$LANYTE_AGENT_SCOPE" --file /tmp/checkpoint-<role>-<scope>.json`
 
 ---
 
@@ -83,13 +83,10 @@ Check before touching any task:
   → STD task board (STD-001/002/003 done; STD-004/005/006 ready)
 ```
 
-**Current gate status (as of 2026-02-25):**
-
-- G1 ✅ ipcprims v0.1.2 available
-- G2 ✅ IPC schemas — all 8 written and merged to lanyte-crucible main
-- G3 🟡 In progress — CRT-001/002/003/007/010 merged; CRT-004 (gateway) awaits ipcprims v0.2.0
-- G4 🔴 Blocked on G3 — executor runs echo skill
-- G5 🔴 Blocked on G4 — stack alive
+**Current gate status** — check the live board, not a snapshot:
+```
+~/dev/lanytehq/lanyte-productbook-internal/content/projmgmt/projmgmt/index.md
+```
 
 ---
 
