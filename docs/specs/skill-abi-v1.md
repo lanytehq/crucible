@@ -1,7 +1,7 @@
 ---
 title: Skill ABI v1
 description: Canonical ABI contract between the Lanyte executor and WASM skills
-status: draft
+status: ratified
 version: 1.0.0
 ---
 

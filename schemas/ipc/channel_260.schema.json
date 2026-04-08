@@ -1,0 +1,679 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/ipc/v1/channel_260.schema.json",
+  "title": "CHAT Channel (260)",
+  "description": "Messages between lanyte-core and chanvoy on the CHAT IPC channel. Covers channel discovery, message reads, message posting, and push-event subscriptions for chat-domain bridges.",
+  "$defs": {
+    "request_id": {
+      "type": "string",
+      "description": "UUID v4 correlation identifier for request/response matching",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "delegation_id": {
+      "type": "string",
+      "description": "Opaque identifier for the chanvoy delegation scope or profile binding",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "subscription_id": {
+      "type": "string",
+      "description": "Opaque identifier for an active push-event subscription",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "gate_token": {
+      "type": "string",
+      "description": "Opaque token issued by orchestrator autonomy gate on human approval",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "RFC 3339 timestamp"
+    },
+    "channel_kind": {
+      "type": "string",
+      "enum": [
+        "public",
+        "private",
+        "direct",
+        "group"
+      ]
+    },
+    "event_kind": {
+      "type": "string",
+      "enum": [
+        "message_posted",
+        "message_edited",
+        "message_deleted",
+        "reaction_added",
+        "reaction_removed",
+        "channel_updated",
+        "member_updated",
+        "mention",
+        "typing"
+      ]
+    },
+    "channel_summary": {
+      "type": "object",
+      "required": [
+        "channel_id",
+        "name",
+        "kind"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "channel_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "display_name": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "kind": {
+          "$ref": "#/$defs/channel_kind"
+        },
+        "team_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "purpose": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "header": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "archived": {
+          "type": "boolean"
+        },
+        "member_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unread_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "last_post_at": {
+          "$ref": "#/$defs/timestamp"
+        }
+      }
+    },
+    "post_summary": {
+      "type": "object",
+      "required": [
+        "post_id",
+        "channel_id",
+        "author",
+        "created_at",
+        "message"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "post_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "channel_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "author": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "created_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "thread_root_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 65535
+        },
+        "mentions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "maxItems": 100
+        },
+        "reply_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "deleted": {
+          "type": "boolean"
+        }
+      }
+    },
+    "subscription_filter": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "channel_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "maxItems": 256
+        },
+        "event_kinds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_kind"
+          },
+          "maxItems": 16
+        },
+        "mentions_only": {
+          "type": "boolean"
+        },
+        "include_direct_messages": {
+          "type": "boolean"
+        },
+        "include_threads": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "title": "chat_channel_list_request",
+      "required": [
+        "type",
+        "request_id",
+        "delegation_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "chat_channel_list_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "delegation_id": {
+          "$ref": "#/$defs/delegation_id"
+        },
+        "team_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "include_archived": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "chat_channel_list_response",
+      "required": [
+        "type",
+        "request_id",
+        "channels"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "chat_channel_list_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "channels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/channel_summary"
+          },
+          "maxItems": 2000
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "chat_channel_get_request",
+      "required": [
+        "type",
+        "request_id",
+        "delegation_id",
+        "channel_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "chat_channel_get_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "delegation_id": {
+          "$ref": "#/$defs/delegation_id"
+        },
+        "channel_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "chat_channel_get_response",
+      "required": [
+        "type",
+        "request_id",
+        "channel"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "chat_channel_get_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "channel": {
+          "$ref": "#/$defs/channel_summary"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "chat_read_request",
+      "required": [
+        "type",
+        "request_id",
+        "delegation_id",
+        "channel_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "chat_read_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "delegation_id": {
+          "$ref": "#/$defs/delegation_id"
+        },
+        "channel_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "thread_root_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "before_post_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "include_threads": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "chat_read_response",
+      "required": [
+        "type",
+        "request_id",
+        "channel_id",
+        "posts"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "chat_read_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "channel_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "posts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/post_summary"
+          },
+          "maxItems": 200
+        },
+        "has_more": {
+          "type": "boolean"
+        },
+        "next_before_post_id": {
+          "type": "string",
+          "maxLength": 256
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "chat_post_request",
+      "description": "Core asks chanvoy to create a new post or threaded reply. Requires orchestrator autonomy gate approval token.",
+      "required": [
+        "type",
+        "request_id",
+        "delegation_id",
+        "channel_id",
+        "message",
+        "gate_token"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "chat_post_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "delegation_id": {
+          "$ref": "#/$defs/delegation_id"
+        },
+        "channel_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "thread_root_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 65535
+        },
+        "gate_token": {
+          "$ref": "#/$defs/gate_token"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "chat_post_response",
+      "required": [
+        "type",
+        "request_id",
+        "post"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "chat_post_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "post": {
+          "$ref": "#/$defs/post_summary"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "chat_subscribe_request",
+      "required": [
+        "type",
+        "request_id",
+        "delegation_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "chat_subscribe_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "delegation_id": {
+          "$ref": "#/$defs/delegation_id"
+        },
+        "filter": {
+          "$ref": "#/$defs/subscription_filter"
+        },
+        "resume_after_seq": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "chat_subscribe_response",
+      "required": [
+        "type",
+        "request_id",
+        "subscription_id",
+        "starting_seq"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "chat_subscribe_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "subscription_id": {
+          "$ref": "#/$defs/subscription_id"
+        },
+        "starting_seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "filter": {
+          "$ref": "#/$defs/subscription_filter"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "chat_unsubscribe_request",
+      "required": [
+        "type",
+        "request_id",
+        "delegation_id",
+        "subscription_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "chat_unsubscribe_request"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "delegation_id": {
+          "$ref": "#/$defs/delegation_id"
+        },
+        "subscription_id": {
+          "$ref": "#/$defs/subscription_id"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "chat_unsubscribe_response",
+      "required": [
+        "type",
+        "request_id",
+        "success"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "chat_unsubscribe_response"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "chat_event_notification",
+      "description": "Peer-pushed event delivered under an active subscription. `seq` is daemon-local and monotonic within the subscription stream.",
+      "required": [
+        "type",
+        "subscription_id",
+        "seq",
+        "event_kind",
+        "occurred_at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "chat_event_notification"
+        },
+        "subscription_id": {
+          "$ref": "#/$defs/subscription_id"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "event_kind": {
+          "$ref": "#/$defs/event_kind"
+        },
+        "occurred_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "channel_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "channel": {
+          "$ref": "#/$defs/channel_summary"
+        },
+        "post": {
+          "$ref": "#/$defs/post_summary"
+        },
+        "mentions_bot": {
+          "type": "boolean"
+        },
+        "actor": {
+          "type": "string",
+          "maxLength": 256
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "chat_subscription_gap",
+      "description": "Signals that a subscriber missed one or more events and must reconcile by rereading history or resubscribing.",
+      "required": [
+        "type",
+        "subscription_id",
+        "expected_seq",
+        "next_seq",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "chat_subscription_gap"
+        },
+        "subscription_id": {
+          "$ref": "#/$defs/subscription_id"
+        },
+        "expected_seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "next_seq": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "overflow",
+            "reconnect",
+            "history_unavailable"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 1024
+        }
+      }
+    },
+    {
+      "type": "object",
+      "title": "chat_error",
+      "required": [
+        "type",
+        "request_id",
+        "error_code",
+        "message"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "chat_error"
+        },
+        "request_id": {
+          "$ref": "#/$defs/request_id"
+        },
+        "error_code": {
+          "type": "string",
+          "enum": [
+            "not_found",
+            "permission_denied",
+            "delegation_expired",
+            "provider_error",
+            "rate_limited",
+            "invalid_request",
+            "send_blocked",
+            "subscription_not_found",
+            "unsupported_operation",
+            "channel_not_joined"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      }
+    }
+  ]
+}
