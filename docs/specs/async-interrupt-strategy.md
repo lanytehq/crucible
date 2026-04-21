@@ -197,6 +197,55 @@ role-onboarding step.
 - Mattermost presence / read receipts. Nice-to-have; chanvoy already has
   the primitives if we want them.
 
+## Validation Notes
+
+Observations from live use of the Option A baseline during cross-role
+coordination work. Captured here because the strategy is easier to
+ratify with evidence it works as spec'd.
+
+**2026-04-21 — cxotech poll-for-dispatch-reply** (this session's
+dogfood). cxotech posted a follow-up to `#lanyte-dispatch` during the
+`lanyte-chat` retirement sweep and needed to know within 2–3 minutes
+whether dispatch would reply. Implementation was a harness `Monitor`
+wrapping `chanvoy check lanyte-dispatch --after <post-id> --json` at
+20-second intervals, breaking on `has_new_messages: true`, with a
+180-second timeout.
+
+Observations:
+
+- **Exit-code + JSON combo (C6 + C4) collapsed the poll loop to one
+  line of shell**: `echo "$result" | grep -q '"has_new_messages":
+  true' && break`. No message parsing, no `jq` pipeline, no English
+  string matching.
+- **Anchor semantics held as documented**: `anchor_source:
+  "explicit_after"` with `has_new_messages: false` is the unambiguous
+  "nothing new since X" signal. No ambiguity between "no activity"
+  and "broken cursor."
+- **20-second probe interval against live Mattermost** was
+  imperceptibly cheap. Bounded-window coordination waits (2–3 min)
+  are a viable Option A use case.
+- **PER-009 was silently load-bearing**: the monitor worked only
+  because `chanvoy auto-setup` had run earlier in the session and
+  the daemon was alive. Pre-PER-009 (or any non-auto-setup warm-up)
+  would have produced `Daemon(NotRunning)` on the first probe. This
+  validates the spec's framing of PER-008 + PER-009 as the
+  foundation pair Option A builds on — not two independent features.
+- **Upper bound on useful poll windows**: the 3-minute cap felt
+  right. Beyond that, Option C's harness-native push path becomes
+  the better fit. The spec's "layer A baseline + C selective
+  upgrade" recommendation matches real use.
+
+**Meta-validation**: this session also surfaced the exact failure
+mode Option A is supposed to eliminate — entarch's recurring
+`Daemon(NotRunning)` friction while reviewing ADR-0015. Root cause
+was not a chanvoy bug but stale `AGENTS.md` warm-up docs still
+pointing at `lanyte-chat`. Documentation drift post-PER-009
+prevented the Option A contract from being instantiated in the
+first place. Captured as the `lanyte-chat` retirement sweep (DSP
+card in progress). Lesson for future ratification: a CLI-baseline
+async strategy is only as good as the warm-up sequence that
+instantiates it.
+
 ## Decision Checkpoints
 
 | Checkpoint | Trigger | Who decides |
@@ -208,4 +257,5 @@ role-onboarding step.
 
 ## Status
 
-Draft — circulating for entarch review. Not yet ratified.
+Draft — circulating for entarch review. Live validation captured
+2026-04-21 (see Validation Notes). Not yet ratified.
