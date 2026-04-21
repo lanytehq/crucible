@@ -30,8 +30,8 @@ mm.3leaps.dev
 └── Team: org-enacthq     (IaC tooling, Mattermost deployment)
 ```
 
-Humans and bots join whichever teams they need. Cross-team channels handle org-spanning
-concerns (e.g., a release that touches seclusor + lanyte-attest).
+Humans and bots join whichever teams they need. Cross-team channels handle
+cross-org concerns (e.g., a release that touches seclusor + lanyte-attest).
 
 ---
 
@@ -44,7 +44,8 @@ not passwords. Bots don't consume license seats.
 
 ```
 agent-{team}-{role}       # team-scoped role
-agent-{role}              # org-spanning role (no team prefix)
+agent-{role}-{org}        # org-scoped role
+agent-{role}              # ecosystem-wide role (currently only dispatch)
 ```
 
 **Constraint:** Mattermost usernames must start with a letter (not a number).
@@ -60,8 +61,8 @@ The `agent-` prefix satisfies this. Human usernames follow the same rule
 | `agent-delta-devlead` | Delta devlead | Delta team lead developer |
 | `agent-delta-devrev` | Delta devrev | Delta team code reviewer |
 | `agent-echo-devlead` | Echo devlead | Echo team lead developer |
-| `agent-cxotech` | cxotech | Org-spanning strategic role |
-| `agent-secrev` | secrev | Cross-cutting security reviewer |
+| `agent-cxotech-3leaps` | cxotech-3leaps | Org-scoped strategic role |
+| `agent-secrev-lanytehq` | secrev-lanytehq | Org-scoped security reviewer |
 | `agent-dispatch` | dispatch | Task routing and scheduling |
 
 ### Display name updates
