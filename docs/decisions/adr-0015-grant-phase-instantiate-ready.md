@@ -6,7 +6,7 @@ title: "ADR-0015: Grant phase must produce instantiate-ready artifacts"
 
 ## Status
 
-Proposed
+Accepted
 
 ## Context
 

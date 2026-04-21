@@ -24,4 +24,4 @@ Decisions are recorded as ADRs when they are hard to reverse or when multiple vi
 | ADR-0011 | Provenance and blockchain strategy (Sigstore v1, blockchain Sprint 5+)     | Accepted            |
 | ADR-0012 | CLI stdout purity policy (stdout for data, stderr for diagnostics)         | Accepted            |
 | ADR-0013 | Feature-gated test support in workspace crates                             | Accepted            |
-| ADR-0015 | Grant phase must produce instantiate-ready artifacts                       | Proposed            |
+| ADR-0015 | Grant phase must produce instantiate-ready artifacts                       | Accepted            |
