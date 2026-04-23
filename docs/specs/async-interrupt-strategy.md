@@ -246,6 +246,81 @@ card in progress). Lesson for future ratification: a CLI-baseline
 async strategy is only as good as the warm-up sequence that
 instantiates it.
 
+**2026-04-22 — bravo-devlead visibility-reconcile during PER-008B
+review**. Bravo-devlead's local `lanyte-chat` reader lagged the true
+channel tail during a multi-thread coordination moment. Entarch
+cross-checked with `chanvoy --profile entarch read` and confirmed
+the posts existed; the reconcile thread surfaced that Bravo's
+chanvoy daemon was not durably running across the review session.
+Recorded in the chanvoy adoption log: "the fact that I had to re-
+do a 4-thread context reconcile because of the lanyte-chat lag
+(combined with chanvoy not being durably running) IS the chanvoy
+adoption case."
+
+Observations:
+
+- **The strategy's framing that PER-008 and PER-009 are a foundation
+  pair is correct but incomplete** — session-durable daemon lifetime
+  (now PER-008D, merged 2026-04-23) was a third load-bearing
+  prerequisite. Option A's baseline contract requires not just
+  "daemon starts on auto-setup" but "daemon survives to the next
+  session the agent warms up into."
+- **Cross-tool lag is an observable signal, not a bug**: bravo-
+  devlead's `lanyte-chat` view was stale by minutes relative to
+  chanvoy's view because the Mattermost read-surface paths have
+  different latencies. When two agents coordinate on the same
+  channel via different tools, divergence surfaces. PER-008B's
+  inspection primitive (`chanvoy attention show <channel>`) gives
+  operators a mechanism to verify which view reflects daemon state
+  of record; without it, the reconcile would have required source-
+  reading.
+- **Dogfood-as-validation works**: the observation came from a
+  real cross-role review, not a test. Cross-role coordination is
+  exactly the workload Option A is meant to support. Finding the
+  PER-008D gap during genuine use is the strongest evidence the
+  strategy's dependency chain is real.
+
+**2026-04-23 — Pin 7 self-correction during PER-008D review**.
+During the PER-008D design pre-read, four reviewers (devrev →
+bravo-devlead → cxotech → bravo-devlead) converged through a
+sharpening sequence on the right integration-test assertion for
+session detachment. Devrev's pre-read pin #3 called for "the
+strongest automated test" abstractly. Bravo-devlead's initial Pin 7
+proposed `ppid != intermediate_pid` as the detach proof. Cxotech's
+refinement flagged the systemd-user subreaper edge case that would
+make a strict `ppid == 1` assertion flaky on CI-Linux. Bravo-
+devlead self-corrected to `getsid(daemon_pid) == daemon_pid` — the
+actually-load-bearing setsid contract, uniform across Linux-init /
+systemd-user / macOS launchd.
+
+The bug the final assertion catches, which the naive form would
+have missed: PER-008C Phase 3 tests already pass today without
+detachment because the test harness has no controlling terminal
+→ no TTY → no SIGHUP → daemon survives parent exit regardless of
+setsid. A "daemon survives parent exit" assertion would silently
+green-light a broken PER-008D.
+
+Observations:
+
+- **The cross-role review cadence finds distinct classes of issue
+  across rounds**: devrev test-location corrections, entarch
+  freshness-signal gaps, secrev non-mutation invariant assertions,
+  devlead structural-detachment insights. Each round reveals
+  something the others would not have — the discipline is the
+  dividend, not the defect count.
+- **Structural contract assertions beat symptom-level observations
+  for test design**: "daemon is its own session leader" is a
+  contract; "daemon survives parent exit" is a symptom that can be
+  true for unrelated reasons. When writing tests for a lifecycle-
+  critical property, assert the contract directly.
+- **Async-interrupt strategy ratification benefits from the review-
+  cadence observation**: a CLI-baseline async strategy depends on
+  a lifecycle substrate (PER-008 cursors, PER-009 bootstrap,
+  PER-008D session-durable detachment, PER-008C restart harness
+  proving the substrate), each of which was stabilized through
+  multi-round review. The spec is correct to frame these as a
+  coherent dependency chain rather than independent features.
+
 ## Decision Checkpoints
 
 | Checkpoint | Trigger | Who decides |
