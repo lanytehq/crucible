@@ -333,4 +333,4 @@ Observations:
 ## Status
 
 Draft — circulating for entarch review. Live validation captured
-2026-04-21 (see Validation Notes). Not yet ratified.
+2026-04-21 through 2026-04-23 (see Validation Notes). Not yet ratified.
