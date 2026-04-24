@@ -134,12 +134,13 @@ or `$LANYTE_AGENT_SCOPE`, derive it; otherwise require it explicitly.
 
 ### Migration
 
-Historical profiles created under bare names (e.g., `cxotech` without scope suffix)
-predate this convention and must be renamed to `<role>-<scope>` form. Dispatch owns
-the sweep: bare `<role>` → `<role>-lanytehq` for org-spanning roles, with parallel
-`<role>-enacthq` partners created where an enacthq identity script exists. Test and
-scratch profiles (`*-bootstrap`, `*-custom-team`, `temp-*`) are separately eligible
-for cleanup during the sweep.
+Historical profiles created under bare names predate this convention and must be
+renamed to their true `<role>-<scope>` form regardless of which scope they resolve to.
+Dispatch owns the sweep: bare `<role>` → `<role>-lanytehq` for lanytehq-scoped
+profiles, bare `<role>` → `<role>-enacthq` for enacthq-scoped profiles, with parallel
+partners created where an identity script for the other scope exists. Test and scratch
+profiles (`*-bootstrap`, `*-custom-team`, `temp-*`) are separately eligible for
+cleanup during the sweep.
 
 The rename is destructive for running daemons — each affected daemon must stop
 cleanly before its profile is renamed, or per-profile cursor state can desync.
