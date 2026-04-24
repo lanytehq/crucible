@@ -77,10 +77,10 @@ stable identity.
 
 A **chanvoy profile** is a local configuration binding on a dev machine that pairs a
 Mattermost bot token, bot username, team, and daemon socket under a short name.
-Multiple profiles coexist on one machine; CLI invocations target one at a time. The
-profile name is the identifier operators type into CLI commands (`chanvoy profile
-activate <name>`, `chanvoy daemon stop <name>`, etc.), so the naming convention is
-load-bearing for both human ergonomics and deterministic default resolution.
+Multiple profiles coexist on one machine; CLI invocations target one at a time via
+the `--profile <name>` flag, or via default resolution (described below) when the
+flag is absent. The profile name is therefore load-bearing for both human ergonomics
+and deterministic default resolution.
 
 ### Convention
 
@@ -124,13 +124,16 @@ current process environment. Any persistent marker file may serve as a convenien
 for single-tenant setups but MUST be consulted strictly lower than rules #1 and #2,
 and MUST NOT override an env-derived resolution.
 
-This rule applies uniformly to `daemon stop`, `daemon restart`, `daemon status`,
-`profile activate`, `post`, `read`, and every future verb that reaches into profile
-state. Hardcoded defaults that assume a specific scope — for example, `org-lanytehq`
-as the default for `--team-name` on `profile create` — MUST be removed. Such defaults
-carry a single-org bias that silently produces wrong-target behavior on a shared
-multi-org dev machine. Where a flag's value can be derived from `$LANYTE_AGENT_ROLE`
-or `$LANYTE_AGENT_SCOPE`, derive it; otherwise require it explicitly.
+This rule applies uniformly to every CLI verb that targets a profile or daemon —
+`daemon {start, stop, status}`, `profile {list, active, create, create-from-env}`,
+`post`, `read`, `check`, `whoami`, `auto-setup`, `attention`, and any future verbs
+introduced alongside this change. There is no verb-specific default; absence of
+`--profile` always triggers the resolution rule above. Hardcoded scope defaults —
+for example, `org-lanytehq` as the default for `--team-name` on `profile create` —
+MUST be removed. Such defaults carry a single-org bias that silently produces
+wrong-target behavior on a shared multi-org dev machine. Where a flag's value can
+be derived from `$LANYTE_AGENT_ROLE` or `$LANYTE_AGENT_SCOPE`, derive it; otherwise
+require it explicitly.
 
 ### Migration
 
