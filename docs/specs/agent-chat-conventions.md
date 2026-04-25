@@ -129,13 +129,18 @@ target. Verbs that manage the profile *collection* (enumerate it, or create new
 entries) bypass the resolver entirely, since they don't have a target to resolve.
 
 **Resolver applies:** `daemon {start, stop, status}`, `profile active`, `post`,
-`read`, `check`, `whoami`, `auto-setup`, `attention`, and any future verbs that
-address a single profile or daemon.
+`read`, `check`, `whoami`, `attention`, and any future verbs that address a single
+profile or daemon.
 
-**Resolver bypassed:** `profile {list, create, create-from-env}` — these operate
+**Resolver bypassed:** `profile {list, create, create-from-env}` and `auto-setup`.
+The collection-management verbs (`profile {list, create, create-from-env}`) operate
 on the profile collection (enumerate, append) rather than targeting a single
-profile. Forcing the resolver here would brick fresh bootstrap on an empty config
-(cannot enumerate zero profiles, cannot create the first profile).
+profile. The `auto-setup` bootstrap verb creates-or-refreshes the canonical
+`${LANYTE_AGENT_ROLE}-${LANYTE_AGENT_SCOPE}` profile from sourced env — it must
+work even when that profile doesn't yet exist (the bootstrap chicken-and-egg).
+Forcing the resolver on any of these would brick fresh bootstrap on an empty
+config (cannot enumerate zero profiles, cannot create the first profile, cannot
+materialize the canonical profile from a fresh machine).
 
 Within the "resolver applies" set there is no verb-specific default; absence of
 `--profile` always triggers the resolution rule above. Within the "resolver bypassed"
