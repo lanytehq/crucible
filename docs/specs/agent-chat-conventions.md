@@ -124,16 +124,31 @@ current process environment. Any persistent marker file may serve as a convenien
 for single-tenant setups but MUST be consulted strictly lower than rules #1 and #2,
 and MUST NOT override an env-derived resolution.
 
-This rule applies uniformly to every CLI verb that targets a profile or daemon —
-`daemon {start, stop, status}`, `profile {list, active, create, create-from-env}`,
-`post`, `read`, `check`, `whoami`, `auto-setup`, `attention`, and any future verbs
-introduced alongside this change. There is no verb-specific default; absence of
-`--profile` always triggers the resolution rule above. Hardcoded scope defaults —
-for example, `org-lanytehq` as the default for `--team-name` on `profile create` —
-MUST be removed. Such defaults carry a single-org bias that silently produces
-wrong-target behavior on a shared multi-org dev machine. Where a flag's value can
-be derived from `$LANYTE_AGENT_ROLE` or `$LANYTE_AGENT_SCOPE`, derive it; otherwise
-require it explicitly.
+This rule applies to every CLI verb that takes a single profile or daemon as its
+target. Verbs that manage the profile *collection* (enumerate it, or create new
+entries) bypass the resolver entirely, since they don't have a target to resolve.
+
+**Resolver applies:** `daemon {start, stop, status}`, `profile active`, `post`,
+`read`, `check`, `whoami`, `attention`, and any future verbs that address a single
+profile or daemon.
+
+**Resolver bypassed:** `profile {list, create, create-from-env}` and `auto-setup`.
+The collection-management verbs (`profile {list, create, create-from-env}`) operate
+on the profile collection (enumerate, append) rather than targeting a single
+profile. The `auto-setup` bootstrap verb creates-or-refreshes the canonical
+`${LANYTE_AGENT_ROLE}-${LANYTE_AGENT_SCOPE}` profile from sourced env — it must
+work even when that profile doesn't yet exist (the bootstrap chicken-and-egg).
+Forcing the resolver on any of these would brick fresh bootstrap on an empty
+config (cannot enumerate zero profiles, cannot create the first profile, cannot
+materialize the canonical profile from a fresh machine).
+
+Within the "resolver applies" set there is no verb-specific default; absence of
+`--profile` always triggers the resolution rule above. Within the "resolver bypassed"
+set, hardcoded scope defaults still MUST be removed — for example, `org-lanytehq`
+as the default for `--team-name` on `profile create` carries a single-org bias and
+produces wrong-target behavior in multi-org use. Where a flag's value can be derived
+from `$LANYTE_AGENT_ROLE` or `$LANYTE_AGENT_SCOPE`, derive it; otherwise require it
+explicitly.
 
 ### Migration
 
