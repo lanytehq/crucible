@@ -73,6 +73,84 @@ stable identity.
 
 ---
 
+## Chanvoy Profile Naming
+
+A **chanvoy profile** is a local configuration binding on a dev machine that pairs a
+Mattermost bot token, bot username, team, and daemon socket under a short name.
+Multiple profiles coexist on one machine; CLI invocations target one at a time via
+the `--profile <name>` flag, or via default resolution (described below) when the
+flag is absent. The profile name is therefore load-bearing for both human ergonomics
+and deterministic default resolution.
+
+### Convention
+
+A chanvoy profile name MUST match the identity-script stem: `<role>-<scope>`.
+
+| Identity script                          | Chanvoy profile           |
+|------------------------------------------|---------------------------|
+| `cxotech-lanytehq.sh`                    | `cxotech-lanytehq`        |
+| `cxotech-enacthq.sh`                     | `cxotech-enacthq`         |
+| `bravo-devlead-lanytehq.sh`              | `bravo-devlead-lanytehq`  |
+| `dispatch-lanytehq.sh`                   | `dispatch-lanytehq`       |
+
+Scope suffix is required even for team-scoped roles where the scope is unambiguous
+today (e.g., `bravo-devlead-lanytehq`). The uniformity buys a simpler default-resolution
+rule and removes special cases for "does this role span orgs?" The identity script's
+filename is the source of truth for both `<role>` and `<scope>` segments.
+
+### Implication for CLI default resolution
+
+Because profile names follow `<role>-<scope>`, every chanvoy CLI verb that targets a
+profile or daemon can resolve its target from sourced environment without an explicit
+`--profile` flag. The canonical rule:
+
+1. If `LANYTE_AGENT_ROLE` and `LANYTE_AGENT_SCOPE` are both set in the environment,
+   resolve to `${LANYTE_AGENT_ROLE}-${LANYTE_AGENT_SCOPE}` and act on that profile.
+   Resolution is by **exact profile name**, not by filtering profiles whose role and
+   scope happen to match — when sibling profiles exist (e.g., bootstrap or test
+   variants), exact-name match must win and the filter step must never bail on
+   ambiguity before the exact match gets a turn.
+2. Else if exactly one chanvoy daemon is running on this machine, act on that
+   profile (single-tenant fallback).
+3. Else refuse with a clear error, print live profiles, and require an explicit
+   `--profile`.
+
+**Persistent local-state pointers MUST NOT participate in rule #1.** A last-used or
+"active profile" marker file on disk is cross-session state on a shared machine — it
+silently carries one operator's choice into another operator's default resolution and
+has been observed to produce silent identity-attribution drift (an operator's command
+posting under a different bot's identity). Rule #1 derives exclusively from the
+current process environment. Any persistent marker file may serve as a convenience
+for single-tenant setups but MUST be consulted strictly lower than rules #1 and #2,
+and MUST NOT override an env-derived resolution.
+
+This rule applies uniformly to every CLI verb that targets a profile or daemon —
+`daemon {start, stop, status}`, `profile {list, active, create, create-from-env}`,
+`post`, `read`, `check`, `whoami`, `auto-setup`, `attention`, and any future verbs
+introduced alongside this change. There is no verb-specific default; absence of
+`--profile` always triggers the resolution rule above. Hardcoded scope defaults —
+for example, `org-lanytehq` as the default for `--team-name` on `profile create` —
+MUST be removed. Such defaults carry a single-org bias that silently produces
+wrong-target behavior on a shared multi-org dev machine. Where a flag's value can
+be derived from `$LANYTE_AGENT_ROLE` or `$LANYTE_AGENT_SCOPE`, derive it; otherwise
+require it explicitly.
+
+### Migration
+
+Historical profiles created under bare names predate this convention and must be
+renamed to their true `<role>-<scope>` form regardless of which scope they resolve to.
+Dispatch owns the sweep: bare `<role>` → `<role>-lanytehq` for lanytehq-scoped
+profiles, bare `<role>` → `<role>-enacthq` for enacthq-scoped profiles, with parallel
+partners created where an identity script for the other scope exists. Test and scratch
+profiles (`*-bootstrap`, `*-custom-team`, `temp-*`) are separately eligible for
+cleanup during the sweep.
+
+The rename is destructive for running daemons — each affected daemon must stop
+cleanly before its profile is renamed, or per-profile cursor state can desync.
+Coordinate the sweep in a maintenance window with all active operators aware.
+
+---
+
 ## Channel Structure
 
 ### Per-team channels
