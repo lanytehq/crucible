@@ -69,10 +69,17 @@ Typical sibling repos on a dev machine:
 
 ### Schema changes
 
-- Schema changes are **breaking by default** — all peers that use the channel must be updated simultaneously.
-- Add new message types via `oneOf` — never remove or rename existing ones without an ADR and a migration plan.
-- Run schema validation before committing: `~/dev/3leaps/ipcprims/target/debug/ipcprims echo /tmp/test.sock --validate schemas/ipc/`
-- All schema objects must have `"additionalProperties": false` (ipcprims strict mode enforces this; be explicit anyway).
+**Schema changes are governed by the Schema Bump Policy** — see [`docs/policies/schema-bump-policy.md`](docs/policies/schema-bump-policy.md) for the authoritative rules.
+
+Default disposition: **do not bump versioned schemas** unless there is a really good reason. Burden of proof is on the proposer. The four criteria for a justified bump (real downstream impact, no non-schema fix available, sustained signal, documented evidence) are enumerated in the policy.
+
+If a bump is justified, the safe-bump rules in the policy apply:
+- Breaking by default — lockstep consumer regen.
+- `oneOf` for additions; ADR + migration plan for any removal or rename.
+- Validate with `ipcprims echo --validate schemas/ipc/` before committing.
+- `additionalProperties: false` everywhere.
+- Version-bump strategy (additive → minor, breaking → major) per the policy.
+- Cross-consumer coordination + public-flip awareness per the policy.
 
 ### ADR process
 
