@@ -45,9 +45,9 @@ Check `AGENTS.local.md` in your working repo for any machine-specific path overr
 **Agent coordination**: Read `docs/specs/agent-coordination-bootstrap.md` for the full
 messaging, context, and role conventions. At minimum:
 
-- Resume context: `lanyte-ctx resume --role "$LANYTE_AGENT_ROLE" --scope "$LANYTE_AGENT_SCOPE"`
+- Resume context: `stashvoy resume --role "$LANYTE_AGENT_ROLE" --scope "$LANYTE_AGENT_SCOPE"`
 - Check `~/dev/lanytehq/chat/` for pending messages addressed to your role
-- Checkpoint at session end: `lanyte-ctx checkpoint --role "$LANYTE_AGENT_ROLE" --scope "$LANYTE_AGENT_SCOPE" --file /tmp/checkpoint-<role>-<scope>.json`
+- Checkpoint at session end: `stashvoy checkpoint --role "$LANYTE_AGENT_ROLE" --scope "$LANYTE_AGENT_SCOPE" --file /tmp/checkpoint-<role>-<scope>.json`
 
 ---
 

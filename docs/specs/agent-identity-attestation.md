@@ -93,7 +93,7 @@ Under the hood:
 1. A signing key lives in [seclusor](../../README.md#seclusor) (age-encrypted at rest)
 2. `lanyte-attest begin` mints a JWT: `{ role, scope, supervisor, iat, exp }`
 3. JWT injected as env var via seclusor's `run` mechanism (not in shell history)
-4. `lanyte-ctx` reads the token, validates the signature, records it in `session_ref`
+4. `stashvoy` reads the token, validates the signature, records it in `session_ref`
 
 **What this proves**: Someone with the seclusor passphrase attested this session for
 this role. Not foolproof (passphrase compromise = game over), but meaningful friction —
@@ -112,7 +112,7 @@ assessments, not identity.
 | Signing key compromise           | High impact, low prob | seclusor passphrase; key rotation    | HSM, per-supervisor keys                 |
 
 The strongest future architecture is an **ssh-agent pattern**: `lanyte-attest` runs as a
-UDS daemon, `lanyte-ctx` requests per-checkpoint attestations via socket, the token/key
+UDS daemon, `stashvoy` requests per-checkpoint attestations via socket, the token/key
 never enters the process environment.
 
 ## Autonomous Agent Identity (ADR Candidate — Not Yet Designed)
@@ -144,7 +144,7 @@ but will be addressed in the near term.
 | Artifact                                                             | Scope                                   | Status                 |
 | -------------------------------------------------------------------- | --------------------------------------- | ---------------------- |
 | `agent-state.schema.json` — structured `authored_by` + `session_ref` | Schema                                  | In progress (crucible) |
-| CRT-011 — `lanyte-ctx` agent state CLI                               | Role state with attribution             | Brief ready            |
+| CRT-011 — `stashvoy` agent state CLI                               | Role state with attribution             | Brief ready            |
 | CRT-012 — `lanyte-attest` session attestation                        | JWT minting, seclusor integration       | Brief in progress      |
 | ADR — Agent identity model                                           | Supervised + autonomous identity design | Draft pending          |
 | ADR — Autonomous agent trust anchors                                 | Blockchain/PKI for persistent agents    | Not started            |
@@ -156,7 +156,7 @@ These are relative to a lanytehq dev machine. Access may require org membership.
 - **Agent state schema**: `lanyte-crucible/schemas/agentic/v0/agent-state.schema.json`
 - **ADR-0009** (memory store): `lanyte-crucible/docs/decisions/adr-0009-*.md`
 - **ADR-0010** (LLM backend trait): `lanyte-crucible/docs/decisions/adr-0010-*.md`
-- **CRT-011 brief** (lanyte-ctx): `lanyte-productbook-internal/content/projmgmt/core-runtime/CRT-011-lanyte-ctx.md`
+- **CRT-011 brief** (stashvoy): `lanyte-productbook-internal/content/projmgmt/core-runtime/CRT-011-lanyte-ctx.md`
 - **Agent coordination spec**: `lanyte-crucible/docs/specs/agent-coordination-bootstrap.md`
 - **seclusor** (secrets manager): `~/dev/3leaps/seclusor/` — age-encrypted secrets, env var injection
 - **Lanyte premise**: Agents operate with freedom proportional to earned trust and assessed
