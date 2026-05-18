@@ -6,7 +6,7 @@ version: 0.1.0
 
 # Schema Bump Policy
 
-This policy governs changes to versioned schemas across the Lanyte platform — JSON Schema files in `lanyte-crucible/schemas/`, embedded schema copies in `lanyte-ctx`, `lanyte-attest`, and any future consumer that ships an embedded schema copy.
+This policy governs changes to versioned schemas across the Lanyte platform — JSON Schema files in `lanyte-crucible/schemas/`, embedded schema copies in `stashvoy`, `lanyte-attest`, and any future consumer that ships an embedded schema copy.
 
 It answers two distinct questions:
 
@@ -19,7 +19,7 @@ It answers two distinct questions:
 
 The Lanyte schemas are still evolving conceptually. Each bump:
 
-- Requires lockstep regen across every consumer that embeds the schema (`lanyte-ctx`, `lanyte-attest`, future peers).
+- Requires lockstep regen across every consumer that embeds the schema (`stashvoy`, `lanyte-attest`, future peers).
 - Adds coordination tax to the team carrying the bump and to the consuming teams.
 - Ratchets the surface before the design has settled.
 
@@ -31,7 +31,7 @@ Any brief, PR, or change proposal that touches:
 
 - `lanyte-crucible/schemas/ipc/*.schema.json` (channel schemas)
 - `lanyte-crucible/schemas/agentic/v0/*.schema.json` (agent state, role prompt, capability)
-- Any embedded schema copy in a consuming binary (e.g., `lanyte-ctx/schemas/v0/`, `lanyte-attest` embedded schema)
+- Any embedded schema copy in a consuming binary (e.g., `stashvoy/schemas/v0/`, `lanyte-attest` embedded schema)
 - The `version` field of any of the above
 
 ## Bar for Bumping
@@ -82,4 +82,4 @@ These rules apply to any bump that clears the bar above. They are not optional.
 
 ## History
 
-- **0.1.0 (2026-05-12)** — initial draft. Triggered by CRT-011D drafting cycle and platform-wide "literally everyone hits this" signal on `lanyte-ctx` checkpoint friction. Policy direction set by @3leapsdave 2026-05-12: "too early in dev and too noisy — leaving unless there is a really good reason." Dispatch concurred on three-tier docs split and pattern-setter review for the first policy file.
+- **0.1.0 (2026-05-12)** — initial draft. Triggered by CRT-011D drafting cycle and platform-wide "literally everyone hits this" signal on `stashvoy` checkpoint friction. Policy direction set by @3leapsdave 2026-05-12: "too early in dev and too noisy — leaving unless there is a really good reason." Dispatch concurred on three-tier docs split and pattern-setter review for the first policy file.

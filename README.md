@@ -31,7 +31,7 @@ schema-validated message framing.
 Schemas for agent-side contracts:
 
 - `v0/agent-state.schema.json` — structured checkpoint format for AI agent
-  sessions. Embedded by [lanyte-ctx](https://github.com/lanytehq/lanyte-ctx).
+  sessions. Embedded by [stashvoy](https://github.com/lanytehq/stashvoy).
 - `v0/role-prompt.schema.json` — validation schema for agent role definitions
   in `config/agentic/roles/`.
 

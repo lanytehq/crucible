@@ -13,7 +13,7 @@ created: 2026-04-18
 Modern agent harnesses (Claude Code, opencode, Codex) control tool use
 through per-command permission rules. These rules are typically
 **prefix-based string matches** against the command the agent is about
-to run. A harness can be taught "allow `lanyte-ctx resume *`" cheaply —
+to run. A harness can be taught "allow `stashvoy resume *`" cheaply —
 one line in a settings file — but cannot easily express "allow this
 command as long as its arguments are shaped thus-and-so."
 
@@ -30,9 +30,9 @@ accidentally favor today make this harder than it should be:
    case of this.
 
 2. **File-intermediate writes.** Our checkpoint flow today is
-   "heredoc-emit a JSON file, then run `lanyte-ctx checkpoint --file`."
+   "heredoc-emit a JSON file, then run `stashvoy checkpoint --file`."
    The heredoc step requires permission to write `/tmp/*` (broad);
-   the `lanyte-ctx` step requires permission to run the subcommand; and
+   the `stashvoy` step requires permission to run the subcommand; and
    there is no single prefix that captures the whole flow. An agent
    that could have written its checkpoint in one invocation has to
    break it into two, each with its own permission gate.
@@ -75,7 +75,7 @@ A harness rule `Allow: <tool> schema *` must be safe to grant
 unconditionally because no subcommand under `schema` will ever mutate
 anything. New subcommands that would violate this get renamed.
 
-**Applies to**: `lanyte-ctx`, `chanvoy`, `lanyte-verify`, `ipcprims`
+**Applies to**: `stashvoy`, `chanvoy`, `lanyte-verify`, `ipcprims`
 CLI, `lanyte-attest`, `seclusor`, any future tool.
 
 ### C2 — Flat option-only surface for writes
@@ -89,7 +89,7 @@ these values."
 `<tool> <subcommand> --flag value --flag value …` invocation, the
 command's surface is wrong. Fix the CLI, not the agent's behavior.
 
-CRT-011C (lanyte-ctx option-oriented checkpoint) is the template.
+CRT-011C (stashvoy option-oriented checkpoint) is the template.
 
 ### C3 — No file intermediates for the common write path
 
@@ -103,7 +103,7 @@ The file-intermediate antipattern hurts because:
 - the file is a second source of truth during the few seconds it exists
 - compound "heredoc && run" expressions hit C1's shell-release problem
 
-Tools that today require a file intermediate (lanyte-ctx checkpoint
+Tools that today require a file intermediate (stashvoy checkpoint
 before CRT-011C) are explicitly in scope for migration.
 
 ### C4 — Structured output via flag, not pipe
@@ -220,7 +220,7 @@ reference.
 
 Programmatic output (JSON, structured data) goes to **stdout**;
 diagnostics, confirmations, and human-facing logs go to **stderr**.
-CRT-011A established this for lanyte-ctx; it is now the platform rule.
+CRT-011A established this for stashvoy; it is now the platform rule.
 
 Violation test: `<tool> <subcommand> --format json > out.json` must
 produce a clean parseable file, with zero stray text.
@@ -263,10 +263,10 @@ Once all Lanyte CLIs follow these conventions, a Claude Code
 {
   "permissions": {
     "allow": [
-      "Bash(lanyte-ctx schema *)",
-      "Bash(lanyte-ctx resume *)",
-      "Bash(lanyte-ctx docs *)",
-      "Bash(lanyte-ctx checkpoint *)",
+      "Bash(stashvoy schema *)",
+      "Bash(stashvoy resume *)",
+      "Bash(stashvoy docs *)",
+      "Bash(stashvoy checkpoint *)",
       "Bash(chanvoy check *)",
       "Bash(chanvoy read *)",
       "Bash(chanvoy notifications *)"
@@ -289,7 +289,7 @@ allowlist model.
 
 In-scope tools (today):
 
-- **lanyte-ctx** — CRT-011B (schema introspection) and CRT-011C
+- **stashvoy** — CRT-011B (schema introspection) and CRT-011C
   (option-oriented checkpoint) bring it into compliance.
 - **chanvoy** — PER-008 brief already follows these patterns (exit
   codes, JSON output, cursor flags). Audit at review.

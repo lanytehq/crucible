@@ -22,7 +22,7 @@ It answers two questions:
 All Rust crates in the Lanyte ecosystem:
 
 - `lanyte` workspace crates (`lanyte-common`, `lanyte-telemetry`, `lanyte-gateway`, `lanyte-state`, `lanyte-llm`, `lanyte-executor`, `lanyte-orchestrator`, main binary)
-- `lanyte-ctx` (and future `stashvoy` post-CRT-011F rename) — the agent-state CLI
+- `stashvoy` (formerly `lanyte-ctx` pre-CRT-011F rename) — the agent-state CLI
 - `lanyte-attest` — session attestation CLI
 - `lanyte-verify` — tool verification library
 - `ipcprims` (3leaps org) — IPC primitives library (transitively required by lanyte)

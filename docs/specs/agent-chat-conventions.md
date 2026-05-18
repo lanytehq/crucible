@@ -322,15 +322,15 @@ bot_token = "xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 ## Relationship to Other Systems
 
-### lanyte-ctx (state)
+### stashvoy (state)
 
-lanyte-ctx handles structured state checkpoints. Mattermost handles messages.
+stashvoy handles structured state checkpoints. Mattermost handles messages.
 They are complementary:
 
 - **ctx** = "here is my state snapshot at this point in time"
 - **chat** = "here is what happened and what needs to happen next"
 
-Agents should continue using `lanyte-ctx checkpoint` for state persistence.
+Agents should continue using `stashvoy checkpoint` for state persistence.
 Chat messages are ephemeral coordination, not durable state.
 
 ### lanyte-attest (trust)

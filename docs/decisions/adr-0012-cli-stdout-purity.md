@@ -9,9 +9,9 @@ Status: Accepted
 
 ## Context
 
-Lanyte CLI tools (`lanyte-ctx`, `lanyte-attest`, and future tools) produce two kinds of output: programmatic data that callers pipe to `jq`, capture in variables, or feed to other tools, and human-facing diagnostics like confirmations, warnings, and resolved paths.
+Lanyte CLI tools (`stashvoy`, `lanyte-attest`, and future tools) produce two kinds of output: programmatic data that callers pipe to `jq`, capture in variables, or feed to other tools, and human-facing diagnostics like confirmations, warnings, and resolved paths.
 
-Mixing both on stdout breaks pipelines. A script that captures `lanyte-ctx resume` output to parse as JSON gets a confirmation line prepended. A CI pipeline that checks `lanyte-ctx checkpoint` exit code also gets unsolicited output that pollutes logs.
+Mixing both on stdout breaks pipelines. A script that captures `stashvoy resume` output to parse as JSON gets a confirmation line prepended. A CI pipeline that checks `stashvoy checkpoint` exit code also gets unsolicited output that pollutes logs.
 
 This problem is well-understood in Unix tooling. The convention is simple and nearly universal, but easy to violate in practice — especially in early development where `println!` is the path of least resistance.
 
@@ -38,7 +38,7 @@ stdout is unconditionally reserved for programmatic output. All diagnostics go t
 ### What goes to stdout
 
 - Structured data: JSON objects, JSON arrays, or delimited text that a caller may pipe or capture.
-- Raw content when the command's purpose is to emit content (e.g., `lanyte-ctx resume` outputs state JSON, `lanyte-ctx docs show` outputs markdown).
+- Raw content when the command's purpose is to emit content (e.g., `stashvoy resume` outputs state JSON, `stashvoy docs show` outputs markdown).
 
 ### What goes to stderr
 
@@ -84,7 +84,7 @@ Do not use `println!` for confirmations, diagnostics, or status messages. If a m
 
 This policy applies to:
 
-- `lanyte-ctx` (implemented in CRT-011A)
+- `stashvoy` (implemented in CRT-011A)
 - `lanyte-attest` (apply at initial implementation)
 - All future Lanyte CLI tools
 
