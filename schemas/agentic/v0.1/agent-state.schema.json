@@ -114,7 +114,7 @@
     },
     "status_summary": {
       "type": "string",
-      "maxLength": 512,
+      "maxLength": 1536,
       "description": "One-paragraph summary of current state. The single thing a resuming agent reads first."
     },
     "active_task": {
@@ -146,7 +146,7 @@
         },
         "next_action": {
           "type": "string",
-          "maxLength": 256,
+          "maxLength": 768,
           "description": "The specific next thing to do when resuming this task"
         }
       },
@@ -162,7 +162,7 @@
         "properties": {
           "summary": {
             "type": "string",
-            "maxLength": 256
+            "maxLength": 512
           },
           "ref": {
             "type": "string",
@@ -183,7 +183,7 @@
         "properties": {
           "action": {
             "type": "string",
-            "maxLength": 256
+            "maxLength": 512
           },
           "blocked_by": {
             "type": "string",
@@ -206,7 +206,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "maxLength": 256
+        "maxLength": 512
       },
       "description": "Deliverables completed in the current session. Useful for handoff summaries and session-level reporting. Cleared on session boundary."
     },
@@ -243,7 +243,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "maxLength": 256
+        "maxLength": 512
       },
       "description": "Current blockers preventing progress. Empty array = unblocked."
     },
