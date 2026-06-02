@@ -25,3 +25,4 @@ Decisions are recorded as ADRs when they are hard to reverse or when multiple vi
 | ADR-0012 | CLI stdout purity policy (stdout for data, stderr for diagnostics)         | Accepted            |
 | ADR-0013 | Feature-gated test support in workspace crates                             | Accepted            |
 | ADR-0015 | Grant phase must produce instantiate-ready artifacts                       | Accepted            |
+| ADR-0016 | Agent-critical file input symlink policy                                   | Accepted            |
