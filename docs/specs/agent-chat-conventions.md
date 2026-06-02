@@ -54,16 +54,16 @@ The `agent-` prefix satisfies this. Human usernames follow the same rule
 
 ### Examples
 
-| Bot username | Display name | Purpose |
-|---|---|---|
-| `agent-charlie-devlead` | Charlie devlead | Charlie team lead developer |
-| `agent-charlie-devrev` | Charlie devrev | Charlie team code reviewer |
-| `agent-delta-devlead` | Delta devlead | Delta team lead developer |
-| `agent-delta-devrev` | Delta devrev | Delta team code reviewer |
-| `agent-echo-devlead` | Echo devlead | Echo team lead developer |
-| `agent-cxotech-3leaps` | cxotech-3leaps | Org-scoped strategic role |
+| Bot username            | Display name    | Purpose                      |
+| ----------------------- | --------------- | ---------------------------- |
+| `agent-charlie-devlead` | Charlie devlead | Charlie team lead developer  |
+| `agent-charlie-devrev`  | Charlie devrev  | Charlie team code reviewer   |
+| `agent-delta-devlead`   | Delta devlead   | Delta team lead developer    |
+| `agent-delta-devrev`    | Delta devrev    | Delta team code reviewer     |
+| `agent-echo-devlead`    | Echo devlead    | Echo team lead developer     |
+| `agent-cxotech-3leaps`  | cxotech-3leaps  | Org-scoped strategic role    |
 | `agent-secrev-lanytehq` | secrev-lanytehq | Org-scoped security reviewer |
-| `agent-dispatch` | dispatch | Task routing and scheduling |
+| `agent-dispatch`        | dispatch        | Task routing and scheduling  |
 
 ### Display name updates
 
@@ -86,12 +86,12 @@ and deterministic default resolution.
 
 A chanvoy profile name MUST match the identity-script stem: `<role>-<scope>`.
 
-| Identity script                          | Chanvoy profile           |
-|------------------------------------------|---------------------------|
-| `cxotech-lanytehq.sh`                    | `cxotech-lanytehq`        |
-| `cxotech-enacthq.sh`                     | `cxotech-enacthq`         |
-| `bravo-devlead-lanytehq.sh`              | `bravo-devlead-lanytehq`  |
-| `dispatch-lanytehq.sh`                   | `dispatch-lanytehq`       |
+| Identity script             | Chanvoy profile          |
+| --------------------------- | ------------------------ |
+| `cxotech-lanytehq.sh`       | `cxotech-lanytehq`       |
+| `cxotech-enacthq.sh`        | `cxotech-enacthq`        |
+| `bravo-devlead-lanytehq.sh` | `bravo-devlead-lanytehq` |
+| `dispatch-lanytehq.sh`      | `dispatch-lanytehq`      |
 
 Scope suffix is required even for team-scoped roles where the scope is unambiguous
 today (e.g., `bravo-devlead-lanytehq`). The uniformity buys a simpler default-resolution
@@ -125,7 +125,7 @@ for single-tenant setups but MUST be consulted strictly lower than rules #1 and 
 and MUST NOT override an env-derived resolution.
 
 This rule applies to every CLI verb that takes a single profile or daemon as its
-target. Verbs that manage the profile *collection* (enumerate it, or create new
+target. Verbs that manage the profile _collection_ (enumerate it, or create new
 entries) bypass the resolver entirely, since they don't have a target to resolve.
 
 **Resolver applies:** `daemon {start, stop, status}`, `profile active`, `post`,
@@ -302,11 +302,11 @@ bot_token = "xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 ### Environment variable overrides (Layer 3)
 
-| Env var | Config path | Notes |
-|---|---|---|
-| `LANYTE_MM_URL` | `mattermost.server_url` | Full base URL (https) |
-| `LANYTE_MM_TOKEN` | `mattermost.bot_token` | Bot access token |
-| `LANYTE_MM_TEAM` | `mattermost.team` | Default team (default: `org-lanytehq`) |
+| Env var           | Config path             | Notes                                  |
+| ----------------- | ----------------------- | -------------------------------------- |
+| `LANYTE_MM_URL`   | `mattermost.server_url` | Full base URL (https)                  |
+| `LANYTE_MM_TOKEN` | `mattermost.bot_token`  | Bot access token                       |
+| `LANYTE_MM_TEAM`  | `mattermost.team`       | Default team (default: `org-lanytehq`) |
 
 ### Security
 
@@ -338,11 +338,11 @@ Chat messages are ephemeral coordination, not durable state.
 Chat posting does **not** require attestation in the bootstrap phase.
 The trust model evolves in phases:
 
-| Phase | Auth model | When |
-|---|---|---|
-| **Bootstrap** (now) | Bot token only. Token proves process identity. | Before orchestrator |
-| **Correlation** | Attested sessions carry `session_id` in message props. | After orchestrator MVP |
-| **Gated actions** | Actions requested via chat (merge, deploy) require attestation. | After CRT-013 |
+| Phase               | Auth model                                                      | When                   |
+| ------------------- | --------------------------------------------------------------- | ---------------------- |
+| **Bootstrap** (now) | Bot token only. Token proves process identity.                  | Before orchestrator    |
+| **Correlation**     | Attested sessions carry `session_id` in message props.          | After orchestrator MVP |
+| **Gated actions**   | Actions requested via chat (merge, deploy) require attestation. | After CRT-013          |
 
 ### chanvoy (future)
 

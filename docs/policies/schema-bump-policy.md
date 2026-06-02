@@ -56,6 +56,7 @@ These rules apply to any bump that clears the bar above. They are not optional.
    - A migration plan for existing consumers
 
 3. **Schema validation before committing**:
+
    ```bash
    ~/dev/3leaps/ipcprims/target/debug/ipcprims echo /tmp/test.sock \
      --validate schemas/ipc/

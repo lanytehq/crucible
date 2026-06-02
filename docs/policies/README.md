@@ -12,16 +12,16 @@ This directory is the companion to `docs/specs/` (normative interface contracts)
 
 ## Active policies
 
-| Policy | Topic |
-|---|---|
-| [`public-docs-redaction.md`](./public-docs-redaction.md) | What goes in public-visible docs vs. operationally sensitive details |
-| [`schema-bump-policy.md`](./schema-bump-policy.md) | Default disposition + bar for bumping versioned schemas |
-| [`commit-attribution-policy.md`](./commit-attribution-policy.md) | Commit + PR attribution conventions (Co-Authored-By, Drafted-By, anti-spoofing email format) |
-| [`release-signing-manual-baseline-policy.md`](./release-signing-manual-baseline-policy.md) | Manual-signing baseline for Rust release-shipping repos; CI builds draft only |
-| [`pr-body-vs-squash-commit-shape-policy.md`](./pr-body-vs-squash-commit-shape-policy.md) | Two-audience discipline: PR body for reviewers-now vs. squash-commit for git-log-readers-years-out |
-| [`msrv-invariant-policy.md`](./msrv-invariant-policy.md) | Minimum Supported Rust Version invariant for lanyte crates; bump-forward discipline |
+| Policy                                                                                     | Topic                                                                                              |
+| ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| [`public-docs-redaction.md`](./public-docs-redaction.md)                                   | What goes in public-visible docs vs. operationally sensitive details                               |
+| [`schema-bump-policy.md`](./schema-bump-policy.md)                                         | Default disposition + bar for bumping versioned schemas                                            |
+| [`commit-attribution-policy.md`](./commit-attribution-policy.md)                           | Commit + PR attribution conventions (Co-Authored-By, Drafted-By, anti-spoofing email format)       |
+| [`release-signing-manual-baseline-policy.md`](./release-signing-manual-baseline-policy.md) | Manual-signing baseline for Rust release-shipping repos; CI builds draft only                      |
+| [`pr-body-vs-squash-commit-shape-policy.md`](./pr-body-vs-squash-commit-shape-policy.md)   | Two-audience discipline: PR body for reviewers-now vs. squash-commit for git-log-readers-years-out |
+| [`msrv-invariant-policy.md`](./msrv-invariant-policy.md)                                   | Minimum Supported Rust Version invariant for lanyte crates; bump-forward discipline                |
 
-*(Add rows as future policies land. Keep alphabetical or grouping by domain when count justifies it.)*
+_(Add rows as future policies land. Keep alphabetical or grouping by domain when count justifies it.)_
 
 ## Authoring conventions
 

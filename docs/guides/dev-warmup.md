@@ -84,6 +84,7 @@ Check before touching any task:
 ```
 
 **Current gate status** — check the live board, not a snapshot:
+
 ```
 ~/dev/lanytehq/lanyte-productbook-internal/content/projmgmt/projmgmt/index.md
 ```

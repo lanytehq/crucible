@@ -21,7 +21,7 @@ can instantiate without rebuilding it.
 SKL-004 landed the v1 grant phase (PR #15 on `lanytehq/lanyte`). During
 review, three independent rounds of feedback (secrev, entarch, devrev)
 found distinct classes of bug in which `build_grant` returned a
-*successful* grant artifact whose cached linker was **not actually
+_successful_ grant artifact whose cached linker was **not actually
 instantiable**:
 
 1. Repeated `(module, name)` imports failed grant with a spurious
@@ -34,7 +34,7 @@ instantiable**:
    the same class to slip past the guard (devrev).
 
 Each round hardened the dedup guard, but the underlying recurring failure
-mode was architectural, not code-local: the grant phase was *allowed* to
+mode was architectural, not code-local: the grant phase was _allowed_ to
 produce artifacts that only failed later. There was no stated invariant
 forcing grant to be a gate rather than a deferred check.
 

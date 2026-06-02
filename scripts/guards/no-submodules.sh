@@ -7,4 +7,3 @@ if [[ -f ".gitmodules" ]]; then
   echo "Fix: remove submodules; prefer versioned deps or repo templates."
   exit 2
 fi
-

@@ -144,7 +144,7 @@ but will be addressed in the near term.
 | Artifact                                                             | Scope                                   | Status                 |
 | -------------------------------------------------------------------- | --------------------------------------- | ---------------------- |
 | `agent-state.schema.json` — structured `authored_by` + `session_ref` | Schema                                  | In progress (crucible) |
-| CRT-011 — `stashvoy` agent state CLI                               | Role state with attribution             | Brief ready            |
+| CRT-011 — `stashvoy` agent state CLI                                 | Role state with attribution             | Brief ready            |
 | CRT-012 — `lanyte-attest` session attestation                        | JWT minting, seclusor integration       | Brief in progress      |
 | ADR — Agent identity model                                           | Supervised + autonomous identity design | Draft pending          |
 | ADR — Autonomous agent trust anchors                                 | Blockchain/PKI for persistent agents    | Not started            |

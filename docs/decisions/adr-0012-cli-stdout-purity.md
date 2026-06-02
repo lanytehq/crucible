@@ -56,12 +56,12 @@ Commands that write to a store (e.g., `checkpoint`, `init`) produce **no stdout 
 
 Exit codes are the primary success/failure signal, not output parsing:
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | Not found or I/O error |
-| 2 | Unsupported operation for this backend/configuration |
-| 3 | Validation or schema error |
+| Code | Meaning                                              |
+| ---- | ---------------------------------------------------- |
+| 0    | Success                                              |
+| 1    | Not found or I/O error                               |
+| 2    | Unsupported operation for this backend/configuration |
+| 3    | Validation or schema error                           |
 
 Tool-specific codes above 3 are permitted but must be documented in the tool's CLI reference.
 

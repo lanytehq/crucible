@@ -93,6 +93,7 @@ When a brief references a provider API, point to the refbolt archive:
 
 ```markdown
 ## References
+
 - xAI Responses API: `~/docs/refbolt/llm-api/xai/latest/developers/rest-api-reference/`
 - Anthropic Messages API: `~/docs/refbolt/llm-api/anthropic/latest/en/api-reference/`
 - OpenAI API Reference: `~/docs/refbolt/llm-api/openai/latest/docs/api-reference/`
@@ -117,15 +118,15 @@ source of truth for what the provider API actually looks like at the time of imp
 
 refbolt's `configs/providers.yaml` defines the active providers. As of v0.0.1:
 
-| Provider | Strategy | Content |
-|----------|----------|---------|
-| xAI/Grok | native (llms.txt + .md pages) | ~100 files, full API reference |
-| Anthropic | native (llms-full.txt, 488 sections) | ~490 files, complete platform docs |
-| OpenAI | jina (HTML→Markdown) + GitHub OpenAPI | API reference pages + openapi.yaml |
-| Pydantic | native (llms-full.txt) | Schema validation reference |
-| AWS Glue/Bedrock | hierarchical llms.txt | Per-service docs |
-| Trino | github-raw | Query engine reference |
-| Kubernetes kubectl | github-raw | CLI reference |
+| Provider           | Strategy                              | Content                            |
+| ------------------ | ------------------------------------- | ---------------------------------- |
+| xAI/Grok           | native (llms.txt + .md pages)         | ~100 files, full API reference     |
+| Anthropic          | native (llms-full.txt, 488 sections)  | ~490 files, complete platform docs |
+| OpenAI             | jina (HTML→Markdown) + GitHub OpenAPI | API reference pages + openapi.yaml |
+| Pydantic           | native (llms-full.txt)                | Schema validation reference        |
+| AWS Glue/Bedrock   | hierarchical llms.txt                 | Per-service docs                   |
+| Trino              | github-raw                            | Query engine reference             |
+| Kubernetes kubectl | github-raw                            | CLI reference                      |
 
 To add a new provider, edit `configs/providers.yaml` in the refbolt repo. See the refbolt
 README for fetch strategy options and provider configuration.
