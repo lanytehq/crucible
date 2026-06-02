@@ -32,13 +32,13 @@ Does NOT apply to: direct human commits where the human is the actual author (no
 
 ### Per-organization email table
 
-| GitHub org | `Co-Authored-By` email |
-|---|---|
-| `lanytehq/*` | `noreply@lanytehq.dev` |
-| `3leaps/*` | `noreply@3leaps.dev` (or `noreply@3leaps.net` if matching repo's existing convention) |
-| `fulmenhq/*` | `noreply@fulmenhq.dev` |
-| `enacthq/*` | `noreply@enacthq.dev` |
-| `namelens/*` | `noreply@namelens.dev` |
+| GitHub org   | `Co-Authored-By` email                                                                |
+| ------------ | ------------------------------------------------------------------------------------- |
+| `lanytehq/*` | `noreply@lanytehq.dev`                                                                |
+| `3leaps/*`   | `noreply@3leaps.dev` (or `noreply@3leaps.net` if matching repo's existing convention) |
+| `fulmenhq/*` | `noreply@fulmenhq.dev`                                                                |
+| `enacthq/*`  | `noreply@enacthq.dev`                                                                 |
+| `namelens/*` | `noreply@namelens.dev`                                                                |
 
 Backstop when unsure: run `git remote -v` first to confirm the org, or inspect prior commits via `git log` for the established trailer style in this repo.
 

@@ -36,12 +36,12 @@ The following policies are **required defaults with narrow override room**. A ba
 
 This ADR governs:
 
-| Path class | Examples | Transport |
-|---|---|---|
-| LLM provider backends | Claude, Grok, OpenAI adapters | HTTPS to external API |
-| Peer bridges | mlvoy (IMAP/SMTP), chanvoy (Mattermost/Slack) | HTTP/TCP to external provider |
-| Inter-service IPC | gateway ↔ orchestrator, orchestrator ↔ state | UDS or local TCP |
-| Control plane calls | lanyte-attest daemon, health checks | UDS or local HTTP |
+| Path class            | Examples                                      | Transport                     |
+| --------------------- | --------------------------------------------- | ----------------------------- |
+| LLM provider backends | Claude, Grok, OpenAI adapters                 | HTTPS to external API         |
+| Peer bridges          | mlvoy (IMAP/SMTP), chanvoy (Mattermost/Slack) | HTTP/TCP to external provider |
+| Inter-service IPC     | gateway ↔ orchestrator, orchestrator ↔ state  | UDS or local TCP              |
+| Control plane calls   | lanyte-attest daemon, health checks           | UDS or local HTTP             |
 
 Excluded:
 
@@ -52,28 +52,28 @@ Excluded:
 
 #### Retryable
 
-| Signal | Rationale |
-|---|---|
-| Connect failure / DNS resolution failure | Transient network issue |
-| Request timeout (no response received) | Upstream may not have processed the request |
-| HTTP 429 (Too Many Requests) | Explicit rate limit; retry after backoff |
-| HTTP 500 (Internal Server Error) | Often transient during partial outages |
-| HTTP 502 (Bad Gateway) | Upstream proxy failure |
-| HTTP 503 (Service Unavailable) | Upstream overloaded |
-| HTTP 504 (Gateway Timeout) | Upstream proxy timeout |
-| HTTP 529 (Overloaded, Anthropic-specific) | Provider-specific overload signal |
+| Signal                                    | Rationale                                   |
+| ----------------------------------------- | ------------------------------------------- |
+| Connect failure / DNS resolution failure  | Transient network issue                     |
+| Request timeout (no response received)    | Upstream may not have processed the request |
+| HTTP 429 (Too Many Requests)              | Explicit rate limit; retry after backoff    |
+| HTTP 500 (Internal Server Error)          | Often transient during partial outages      |
+| HTTP 502 (Bad Gateway)                    | Upstream proxy failure                      |
+| HTTP 503 (Service Unavailable)            | Upstream overloaded                         |
+| HTTP 504 (Gateway Timeout)                | Upstream proxy timeout                      |
+| HTTP 529 (Overloaded, Anthropic-specific) | Provider-specific overload signal           |
 
 #### Non-retryable
 
-| Signal | Rationale |
-|---|---|
-| HTTP 400 (Bad Request) | Malformed request; retrying won't fix it |
-| HTTP 401 / 403 (Auth failure) | Credentials are wrong; retrying amplifies lockout risk |
-| HTTP 404 (Not Found) | Resource doesn't exist |
-| HTTP 422 (Validation failure) | Application-level rejection |
-| Content filter / policy rejection | Model-level refusal; deterministic |
-| Invalid model / contract errors | Configuration error |
-| JSON parse failure on response body | Adapter or provider bug; not transient |
+| Signal                              | Rationale                                              |
+| ----------------------------------- | ------------------------------------------------------ |
+| HTTP 400 (Bad Request)              | Malformed request; retrying won't fix it               |
+| HTTP 401 / 403 (Auth failure)       | Credentials are wrong; retrying amplifies lockout risk |
+| HTTP 404 (Not Found)                | Resource doesn't exist                                 |
+| HTTP 422 (Validation failure)       | Application-level rejection                            |
+| Content filter / policy rejection   | Model-level refusal; deterministic                     |
+| Invalid model / contract errors     | Configuration error                                    |
+| JSON parse failure on response body | Adapter or provider bug; not transient                 |
 
 #### Server Retry-After
 
@@ -91,34 +91,34 @@ For HTTP 500 specifically, `base_delay_500` is used instead of `base_delay`, wit
 
 #### Required defaults
 
-| Parameter | Default | Override room |
-|---|---|---|
-| `max_attempts` | 3 | May increase to 5 for peer IPC on local transport. Must not exceed 5 without ADR amendment. |
-| `base_delay` | 1s | May decrease to 100ms for local UDS paths where latency budget is tight. |
-| `base_delay_500` | 3s | May increase. Must not decrease below `base_delay`. |
-| `max_per_attempt_sleep` | 30s | May decrease. Must not increase without ADR amendment. |
-| `total_retry_budget` | 90s | The sum of all retry sleeps for a single request must not exceed this. If the budget is exhausted, fail immediately. May decrease for latency-sensitive paths. |
+| Parameter               | Default | Override room                                                                                                                                                  |
+| ----------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `max_attempts`          | 3       | May increase to 5 for peer IPC on local transport. Must not exceed 5 without ADR amendment.                                                                    |
+| `base_delay`            | 1s      | May decrease to 100ms for local UDS paths where latency budget is tight.                                                                                       |
+| `base_delay_500`        | 3s      | May increase. Must not decrease below `base_delay`.                                                                                                            |
+| `max_per_attempt_sleep` | 30s     | May decrease. Must not increase without ADR amendment.                                                                                                         |
+| `total_retry_budget`    | 90s     | The sum of all retry sleeps for a single request must not exceed this. If the budget is exhausted, fail immediately. May decrease for latency-sensitive paths. |
 
 ### 4. Jitter Policy
 
 Jitter is **required** on all retry paths. Retrying without jitter is a policy violation — it creates correlated retry storms when multiple agents hit the same upstream.
 
-| Parameter | Default | Rule |
-|---|---|---|
-| `max_jitter` | 250ms | Additive. Added to the computed backoff delay. |
-| Jitter mode | Additive bounded | Jitter is `rand(0, max_jitter)`, added to backoff. Not full-jitter (which replaces backoff). |
-| Production seed | Per-process entropy | Must include at least: process ID, current time, and a per-instance counter. Must not use a fixed seed in production. |
-| Test seed | Deterministic | Tests must be able to supply a fixed `jitter_seed` for reproducibility. The jitter generator must accept an optional seed parameter. |
-| Generator | Dependency-free xorshift or equivalent | Security-grade randomness is not required. The generator must produce visually uniform distribution across the jitter range. |
+| Parameter       | Default                                | Rule                                                                                                                                 |
+| --------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `max_jitter`    | 250ms                                  | Additive. Added to the computed backoff delay.                                                                                       |
+| Jitter mode     | Additive bounded                       | Jitter is `rand(0, max_jitter)`, added to backoff. Not full-jitter (which replaces backoff).                                         |
+| Production seed | Per-process entropy                    | Must include at least: process ID, current time, and a per-instance counter. Must not use a fixed seed in production.                |
+| Test seed       | Deterministic                          | Tests must be able to supply a fixed `jitter_seed` for reproducibility. The jitter generator must accept an optional seed parameter. |
+| Generator       | Dependency-free xorshift or equivalent | Security-grade randomness is not required. The generator must produce visually uniform distribution across the jitter range.         |
 
 ### 5. Timeouts
 
-| Parameter | Default | Scope |
-|---|---|---|
-| `connect_timeout` | 10s | TCP/TLS handshake. Applies to all paths. |
-| `request_timeout` | 60s | Total time for a non-streaming request (connect + send + receive). |
-| `stream_idle_timeout` | 30s | Maximum silence between SSE events or stream chunks. Not a whole-request timeout — streaming requests may run for minutes. |
-| `shutdown_timeout` | 5s | Grace period for in-flight requests during process shutdown. After this, connections are dropped. |
+| Parameter             | Default | Scope                                                                                                                      |
+| --------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `connect_timeout`     | 10s     | TCP/TLS handshake. Applies to all paths.                                                                                   |
+| `request_timeout`     | 60s     | Total time for a non-streaming request (connect + send + receive).                                                         |
+| `stream_idle_timeout` | 30s     | Maximum silence between SSE events or stream chunks. Not a whole-request timeout — streaming requests may run for minutes. |
+| `shutdown_timeout`    | 5s      | Grace period for in-flight requests during process shutdown. After this, connections are dropped.                          |
 
 **Streaming vs unary distinction:** `request_timeout` applies to `complete()` (unary). For `stream()`, only `connect_timeout` and `stream_idle_timeout` apply. A streaming request has no whole-request timeout — the stream runs until `Done`, error, or drop.
 
@@ -126,34 +126,34 @@ Jitter is **required** on all retry paths. Retrying without jitter is a policy v
 
 ### 6. Idempotency and Replay
 
-| Rule | Detail |
-|---|---|
-| Semantically read-only requests | May be retried, but the caller must accept that a transport-level timeout does not prove the upstream failed to process the request. LLM completions are semantically read-only (they produce output but don't mutate caller-visible state), but provider-side effects (billing, server-side tool execution, web search) may still occur on a retry after an ambiguous failure. Adapters retry these because the alternative — failing on every transient timeout — is worse, but the duplicate-execution risk is accepted, not absent. |
-| Side-effecting requests | Must not retry unless the protocol provides idempotency keys or the operation has documented replay safety. |
-| Ambiguous transport failures | When a request times out or the connection breaks after the request was fully sent, the adapter cannot know whether the upstream processed it. For LLM completions, retry is permitted because the cost of duplicate execution (extra billing, redundant tool calls) is lower than the cost of failing. For side-effecting operations (sends, posts, mutations), retry is forbidden unless the protocol guarantees idempotency. |
-| `previous_response_id` (Grok) | Continuation semantics. The follow-up request is idempotent with respect to the response chain — safe to retry. |
-| `gate_token` operations (mlvoy, chanvoy) | Not safe to retry without checking whether the gated action completed. The peer must provide a status query or the caller must accept at-most-once semantics. |
-| Partial stream failure | If a streaming response fails mid-stream after emitting events, the adapter must surface the error through the stream's `Result::Err` path. The orchestrator decides whether to re-request — the adapter does not automatically retry a partially-consumed stream. |
+| Rule                                     | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Semantically read-only requests          | May be retried, but the caller must accept that a transport-level timeout does not prove the upstream failed to process the request. LLM completions are semantically read-only (they produce output but don't mutate caller-visible state), but provider-side effects (billing, server-side tool execution, web search) may still occur on a retry after an ambiguous failure. Adapters retry these because the alternative — failing on every transient timeout — is worse, but the duplicate-execution risk is accepted, not absent. |
+| Side-effecting requests                  | Must not retry unless the protocol provides idempotency keys or the operation has documented replay safety.                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Ambiguous transport failures             | When a request times out or the connection breaks after the request was fully sent, the adapter cannot know whether the upstream processed it. For LLM completions, retry is permitted because the cost of duplicate execution (extra billing, redundant tool calls) is lower than the cost of failing. For side-effecting operations (sends, posts, mutations), retry is forbidden unless the protocol guarantees idempotency.                                                                                                         |
+| `previous_response_id` (Grok)            | Continuation semantics. The follow-up request is idempotent with respect to the response chain — safe to retry.                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `gate_token` operations (mlvoy, chanvoy) | Not safe to retry without checking whether the gated action completed. The peer must provide a status query or the caller must accept at-most-once semantics.                                                                                                                                                                                                                                                                                                                                                                           |
+| Partial stream failure                   | If a streaming response fails mid-stream after emitting events, the adapter must surface the error through the stream's `Result::Err` path. The orchestrator decides whether to re-request — the adapter does not automatically retry a partially-consumed stream.                                                                                                                                                                                                                                                                      |
 
 ### 7. TLS Transport
 
-| Rule | Detail |
-|---|---|
-| Off-host traffic | TLS required. No exceptions for "internal" traffic that crosses a network boundary. |
-| Minimum version | TLS 1.2. Prefer 1.3 where supported. |
-| Certificate validation | Required. System CA store by default. |
-| Hostname verification | Required. No `danger_accept_invalid_hostnames`. |
+| Rule                         | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Off-host traffic             | TLS required. No exceptions for "internal" traffic that crosses a network boundary.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Minimum version              | TLS 1.2. Prefer 1.3 where supported.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Certificate validation       | Required. System CA store by default.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Hostname verification        | Required. No `danger_accept_invalid_hostnames`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | Custom CA / enterprise proxy | Must be supported for deployment behind enterprise proxies. The mechanism depends on the TLS backend: `reqwest` with `native-tls` respects system env vars (`SSL_CERT_FILE`, `REQUESTS_CA_BUNDLE`); `reqwest` with `rustls` requires explicit certificate loading via the client builder (e.g., `reqwest::Certificate::from_pem`). Adapters must document which TLS backend they use and provide a configuration path (env var, config key, or CLI flag) for injecting custom CA certificates. Adapter code must not disable certificate validation as a workaround for custom CA needs. |
-| Loopback / dev / test | Plaintext allowed only for `127.0.0.1` / `::1` / UDS paths. Mock servers in tests may use plaintext HTTP on loopback. |
+| Loopback / dev / test        | Plaintext allowed only for `127.0.0.1` / `::1` / UDS paths. Mock servers in tests may use plaintext HTTP on loopback.                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 ### 8. Connection Management
 
-| Parameter | Default | Rationale |
-|---|---|---|
-| `pool_max_idle_per_host` | 8 | Sized for concurrent streaming + sync requests. |
-| Keepalive | reqwest/hyper default (HTTP/2 with keep-alive) | Don't disable unless provider requires HTTP/1.1. |
+| Parameter                | Default                                                                                                                        | Rationale                                        |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| `pool_max_idle_per_host` | 8                                                                                                                              | Sized for concurrent streaming + sync requests.  |
+| Keepalive                | reqwest/hyper default (HTTP/2 with keep-alive)                                                                                 | Don't disable unless provider requires HTTP/1.1. |
 | Retry across connections | Retries may reuse pooled connections or establish new ones. No special handling required — reqwest handles this transparently. |
-| DNS refresh | Not explicitly managed. Connection pool eviction on idle timeout handles stale DNS for long-running processes. |
+| DNS refresh              | Not explicitly managed. Connection pool eviction on idle timeout handles stale DNS for long-running processes.                 |
 
 ### 9. Streaming-Specific Rules
 
@@ -200,30 +200,30 @@ Each retry attempt must log (at `WARN` level):
 
 ### 12. Configurability
 
-| Category | Rule |
-|---|---|
-| Structural rules (jitter required, TLS off-host, drop=abort) | **Not configurable.** These are policy, not tuning knobs. |
-| Numeric defaults (delays, timeouts, pool sizes) | **Configurable per backend** within the override room specified in this ADR. |
-| Override documentation | Any override must be documented in the adapter/peer code with a comment referencing this ADR and stating the justification. |
-| New paths | Any new communication path added to Lanyte must comply with this ADR at introduction. There is no grace period. |
+| Category                                                     | Rule                                                                                                                        |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| Structural rules (jitter required, TLS off-host, drop=abort) | **Not configurable.** These are policy, not tuning knobs.                                                                   |
+| Numeric defaults (delays, timeouts, pool sizes)              | **Configurable per backend** within the override room specified in this ADR.                                                |
+| Override documentation                                       | Any override must be documented in the adapter/peer code with a comment referencing this ADR and stating the justification. |
+| New paths                                                    | Any new communication path added to Lanyte must comply with this ADR at introduction. There is no grace period.             |
 
 ## Decision Table: Concrete Defaults
 
-| Parameter | Value | Status |
-|---|---|---|
-| `max_attempts` | 3 | Required default |
-| `base_delay` | 1s | Required default |
-| `base_delay_500` | 3s | Required default |
-| `max_jitter` | 250ms | Required default |
-| `jitter_mode` | Additive bounded | Required |
-| `connect_timeout` | 10s | Required default |
-| `request_timeout` | 60s | Required default |
-| `stream_idle_timeout` | 30s | Required default |
-| `shutdown_timeout` | 5s | Required default |
-| `max_per_attempt_sleep` | 30s | Required default |
-| `total_retry_budget` | 90s | Required default |
-| `pool_max_idle_per_host` | 8 | Required default |
-| `min_tls_version` | 1.2 | Required |
+| Parameter                | Value            | Status           |
+| ------------------------ | ---------------- | ---------------- |
+| `max_attempts`           | 3                | Required default |
+| `base_delay`             | 1s               | Required default |
+| `base_delay_500`         | 3s               | Required default |
+| `max_jitter`             | 250ms            | Required default |
+| `jitter_mode`            | Additive bounded | Required         |
+| `connect_timeout`        | 10s              | Required default |
+| `request_timeout`        | 60s              | Required default |
+| `stream_idle_timeout`    | 30s              | Required default |
+| `shutdown_timeout`       | 5s               | Required default |
+| `max_per_attempt_sleep`  | 30s              | Required default |
+| `total_retry_budget`     | 90s              | Required default |
+| `pool_max_idle_per_host` | 8                | Required default |
+| `min_tls_version`        | 1.2              | Required         |
 
 ## Relationship to ADR-0010
 

@@ -74,6 +74,7 @@ Typical sibling repos on a dev machine:
 Default disposition: **do not bump versioned schemas** unless there is a really good reason. Burden of proof is on the proposer. The four criteria for a justified bump (real downstream impact, no non-schema fix available, sustained signal, documented evidence) are enumerated in the policy.
 
 If a bump is justified, the safe-bump rules in the policy apply:
+
 - Breaking by default — lockstep consumer regen.
 - `oneOf` for additions; ADR + migration plan for any removal or rename.
 - Validate with `ipcprims echo --validate schemas/ipc/` before committing.
