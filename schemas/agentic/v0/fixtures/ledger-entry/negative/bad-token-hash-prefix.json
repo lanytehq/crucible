@@ -1,0 +1,13 @@
+{
+  "ts": "2026-07-12T18:00:00Z",
+  "action": "commit",
+  "repo": "example-client",
+  "hash": "abcdef0123456789",
+  "session": {
+    "sid": "123e4567-e89b-12d3-a456-426614174000",
+    "jti": "123e4567-e89b-12d3-a456-426614174001",
+    "token_hash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  },
+  "proof": null,
+  "prev": null
+}

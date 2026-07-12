@@ -1,0 +1,16 @@
+{
+  "ts": "2026-07-12T18:15:00Z",
+  "engagement": "fixture-eng",
+  "action": "pr",
+  "repo": "example-client",
+  "branch": "feat/example",
+  "hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "session": {
+    "sid": "223e4567-e89b-12d3-a456-426614174000",
+    "jti": "223e4567-e89b-12d3-a456-426614174001",
+    "token_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "unattested": false,
+  "proof": "eyJhbGciOiJFZERTQSJ9..AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  "prev": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+}

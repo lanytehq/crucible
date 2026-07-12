@@ -1,0 +1,23 @@
+{
+  "ts": "2026-07-12T18:10:00Z",
+  "engagement": "fixture-eng",
+  "action": "push",
+  "repo": "example-client",
+  "branch": "feat/example",
+  "hash": "1111222233334444555566667777888899990000",
+  "remote": "",
+  "git_host": "",
+  "subject": "chore: release prep",
+  "committer_name": "Example Maintainer",
+  "committer_email": "maintainer@example.com",
+  "maintainer_handle": "example-maintainer",
+  "model": "example-model",
+  "agent_role": "devlead",
+  "agent_team": "alfa",
+  "agent_scope": "lanytehq",
+  "note": "",
+  "session": null,
+  "unattested": true,
+  "proof": null,
+  "prev": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}
