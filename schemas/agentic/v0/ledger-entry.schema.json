@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.3leaps.dev/agentic/v0/ledger-entry.schema.json",
   "title": "Attribution Ledger Entry",
-  "description": "One NDJSON line in an engagement-scoped attribution ledger. Records who/what performed an action against a repository, out-of-band of that repository. Session binding (sid/jti/token_hash) is optional; proof and prev are reserved (null-valid) for hash-chain tamper-evidence and per-record attestation. No floating-point fields (JCS-safe for future proof attachment).",
+  "description": "One NDJSON line in an engagement-scoped attribution ledger. Records who/what performed an action against a repository, out-of-band of that repository. Session binding (sid/jti/token_hash) is optional; proof is null-valid for future per-record attestation; prev is null-valid hash-chain of the previous on-disk line payload. No floating-point fields (JCS-safe for future proof attachment).",
   "type": "object",
   "required": [
     "ts",
@@ -179,7 +179,7 @@
       ]
     },
     "prev": {
-      "description": "sha256 of the previous entry's canonical bytes (JCS of the entry with proof excluded). Null for the first entry in a ledger file.",
+      "description": "sha256 of the previous ledger line UTF-8 payload as stored on disk, excluding the terminating newline (sha256: + 64 hex). Null for the first entry. Distinct from future per-record proof binding (JCS).",
       "oneOf": [
         {
           "type": "null"
