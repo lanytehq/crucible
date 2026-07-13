@@ -133,9 +133,11 @@ PR-of-Record: @3leapsdave
 
 Example: `Drafted-By: Claude Sonnet 4.6 (Claude Code)`
 
-**MSRV 1.85.0.**
-All lanyte crates target stable Rust 1.85.0. No nightly features.
-`unsafe` requires secrev review before merge.
+**MSRV 1.85.0 floor.**
+TCB / `lanyte` crates target stable Rust **1.85.0** as the platform floor. No
+nightly features. Standalone `*voy` tools may require a higher in-repo MSRV
+when their dependency graph needs it (check that repo’s `Cargo.toml`; e.g.
+sealvoy **1.88.0**). `unsafe` requires secrev review before merge.
 
 ---
 
@@ -145,7 +147,7 @@ Run this before starting if you haven't worked in this repo recently:
 
 ```bash
 # Rust toolchain
-rustc --version              # expect 1.85.0 or later
+rustc --version              # expect 1.85.0+ floor; working repo may need higher
 
 # ipcprims CLI (schema validation) — public crate, install once
 ipcprims --version           # expect 0.1.2 (latest released tag)
