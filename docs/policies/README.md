@@ -48,3 +48,4 @@ Expand the citation only when the policy is invoked frequently inside the citing
 
 - **0.1.0 (2026-05-16)** — README established alongside the first cross-repo policies pack (PR 2 of the policies/AGENTS.md split). Sibling to `schema-bump-policy.md` (landed PR 1, 2026-05-15). Formalizes the platform-policy SSOT framing dispatch flagged during PR 1 review.
 - **0.1.0 (2026-06-02)** — added `audience-appropriate-references-policy.md`; established at chanvoy's public-flip when release notes structured around internal brief identifiers surfaced the gap.
+- **0.2.0 (2026-07-15)** — audience-appropriate-references policy revised on two-lens review (Tier 2 excludes internal planning identifiers entirely; traceability relocated out of band per ADR-0017); pr-body-vs-squash-commit-shape policy aligned in the same change (PR body = short reviewer orientation, not a discovery snapshot).
