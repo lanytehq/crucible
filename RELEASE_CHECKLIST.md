@@ -13,7 +13,13 @@ drafts the GitHub Release, but never signs. Signing keys never touch CI.
 
 - `LANYTE_CRUCIBLE_RELEASE_TAG`: optional override tag (e.g., `v0.0.1`)
 - `LANYTE_CRUCIBLE_GPG_HOMEDIR`: dedicated signing keyring directory (recommended)
-- `LANYTE_CRUCIBLE_PGP_KEY_ID`: key id/email/fingerprint for signing
+- `LANYTE_CRUCIBLE_PGP_KEY_ID`: key id for signing. Set this to the
+  **dedicated signing subkey** — the entry carrying the `[S]` usage flag in
+  `gpg --list-secret-keys --keyid-format LONG` — suffixed with `!` to force
+  exact selection (e.g. `<subkey-id>!`). Never the primary key and never an
+  encryption (`[E]`) subkey. Where a keyring carries two `[S]` subkeys, the
+  first is for manual operator use and the second is reserved for CI/CD
+  automation if that is ever adopted (see the release-signing policy).
 - `LANYTE_CRUCIBLE_TAGGER_NAME`: tagger name stamped on signed tag objects
 - `LANYTE_CRUCIBLE_TAGGER_EMAIL`: tagger email stamped on signed tag objects
 - `LANYTE_CRUCIBLE_ALLOW_NON_MAIN`: set to `1` to allow tagging from non-main branch
