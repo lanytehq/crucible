@@ -1,17 +1,15 @@
----
-title: "Release v0.0.1"
-date: 2026-07-15
-status: draft — pending signed tag
----
+# Release Notes
 
-# lanyte-crucible v0.0.1
+**Content policy**: This file contains the most recent 3 releases (reverse chronological). Older releases are archived in `docs/releases/vX.Y.Z.md`.
+
+## lanyte-crucible v0.0.1
 
 First tagged release of the platform schema repository. The tag is
 signed manually by the supervisor per the release-signing manual
 baseline policy (`docs/policies/release-signing-manual-baseline-policy.md`);
 CI never signs.
 
-## Contract surface at this tag
+### Contract surface at this tag
 
 | Family | Version | Contents |
 |--------|---------|----------|
@@ -19,7 +17,7 @@ CI never signs.
 | `agentic` | v0, v0.1 | role-prompt, ledger-entry, agent-state (unchanged this release) |
 | `common`, `ipc` | v0 | unchanged this release |
 
-## Verification
+### Verification
 
 ```bash
 make check     # repo guards + dispatch family gate (schema lint,
@@ -31,7 +29,7 @@ Consumers embedding the dispatch family should pin to this signed tag
 and validate their pinned copies byte-for-byte (see the family README
 for the dual-validator conformance expectations).
 
-## Notes
+### Notes
 
 - Schemas enforced through vendor structured-output boundaries follow
   the strictest-common-subset policy; tool-validated contract schemas
