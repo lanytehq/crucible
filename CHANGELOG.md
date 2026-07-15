@@ -61,5 +61,12 @@ tag time.)
 - **Specifications** (`docs/specs/`) — peer service contract, agent
   coordination bootstrap, agent identity attestation, skill ABI, and
   agent-session conventions.
+- **Release rails** — `RELEASE_CHECKLIST.md` (operator procedure for
+  signed-tag releases), `make release-tag` / `release-verify-tag` /
+  `release-guard-tag-version` targets backed by safety-checked scripts,
+  and a tag-push `release` workflow that re-verifies the release surface
+  and drafts the GitHub Release. Tags are signed locally by the
+  supervisor per the release-signing manual baseline policy; CI never
+  signs.
 
 [0.0.1]: https://github.com/lanytehq/lanyte-crucible/releases/tag/v0.0.1
