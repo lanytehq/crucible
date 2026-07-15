@@ -1,0 +1,85 @@
+name: release
+on:
+  push:
+    tags:
+      - "v*"
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install jsonschema (dispatch v0 family gate — hard requirement of make check)
+        run: python3 -m pip install jsonschema
+      - name: Verify VERSION file matches tag
+        run: |
+          file_version="$(cat VERSION)"
+          tag_version="${GITHUB_REF_NAME#v}"
+          if [ "$file_version" != "$tag_version" ]; then
+            echo "VERSION file ($file_version) does not match tag ($tag_version)"
+            exit 1
+          fi
+          echo "VERSION file matches tag: $tag_version"
+      - name: Verify release notes exist
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if [ ! -f "docs/releases/v${version}.md" ]; then
+            echo "Missing release notes: docs/releases/v${version}.md"
+            exit 1
+          fi
+          echo "Release notes found: docs/releases/v${version}.md"
+      - name: Verify CHANGELOG entry exists
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if ! grep -q "## \[${version}\]" CHANGELOG.md; then
+            echo "Missing CHANGELOG entry for version ${version}"
+            exit 1
+          fi
+          echo "CHANGELOG entry found for ${version}"
+      - name: Release guard (tag/VERSION consistency)
+        run: LANYTE_CRUCIBLE_REQUIRE_TAG=1 make release-guard-tag-version
+      - name: Repo Checks
+        run: |
+          make check
+          make quality
+  create-release:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Check if prerelease
+        id: prerelease
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          case "$version" in
+            *alpha* | *beta* | *rc*) echo "is_prerelease=true" >>"$GITHUB_OUTPUT" ;;
+            *) echo "is_prerelease=false" >>"$GITHUB_OUTPUT" ;;
+          esac
+      - name: Create GitHub Release (draft)
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: docs/releases/${{ github.ref_name }}.md
+          # Posture: the tag is signed locally by the supervisor before push;
+          # the release stays a draft until the supervisor reviews and publishes.
+          draft: true
+          prerelease: ${{ steps.prerelease.outputs.is_prerelease == 'true' }}

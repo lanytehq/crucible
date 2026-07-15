@@ -1,10 +1,11 @@
 SHELL := /bin/sh
 
 -include make/repo-guards.mk
+-include make/release.mk
 
 .PHONY: help
 help: ## List targets
-	@grep -E '^[a-zA-Z0-9_.-]+:.*## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "%-22s %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z0-9_.-]+:.*## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "%-26s %s\n", $$1, $$2}'
 
 .PHONY: hooks-install
 hooks-install: ## Configure git to use .githooks (local setting)
