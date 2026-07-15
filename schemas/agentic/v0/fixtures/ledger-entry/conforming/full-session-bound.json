@@ -1,0 +1,27 @@
+{
+  "ts": "2026-07-12T18:05:00Z",
+  "engagement": "fixture-eng",
+  "action": "commit",
+  "repo": "example-client",
+  "branch": "main",
+  "hash": "deadbeefcafebabe0123456789abcdef01234567",
+  "remote": "git@github.com:example-org/example-client.git",
+  "git_host": "github.com",
+  "subject": "fix: handle empty input",
+  "committer_name": "Example Maintainer",
+  "committer_email": "maintainer@example.com",
+  "maintainer_handle": "example-maintainer",
+  "model": "example-model",
+  "agent_role": "devlead",
+  "agent_team": "alfa",
+  "agent_scope": "lanytehq",
+  "note": "fixture only",
+  "session": {
+    "sid": "123e4567-e89b-12d3-a456-426614174000",
+    "jti": "123e4567-e89b-12d3-a456-426614174001",
+    "token_hash": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  },
+  "unattested": false,
+  "proof": null,
+  "prev": "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+}

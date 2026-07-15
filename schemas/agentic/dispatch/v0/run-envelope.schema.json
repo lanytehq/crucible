@@ -1,0 +1,600 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.3leaps.dev/agentic/dispatch/v0/run-envelope.schema.json",
+  "title": "Dispatch Run Envelope",
+  "description": "One supervised harness run as recorded by a dispatch-runner wrapper. Discriminated by `outcome` (completed | refused-pre-spawn | config-fatal | timeout | interrupted) so refusal envelopes validate without over-nullabilizing the completed shape. Every field's trust provenance (wrapper-derived / harness-reported / env-recorded claim) is tabulated in this family's README; non-wrapper-derived fields are untrusted inputs for security decisions. Consumers MUST fail closed on a missing or unknown `envelope_schema`. Paths are opaque strings (no filesystem semantics implied). This schema is tool-validated (not vendor-enforced): it uses the portable core plus the constructs listed and justified in the family README, per the platform structured-output schema policy as amended.",
+  "type": "object",
+  "required": [
+    "envelope_schema",
+    "producer",
+    "emitter_version",
+    "outcome",
+    "runner_exit",
+    "harness",
+    "harness_requested",
+    "model_requested",
+    "cwd",
+    "brief_file",
+    "role_file",
+    "read_only",
+    "task_class",
+    "timeout_s",
+    "digests",
+    "started_at",
+    "ended_at",
+    "duration_ms",
+    "harness_exit",
+    "timed_out",
+    "interrupted",
+    "group_reap",
+    "posture_enforced",
+    "harness_path",
+    "harness_version",
+    "harness_pgid",
+    "session_id",
+    "usage",
+    "num_turns",
+    "verdict",
+    "verdict_schema_id",
+    "verdict_schema_sha256",
+    "rejected_verdict",
+    "raw_text",
+    "parse_error",
+    "runlog",
+    "stderr_tail",
+    "env_identity"
+  ],
+  "$defs": {
+    "iso-datetime": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?(Z|[+-][0-9]{2}:[0-9]{2})$",
+      "description": "RFC 3339 timestamp. `format` is annotation-only in many validators; the pattern is the enforced floor. The relation ended_at >= started_at is semantic rule SEM-E01 (see semantic-validation.md)."
+    },
+    "sha256-hex": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Lowercase hex SHA-256 digest (bare, no prefix)."
+    },
+    "nullable-sha256": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/sha256-hex"
+        }
+      ]
+    },
+    "opaque-path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "description": "Opaque path-like string. Consumers MUST NOT ascribe filesystem semantics; recorded for forensics only."
+    },
+    "nullable-opaque-path": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/opaque-path"
+        }
+      ]
+    },
+    "posture": {
+      "type": "string",
+      "enum": [
+        "sandbox",
+        "deny-rules",
+        "none"
+      ],
+      "description": "Write-denial posture class, strongest to weakest: OS sandbox > tool deny-rules > none."
+    }
+  },
+  "properties": {
+    "envelope_schema": {
+      "type": "string",
+      "const": "https://schemas.3leaps.dev/agentic/dispatch/v0/run-envelope.schema.json",
+      "description": "Exact canonical $id URI of this schema. Consumers MUST reject an envelope whose envelope_schema is missing or unknown (fail-closed; no version negotiation in v0)."
+    },
+    "producer": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Stable name of the emitting program (wrapper-derived). Distinct from emitter_version so emitter and contract versions never conflate."
+    },
+    "emitter_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Version of the emitting program (wrapper-derived). Not the contract version — that is envelope_schema."
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "refused-pre-spawn",
+        "config-fatal",
+        "timeout",
+        "interrupted"
+      ],
+      "description": "Discriminator for the run's terminal mode. completed: the harness was spawned and exited on its own. refused-pre-spawn: fail-closed posture/fence/evidence refusal — the harness was never spawned. config-fatal: configuration/environment error (may occur before or at spawn). timeout: the run exceeded its timeout and the process group was reaped. interrupted: the wrapper received SIGINT/SIGTERM and reaped the group. See the outcome ↔ runner_exit ↔ nullability table in the family README."
+    },
+    "runner_exit": {
+      "enum": [
+        0,
+        2,
+        4,
+        5
+      ],
+      "description": "The wrapper's own process exit class for this run: 0 ok, 2 unschema'd output, 4 environment/config (incl. all pre-spawn refusals), 5 supervised-harness failure (harness crash, timeout, interrupt, unreaped survivors). Bound to outcome by the conditional blocks below."
+    },
+    "harness": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "RESOLVED harness lane id. Null unless the requested selector resolved to a configured lane — never the empty string, and never an unresolved raw selector (that trace lives in harness_requested)."
+    },
+    "harness_requested": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "The raw lane selector as requested, recorded for traceability regardless of whether it resolved (wrapper-recorded input, honestly labeled: a request, not a resolution). Null only when no selector was supplied."
+    },
+    "model_requested": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 256,
+      "description": "Model selector passed through to the harness, or null to inherit the harness default."
+    },
+    "cwd": {
+      "$ref": "#/$defs/opaque-path",
+      "description": "Working directory the run was (or would have been) dispatched in. Opaque string."
+    },
+    "brief_file": {
+      "$ref": "#/$defs/nullable-opaque-path"
+    },
+    "role_file": {
+      "$ref": "#/$defs/nullable-opaque-path"
+    },
+    "read_only": {
+      "type": "boolean",
+      "description": "True when the run was dispatched under the read-only reviewer default (no --write residue accepted)."
+    },
+    "task_class": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 64,
+      "description": "Task class used for timeout resolution, or null when none was requested."
+    },
+    "timeout_s": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "description": "Resolved timeout in seconds. Null only when the run failed before timeout resolution (config-fatal)."
+    },
+    "digests": {
+      "type": "object",
+      "required": [
+        "brief_sha256",
+        "role_sha256",
+        "schema_sha256",
+        "prompt_sha256"
+      ],
+      "properties": {
+        "brief_sha256": {
+          "$ref": "#/$defs/nullable-sha256"
+        },
+        "role_sha256": {
+          "$ref": "#/$defs/nullable-sha256"
+        },
+        "schema_sha256": {
+          "$ref": "#/$defs/nullable-sha256"
+        },
+        "prompt_sha256": {
+          "$ref": "#/$defs/nullable-sha256"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Wrapper-derived SHA-256 digests of the run inputs. schema_sha256 non-null is the envelope's record that a verdict schema was requested; verdict_schema_sha256 MUST equal it (SEM-E05)."
+    },
+    "started_at": {
+      "$ref": "#/$defs/iso-datetime"
+    },
+    "ended_at": {
+      "$ref": "#/$defs/iso-datetime"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Wrapper-measured wall-clock duration in milliseconds (monotonic clock; may differ marginally from the timestamp delta)."
+    },
+    "harness_exit": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "The harness process's own exit code. Null when the harness was never spawned, or exited via signal without a code (e.g. reaped on timeout)."
+    },
+    "timed_out": {
+      "type": "boolean"
+    },
+    "interrupted": {
+      "type": "boolean"
+    },
+    "group_reap": {
+      "type": "string",
+      "enum": [
+        "not_attempted",
+        "cleared",
+        "cleared_after_sigkill",
+        "survivors"
+      ],
+      "description": "Process-group reap outcome. not_attempted: no reap was needed or possible (incl. every pre-spawn path). survivors: at least one group member outlived SIGKILL — non-success semantics, bound to outcome/runner_exit by SEM-E06/SEM-E12 (never with runner_exit 0)."
+    },
+    "posture_enforced": {
+      "$ref": "#/$defs/posture",
+      "description": "Write-denial mechanism actually applied to a harness that RAN (wrapper-derived from the enforcing flags it appended — never copied from config). \"none\" on every never-spawned path (refused-pre-spawn and config-fatal, schema-enforced): flags merely constructed into an argv that never executed enforce nothing."
+    },
+    "harness_path": {
+      "$ref": "#/$defs/nullable-opaque-path",
+      "description": "Resolved executable path of the harness binary (opaque string). Null before resolution."
+    },
+    "harness_version": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 64,
+      "description": "Version string probed from the harness executable (harness-reported: it is the binary's own claim). Consumed only in the fail-closed comparison against recorded posture evidence."
+    },
+    "harness_pgid": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "description": "Process-group id the harness was spawned into. Null when never spawned."
+    },
+    "session_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 256,
+      "description": "Harness-reported session identifier. Untrusted for security decisions."
+    },
+    "usage": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Harness-reported token/usage telemetry, schema-agnostic (shape varies per lane). Untrusted for security decisions."
+    },
+    "num_turns": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Harness-reported turn count, when the lane surfaces one."
+    },
+    "verdict": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "Schema-agnostic verdict object, exactly as produced by the lane's structured-output mechanism and accepted by the wrapper's independent validation. UNTRUSTED-UNTIL-REVALIDATED: consumers MUST revalidate against the schema bound by verdict_schema_id + verdict_schema_sha256 before acting on it. Never a partial object on reject paths. Tri-state when null: not-requested (digests.schema_sha256 null) | run never produced one (outcome != completed, or refusal) | schema-failed (parse_error non-null). See SEM-E02..E09."
+    },
+    "verdict_schema_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "minLength": 1,
+      "maxLength": 512,
+      "description": "Identifier of the requested verdict schema: its canonical $id when it declares one, else \"sha256:<hex>\" of the schema text. Null iff no verdict schema was requested. Required non-null whenever a verdict was requested (SEM-E04/E05)."
+    },
+    "verdict_schema_sha256": {
+      "$ref": "#/$defs/nullable-sha256",
+      "description": "SHA-256 of the requested verdict schema text. Non-null iff digests.schema_sha256 is non-null, and equal to it (SEM-E05). Binds the verdict member to the exact schema it was validated against."
+    },
+    "rejected_verdict": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 65536,
+      "description": "Forensics only, NON-CONTROL-PLANE: the JSON serialization of a verdict object that the wrapper's independent validation rejected, truncated to the size bound (may therefore be invalid JSON). Pinned as a size-bounded string precisely so it can never be re-promoted to `verdict`. Non-null implies verdict null and parse_error non-null (SEM-E09). HYBRID provenance: wrapper-performed serialization of harness-reported content."
+    },
+    "raw_text": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 262144,
+      "description": "The lane's original raw output text (harness-reported), preserved as forensic evidence when no verdict was accepted. Null whenever verdict is non-null (SEM-E02) — never both. Size-bounded sensitive surface; emitters MUST truncate to the bound (JSON Schema maxLength counts Unicode code points)."
+    },
+    "parse_error": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 16384,
+      "description": "Wrapper-authored description of why no verdict was accepted. HYBRID provenance: the message is wrapper-derived but may quote harness-reported content verbatim — treat quoted material as untrusted. Size-bounded sensitive surface; emitters MUST truncate to the bound. Null whenever verdict is non-null (SEM-E03)."
+    },
+    "runlog": {
+      "$ref": "#/$defs/nullable-opaque-path"
+    },
+    "stderr_tail": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 8192,
+      "description": "HYBRID provenance by path: tail of the harness stderr (harness-reported) when a harness ran; the wrapper-authored refusal/fatal message on never-spawned paths. Size-bounded sensitive surface; emitters MUST truncate to the bound."
+    },
+    "env_identity": {
+      "type": "object",
+      "required": [
+        "role",
+        "team",
+        "scope",
+        "engagement",
+        "session_token_present"
+      ],
+      "properties": {
+        "role": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "team": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "scope": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 256
+        },
+        "engagement": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 128
+        },
+        "session_token_present": {
+          "type": "boolean",
+          "description": "Presence-only boolean: whether a session token variable was set in the wrapper's environment. NOT PROOF of identity or attestation — never token material, never a hash. Env-recorded claim; over-trust is the failure mode this label exists to prevent."
+        }
+      },
+      "additionalProperties": false,
+      "description": "Typed recorded identity claims from the wrapper's environment. ENV-RECORDED CLAIMS, not proofs, until platform attestation evidence lands as a separate versioned member. Untrusted inputs for security decisions. (Field name retained from the shipped emitter for round-trip compatibility; the shape is the typed recorded-claims block.)"
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "enum": [
+              "refused-pre-spawn",
+              "config-fatal"
+            ]
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "then": {
+        "properties": {
+          "runner_exit": {
+            "const": 4
+          },
+          "harness_exit": {
+            "type": "null"
+          },
+          "harness_pgid": {
+            "type": "null"
+          },
+          "session_id": {
+            "type": "null"
+          },
+          "usage": {
+            "type": "null"
+          },
+          "num_turns": {
+            "type": "null"
+          },
+          "verdict": {
+            "type": "null"
+          },
+          "rejected_verdict": {
+            "type": "null"
+          },
+          "raw_text": {
+            "type": "null"
+          },
+          "parse_error": {
+            "type": "null"
+          },
+          "timed_out": {
+            "const": false
+          },
+          "interrupted": {
+            "const": false
+          },
+          "group_reap": {
+            "const": "not_attempted"
+          },
+          "posture_enforced": {
+            "const": "none"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "refused-pre-spawn"
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "then": {
+        "properties": {
+          "harness": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "timeout"
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "then": {
+        "properties": {
+          "runner_exit": {
+            "const": 5
+          },
+          "timed_out": {
+            "const": true
+          },
+          "interrupted": {
+            "const": false
+          },
+          "harness": {
+            "type": "string"
+          },
+          "harness_pgid": {
+            "type": "integer"
+          },
+          "verdict": {
+            "type": "null"
+          },
+          "group_reap": {
+            "enum": [
+              "cleared",
+              "cleared_after_sigkill",
+              "survivors"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "interrupted"
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "then": {
+        "properties": {
+          "runner_exit": {
+            "const": 5
+          },
+          "interrupted": {
+            "const": true
+          },
+          "harness": {
+            "type": "string"
+          },
+          "harness_pgid": {
+            "type": "integer"
+          },
+          "verdict": {
+            "type": "null"
+          },
+          "group_reap": {
+            "enum": [
+              "cleared",
+              "cleared_after_sigkill",
+              "survivors"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "completed"
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "then": {
+        "properties": {
+          "runner_exit": {
+            "enum": [
+              0,
+              2,
+              5
+            ]
+          },
+          "timed_out": {
+            "const": false
+          },
+          "interrupted": {
+            "const": false
+          },
+          "harness": {
+            "type": "string"
+          },
+          "harness_exit": {
+            "type": "integer"
+          },
+          "harness_pgid": {
+            "type": "integer"
+          },
+          "timeout_s": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  ]
+}

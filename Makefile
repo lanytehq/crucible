@@ -22,8 +22,20 @@ clean: ## Remove build artifacts (placeholder)
 	@echo "[ok] nothing to clean"
 
 .PHONY: check
-check: guard-no-submodules guard-version-file ## Repo guards
+check: guard-no-submodules guard-version-file check-dispatch-v0 ## Repo guards + schema family gates
 	@echo "OK"
+
+.PHONY: check-dispatch-v0
+check-dispatch-v0: ## Validate the agentic/dispatch v0 schema family (schemas + fixtures + semantic layer)
+	@if python3 -c 'import jsonschema' >/dev/null 2>&1; then \
+		python3 scripts/validate-dispatch-v0.py; \
+	elif command -v uv >/dev/null 2>&1; then \
+		uv run --with jsonschema scripts/validate-dispatch-v0.py; \
+	else \
+		echo "[!!] the dispatch v0 family gate REQUIRES the python 'jsonschema' package"; \
+		echo "[!!] install it (pip install jsonschema) or install uv — this gate never soft-skips"; \
+		exit 1; \
+	fi
 
 .PHONY: fmt
 fmt: ## Format all files (goneat: yaml, json, markdown)

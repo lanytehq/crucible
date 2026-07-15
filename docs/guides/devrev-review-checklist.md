@@ -16,7 +16,7 @@ should apply but don't.
 ## Configuration (CFG-001)
 
 - [ ] Config paths use `$LANYTE_CONFIG_ROOT` convention (platform-native default via
-  `dirs::config_dir()/lanytehq/`), not hardcoded `~/.config/lanytehq/`
+      `dirs::config_dir()/lanytehq/`), not hardcoded `~/.config/lanytehq/`
 - [ ] New config fields have env var overrides with `LANYTE_` prefix
 - [ ] Config provenance is tracked (which layer provided each value)
 - [ ] Secrets are in `secrets.toml` / `secrets.age`, not in `config.toml`

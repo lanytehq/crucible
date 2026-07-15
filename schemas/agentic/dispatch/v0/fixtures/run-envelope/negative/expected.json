@@ -1,0 +1,50 @@
+{
+  "missing-envelope-schema.json": {
+    "keyword": "required",
+    "mentions": "envelope_schema"
+  },
+  "unknown-envelope-schema.json": {
+    "keyword": "const",
+    "mentions": "envelope_schema"
+  },
+  "harness-empty-string.json": {
+    "keyword": "minLength",
+    "mentions": "harness"
+  },
+  "stale-experimental-claim-shape.json": {
+    "keyword": "required",
+    "mentions": "envelope_schema"
+  },
+  "unknown-property.json": {
+    "keyword": "additionalProperties",
+    "mentions": "posture_certified"
+  },
+  "outcome-exit-mismatch.json": {
+    "keyword": "const",
+    "mentions": "runner_exit"
+  },
+  "refused-with-harness-exit.json": {
+    "keyword": "type",
+    "mentions": "harness_exit"
+  },
+  "group-reap-null.json": {
+    "keyword": "type",
+    "mentions": "group_reap"
+  },
+  "rejected-verdict-as-object.json": {
+    "keyword": "type",
+    "mentions": "rejected_verdict"
+  },
+  "oversize-stderr-tail.json": {
+    "keyword": "maxLength",
+    "mentions": "stderr_tail"
+  },
+  "timeout-without-flag.json": {
+    "keyword": "const",
+    "mentions": "timed_out"
+  },
+  "config-fatal-with-posture-claim.json": {
+    "keyword": "const",
+    "mentions": "posture_enforced"
+  }
+}

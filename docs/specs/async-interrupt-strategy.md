@@ -21,7 +21,7 @@ This manifests today as Dave saying "check Mattermost for a message from
 entarch" — a manual bridge where the human is the interrupt controller.
 Polling loops (`lanyte-chat read --since N`) work sometimes but burn tokens,
 miss activity during long model calls, and still require the agent to
-*decide* to poll.
+_decide_ to poll.
 
 As we scale parallel teams (Alfa/Bravo/Charlie/Delta) and lean harder on
 agentic tooling for 3leaps client work, this bottleneck gates throughput.
@@ -64,7 +64,7 @@ before closing") lets any harness participate without integration work.
 **Cons**
 
 - Still turn-bounded. A long model call blocks the check until the turn
-  ends. A message that arrives mid-turn waits for the *next* turn.
+  ends. A message that arrives mid-turn waits for the _next_ turn.
 - Agent must remember to call `check`. Convention, not enforcement.
 - No true push — latency = turn length.
 
@@ -114,7 +114,7 @@ Concretely:
 2. **Claude Code**: add a Stop hook that runs `chanvoy check` across the
    role's subscribed channels and surfaces results in the next turn's
    context. Low investment, high leverage — we live in Claude Code.
-3. **Zolkraf**: native ipcprims subscription. This is a *product feature*,
+3. **Zolkraf**: native ipcprims subscription. This is a _product feature_,
    not just plumbing — the visible advantage over generic coding agents.
 4. **opencode, Codex, others**: stay on Option A until usage volume
    justifies the integration cost, or until they expose stable extension
@@ -145,7 +145,7 @@ secrev). It shipped the primitives this strategy depends on:
 - durable per-channel / per-mention cursor state with `stale_cursor`
   graceful degradation
 
-The Option A baseline is therefore *already available* to any harness.
+The Option A baseline is therefore _already available_ to any harness.
 Any agent with a sourced identity script and a running chanvoy daemon
 can adopt cursor-based resume today by convention alone.
 
@@ -215,10 +215,10 @@ Observations:
 
 - **Exit-code + JSON combo (C6 + C4) collapsed the poll loop to one
   line of shell**: `echo "$result" | grep -q '"has_new_messages":
-  true' && break`. No message parsing, no `jq` pipeline, no English
+true' && break`. No message parsing, no `jq` pipeline, no English
   string matching.
 - **Anchor semantics held as documented**: `anchor_source:
-  "explicit_after"` with `has_new_messages: false` is the unambiguous
+"explicit_after"` with `has_new_messages: false` is the unambiguous
   "nothing new since X" signal. No ambiguity between "no activity"
   and "broken cursor."
 - **20-second probe interval against live Mattermost** was
@@ -323,11 +323,11 @@ Observations:
 
 ## Decision Checkpoints
 
-| Checkpoint | Trigger | Who decides |
-|------------|---------|-------------|
-| Adopt Option C as baseline | PER-008 review | cxotech + entarch |
-| Claude Code hook prototype | PER-008 ships | cxotech |
-| Zolkraf chanvoy subscriber | ZOL-005 design doc | entarch |
+| Checkpoint                 | Trigger                       | Who decides        |
+| -------------------------- | ----------------------------- | ------------------ |
+| Adopt Option C as baseline | PER-008 review                | cxotech + entarch  |
+| Claude Code hook prototype | PER-008 ships                 | cxotech            |
+| Zolkraf chanvoy subscriber | ZOL-005 design doc            | entarch            |
 | Promote hook to convention | Hook proves out over a sprint | cxotech + dispatch |
 
 ## Status

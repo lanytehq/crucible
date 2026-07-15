@@ -1,0 +1,60 @@
+{
+  "kind": "envelope",
+  "envelope": {
+    "envelope_schema": "https://schemas.3leaps.dev/agentic/dispatch/v0/run-envelope.schema.json",
+    "producer": "fixture-producer",
+    "emitter_version": "0.0.0-fixture",
+    "outcome": "completed",
+    "runner_exit": 0,
+    "harness": "fixture-lane-a",
+    "harness_requested": "fixture-lane-a",
+    "model_requested": null,
+    "cwd": "fixture-workdir",
+    "brief_file": "fixture-brief.md",
+    "role_file": "fixture-role.md",
+    "read_only": true,
+    "task_class": "review",
+    "timeout_s": 600,
+    "digests": {
+      "brief_sha256": "586c94674ec13323b9147c003ae979097d11920f9e63b0ec8b78d2511d503421",
+      "role_sha256": "ab02f07e583f87ecadb0879f6e0888521e01514e8efcf4552cee43b0c302ec0b",
+      "schema_sha256": "4e78d0d1b273da1a724e4dfb51da69975606c2910038622aeccabd69f1e2a271",
+      "prompt_sha256": "c6c6ca64c5d2e957a7b9edf86cea909d6c44d4e4bc0d7e019bf005dcb431aa9e"
+    },
+    "started_at": "2026-07-15T00:00:00.000Z",
+    "ended_at": "2026-07-15T00:00:05.000Z",
+    "duration_ms": 5000,
+    "harness_exit": 0,
+    "timed_out": false,
+    "interrupted": false,
+    "group_reap": "not_attempted",
+    "posture_enforced": "sandbox",
+    "harness_path": "fixture-bin/fixture-lane-a",
+    "harness_version": "1.2.3",
+    "harness_pgid": 4242,
+    "session_id": "fixture-session-0001",
+    "usage": {
+      "input_tokens": 11,
+      "output_tokens": 7
+    },
+    "num_turns": 1,
+    "verdict": {
+      "verdict": "SHIP",
+      "confidence": "high"
+    },
+    "verdict_schema_id": "https://schemas.example.invalid/fixture-verdict.schema.json",
+    "verdict_schema_sha256": "4e78d0d1b273da1a724e4dfb51da69975606c2910038622aeccabd69f1e2a271",
+    "rejected_verdict": null,
+    "raw_text": null,
+    "parse_error": null,
+    "runlog": "fixture-runlog/0001.runlog",
+    "stderr_tail": null,
+    "env_identity": {
+      "role": "fixture-role",
+      "team": "fixture-team",
+      "scope": null,
+      "engagement": "fixture-eng",
+      "session_token_present": false
+    }
+  }
+}

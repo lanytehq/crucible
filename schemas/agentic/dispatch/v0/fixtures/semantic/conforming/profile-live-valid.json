@@ -1,0 +1,35 @@
+{
+  "kind": "profile-live",
+  "profile": {
+    "profile_schema": "https://schemas.3leaps.dev/agentic/dispatch/v0/harness-profile.schema.json",
+    "lane": "fixture-lane-a",
+    "platform": "fixture-os",
+    "executable_version": "1.2.3",
+    "version_resolution": "--version probe of the PATH-resolved, symlink-resolved executable",
+    "structured_output": {
+      "mechanism": "--fixture-schema <file>",
+      "enforced": true
+    },
+    "write_denial": {
+      "control": "sandbox",
+      "mechanism": "--fixture-sandbox read-only"
+    },
+    "posture": "sandbox",
+    "fenced": false,
+    "fence_reason": null,
+    "probe_evidence": {
+      "method": "fixture capability smoke with positive/negative write controls",
+      "derived_at": "2026-07-14",
+      "refs": [
+        "fixture-evidence-ref-0001"
+      ]
+    },
+    "validity_condition": {
+      "kind": "executable-version-platform-match"
+    }
+  },
+  "live": {
+    "version": "1.2.3",
+    "platform": "fixture-os"
+  }
+}

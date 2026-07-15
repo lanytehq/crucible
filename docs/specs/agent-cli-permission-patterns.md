@@ -23,7 +23,7 @@ accidentally favor today make this harder than it should be:
 
 1. **Compound shell expressions.** An agent that runs
    `for d in chanvoy zolkraf lanyte; do cd ~/dev/lanytehq/$d && gh pr
-   list; done` presents the harness with a single opaque shell string.
+list; done` presents the harness with a single opaque shell string.
    The harness cannot permit "run `gh pr list` in three known repos"
    granularly; the agent either gets **total shell release** (risky) or
    a prompt (slow). The 2026-04-18 cxotech warm-up flagged a concrete
@@ -52,8 +52,8 @@ is aggressively safe to allowlist broadly.
 
 ## Non-Goals
 
-- Replacing the harness permission systems themselves. We design *for*
-  them, we do not design *them*.
+- Replacing the harness permission systems themselves. We design _for_
+  them, we do not design _them_.
 - Solving the compound-shell-expression problem at the harness level.
   That is an agent-discipline issue (don't write loops when you can
   write parallel tool calls). We address only what we can fix in our

@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.3leaps.dev/agentic/v0/ledger-entry.schema.json",
+  "title": "Attribution Ledger Entry",
+  "description": "One NDJSON line in an engagement-scoped attribution ledger. Records who/what performed an action against a repository, out-of-band of that repository. Session binding (sid/jti/token_hash) is optional; proof is null-valid for future per-record attestation; prev is null-valid hash-chain of the previous on-disk line payload. No floating-point fields (JCS-safe for future proof attachment).",
+  "type": "object",
+  "required": [
+    "ts",
+    "action",
+    "repo",
+    "hash",
+    "session",
+    "proof",
+    "prev"
+  ],
+  "$defs": {
+    "iso-datetime": {
+      "type": "string",
+      "format": "date-time",
+      "description": "RFC 3339 / ISO 8601 timestamp (UTC preferred)."
+    },
+    "sha256-digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "Lowercase hex SHA-256 digest with 'sha256:' prefix."
+    },
+    "uuid-v4": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID string (session sid / jti)."
+    },
+    "nonempty-string": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024
+    },
+    "short-string": {
+      "type": "string",
+      "maxLength": 256
+    },
+    "medium-string": {
+      "type": "string",
+      "maxLength": 1024
+    },
+    "session-claims": {
+      "type": "object",
+      "description": "Verified session claims from an in-process lanyte-attest verify. All three fields required when session is present.",
+      "required": [
+        "sid",
+        "jti",
+        "token_hash"
+      ],
+      "properties": {
+        "sid": {
+          "$ref": "#/$defs/uuid-v4",
+          "description": "Session id from the attestation token (JWT sid claim)."
+        },
+        "jti": {
+          "$ref": "#/$defs/uuid-v4",
+          "description": "Token id from the attestation token (JWT jti claim)."
+        },
+        "token_hash": {
+          "$ref": "#/$defs/sha256-digest",
+          "description": "sha256 of the raw session token bytes (never store the raw token)."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "ts": {
+      "$ref": "#/$defs/iso-datetime",
+      "description": "UTC timestamp when the ledger entry was written."
+    },
+    "engagement": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "Engagement codename from LANYTE_ENGAGEMENT at write time. Present when env provides it; empty or omitted only in synthetic fixtures."
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "commit",
+        "push",
+        "pr",
+        "other"
+      ],
+      "description": "Kind of action being attributed."
+    },
+    "repo": {
+      "$ref": "#/$defs/nonempty-string",
+      "description": "Repository basename (not a full path) of the target work tree."
+    },
+    "branch": {
+      "$ref": "#/$defs/short-string",
+      "description": "Branch name at the time of the action (may be '?' if unresolved)."
+    },
+    "hash": {
+      "type": "string",
+      "minLength": 7,
+      "maxLength": 64,
+      "pattern": "^[0-9a-fA-F]{7,64}$",
+      "description": "Git object hash for the action (commit SHA). Short or full."
+    },
+    "remote": {
+      "$ref": "#/$defs/medium-string",
+      "description": "origin remote URL if configured; empty string when absent."
+    },
+    "git_host": {
+      "$ref": "#/$defs/short-string",
+      "description": "Engagement-configured git host label (from foundation env); empty when unset."
+    },
+    "subject": {
+      "type": "string",
+      "maxLength": 512,
+      "description": "Commit subject line (first line of message) when available."
+    },
+    "committer_name": {
+      "$ref": "#/$defs/short-string",
+      "description": "git user.name at write time."
+    },
+    "committer_email": {
+      "$ref": "#/$defs/short-string",
+      "description": "git user.email at write time."
+    },
+    "maintainer_handle": {
+      "$ref": "#/$defs/short-string",
+      "description": "Engagement maintainer handle from foundation env; empty when unset."
+    },
+    "model": {
+      "$ref": "#/$defs/short-string",
+      "description": "Self-reported model identifier (e.g. from AGENT_MODEL)."
+    },
+    "agent_role": {
+      "$ref": "#/$defs/short-string",
+      "description": "LANYTE_AGENT_ROLE at write time; empty when unset."
+    },
+    "agent_team": {
+      "$ref": "#/$defs/short-string",
+      "description": "LANYTE_AGENT_TEAM at write time; empty when unset."
+    },
+    "agent_scope": {
+      "$ref": "#/$defs/short-string",
+      "description": "LANYTE_AGENT_SCOPE at write time; empty when unset."
+    },
+    "note": {
+      "type": "string",
+      "maxLength": 2048,
+      "description": "Optional free-text note supplied by the operator."
+    },
+    "session": {
+      "description": "Verified session binding, or null when the entry is unattested (warn-mode or --unattested).",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/session-claims"
+        }
+      ]
+    },
+    "unattested": {
+      "type": "boolean",
+      "default": false,
+      "description": "True when the entry was explicitly written with --unattested under a trust-rooted machine. Distinct from warn-mode session:null (no trust root)."
+    },
+    "proof": {
+      "description": "Reserved for per-record attestation proof (detached JWS compact). Null-valid in v0; no new crypto ships with this schema version.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192,
+          "description": "Detached JWS compact serialization (protected..signature)."
+        }
+      ]
+    },
+    "prev": {
+      "description": "sha256 of the previous ledger line UTF-8 payload as stored on disk, excluding the terminating newline (sha256: + 64 hex). Null for the first entry. Distinct from future per-record proof binding (JCS).",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/sha256-digest"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

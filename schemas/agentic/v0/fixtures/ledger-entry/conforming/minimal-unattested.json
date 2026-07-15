@@ -1,0 +1,9 @@
+{
+  "ts": "2026-07-12T18:00:00Z",
+  "action": "commit",
+  "repo": "example-client",
+  "hash": "abcdef0123456789",
+  "session": null,
+  "proof": null,
+  "prev": null
+}

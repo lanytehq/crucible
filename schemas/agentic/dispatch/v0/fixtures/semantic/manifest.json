@@ -1,0 +1,31 @@
+{
+  "semantic_layer": {
+    "id": "dispatch/v0-semantics",
+    "version": "0.1.1"
+  },
+  "conforming": [
+    "envelope-completed.json",
+    "profile-live-valid.json",
+    "routing-projection-aligned.json",
+    "routing-projection-fenced-aligned.json"
+  ],
+  "negative": {
+    "completed5-clean.json": "SEM-E11",
+    "ended-before-started.json": "SEM-E01",
+    "exit0-harness-crash.json": "SEM-E12",
+    "exit2-with-verdict.json": "SEM-E07",
+    "expired-validity.json": "SEM-VC01",
+    "rejected-verdict-standalone.json": "SEM-E09",
+    "routing-divergence.json": "SEM-R01",
+    "routing-escalation.json": "SEM-R02",
+    "routing-fence-lift.json": "SEM-R02",
+    "routing-fenced-omitted.json": "SEM-R02",
+    "schema-digest-mismatch.json": "SEM-E05",
+    "success-schema-no-verdict.json": "SEM-E08",
+    "survivors-success.json": "SEM-E06",
+    "unprobeable-validity.json": "SEM-VC01",
+    "verdict-unbound.json": "SEM-E04",
+    "verdict-with-parse-error.json": "SEM-E03",
+    "verdict-with-raw-text.json": "SEM-E02"
+  }
+}

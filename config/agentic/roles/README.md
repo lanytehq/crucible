@@ -6,40 +6,40 @@ Baseline role prompts for AI agent sessions.
 
 ## Quick Reference by Timeline
 
-| Timeline               | Roles                       | Use When                                                       |
-| ---------------------- | --------------------------- | -------------------------------------------------------------- |
-| **Minutes - Hours**    | devlead, devrev, qa, uxdev  | Writing code, reviewing changes, fixing bugs, building UI      |
-| **Days - Week**        | dispatch, secrev            | Session handoffs, security reviews, coordination               |
-| **Sprint (1-4w)**      | deliverylead, cicd          | Sprint planning, delivery coordination, pipelines              |
-| **Quarter (3mo)**      | releng, prodmktg            | Release planning, marketing campaigns, roadmaps                |
-| **Strategic (6-18mo)** | cxotech                     | Architecture decisions, product direction, cross-repo strategy |
+| Timeline               | Roles                      | Use When                                                       |
+| ---------------------- | -------------------------- | -------------------------------------------------------------- |
+| **Minutes - Hours**    | devlead, devrev, qa, uxdev | Writing code, reviewing changes, fixing bugs, building UI      |
+| **Days - Week**        | dispatch, secrev           | Session handoffs, security reviews, coordination               |
+| **Sprint (1-4w)**      | deliverylead, cicd         | Sprint planning, delivery coordination, pipelines              |
+| **Quarter (3mo)**      | releng, prodmktg           | Release planning, marketing campaigns, roadmaps                |
+| **Strategic (6-18mo)** | cxotech                    | Architecture decisions, product direction, cross-repo strategy |
 
 ## Role Categories
 
-| Category   | Purpose                              | Roles                               |
-| ---------- | ------------------------------------ | ----------------------------------- |
-| agentic    | Implementation and creation          | devlead, uxdev, infoarch, prodmktg  |
-| automation | Pipeline and release automation      | cicd, releng                        |
-| review     | Quality, security, and correctness   | devrev, qa, secrev                  |
-| governance | Strategy, coordination, architecture | dispatch, cxotech, deliverylead     |
+| Category   | Purpose                              | Roles                              |
+| ---------- | ------------------------------------ | ---------------------------------- |
+| agentic    | Implementation and creation          | devlead, uxdev, infoarch, prodmktg |
+| automation | Pipeline and release automation      | cicd, releng                       |
+| review     | Quality, security, and correctness   | devrev, qa, secrev                 |
+| governance | Strategy, coordination, architecture | dispatch, cxotech, deliverylead    |
 
 ## Process Domains
 
 Roles are organized across these business process domains:
 
-| Domain         | Description                              | Primary Roles                       |
-| -------------- | ---------------------------------------- | ----------------------------------- |
-| development    | Code creation, testing, implementation   | devlead, uxdev, devrev, qa, secrev  |
-| delivery       | Release, deployment, project management  | cicd, releng, deliverylead  |
-| governance     | Strategy, coordination, architecture     | dispatch, cxotech           |
-| strategy       | Long-term decisions, product direction   | cxotech, prodmktg           |
-| architecture   | System design, pattern selection         | cxotech, infoarch           |
-| coordination   | Session handoff, task routing            | dispatch, deliverylead      |
-| marketing      | Brand, messaging, positioning            | prodmktg                    |
-| documentation  | Schema governance, information structure | infoarch                    |
-| security       | Vulnerability review, infosec            | secrev                      |
-| quality        | Testing, validation, review              | devrev, qa                  |
-| implementation | Code writing, feature delivery           | devlead, uxdev              |
+| Domain         | Description                              | Primary Roles                      |
+| -------------- | ---------------------------------------- | ---------------------------------- |
+| development    | Code creation, testing, implementation   | devlead, uxdev, devrev, qa, secrev |
+| delivery       | Release, deployment, project management  | cicd, releng, deliverylead         |
+| governance     | Strategy, coordination, architecture     | dispatch, cxotech                  |
+| strategy       | Long-term decisions, product direction   | cxotech, prodmktg                  |
+| architecture   | System design, pattern selection         | cxotech, infoarch                  |
+| coordination   | Session handoff, task routing            | dispatch, deliverylead             |
+| marketing      | Brand, messaging, positioning            | prodmktg                           |
+| documentation  | Schema governance, information structure | infoarch                           |
+| security       | Vulnerability review, infosec            | secrev                             |
+| quality        | Testing, validation, review              | devrev, qa                         |
+| implementation | Code writing, feature delivery           | devlead, uxdev                     |
 
 ## Available Roles
 
