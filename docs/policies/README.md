@@ -12,16 +12,17 @@ This directory is the companion to `docs/specs/` (normative interface contracts)
 
 ## Active policies
 
-| Policy                                                                                     | Topic                                                                                              |
-| ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| [`public-docs-redaction.md`](./public-docs-redaction.md)                                   | What goes in public-visible docs vs. operationally sensitive details                               |
-| [`schema-bump-policy.md`](./schema-bump-policy.md)                                         | Default disposition + bar for bumping versioned schemas                                            |
-| [`commit-attribution-policy.md`](./commit-attribution-policy.md)                           | Commit + PR attribution conventions (Co-Authored-By, Drafted-By, anti-spoofing email format)       |
-| [`release-signing-manual-baseline-policy.md`](./release-signing-manual-baseline-policy.md) | Manual-signing baseline for Rust release-shipping repos; CI builds draft only                      |
-| [`pr-body-vs-squash-commit-shape-policy.md`](./pr-body-vs-squash-commit-shape-policy.md)   | Two-audience discipline: PR body for reviewers-now vs. squash-commit for git-log-readers-years-out |
-| [`msrv-invariant-policy.md`](./msrv-invariant-policy.md)                                   | Minimum Supported Rust Version invariant for lanyte crates; bump-forward discipline                |
+| Policy | Topic |
+|---|---|
+| [`public-docs-redaction.md`](./public-docs-redaction.md) | What goes in public-visible docs vs. operationally sensitive details |
+| [`schema-bump-policy.md`](./schema-bump-policy.md) | Default disposition + bar for bumping versioned schemas |
+| [`commit-attribution-policy.md`](./commit-attribution-policy.md) | Commit + PR attribution conventions (Co-Authored-By, Drafted-By, anti-spoofing email format) |
+| [`release-signing-manual-baseline-policy.md`](./release-signing-manual-baseline-policy.md) | Manual-signing baseline for Rust release-shipping repos; CI builds draft only |
+| [`pr-body-vs-squash-commit-shape-policy.md`](./pr-body-vs-squash-commit-shape-policy.md) | Two-audience discipline: PR body for reviewers-now vs. squash-commit for git-log-readers-years-out |
+| [`msrv-invariant-policy.md`](./msrv-invariant-policy.md) | Minimum Supported Rust Version invariant for lanyte crates; bump-forward discipline |
+| [`audience-appropriate-references-policy.md`](./audience-appropriate-references-policy.md) | References must resolve for the artifact's audience; external-facing surfaces stay self-contained (no internal-only tracking IDs / private paths) |
 
-_(Add rows as future policies land. Keep alphabetical or grouping by domain when count justifies it.)_
+*(Add rows as future policies land. Keep alphabetical or grouping by domain when count justifies it.)*
 
 ## Authoring conventions
 
@@ -46,3 +47,5 @@ Expand the citation only when the policy is invoked frequently inside the citing
 ## History
 
 - **0.1.0 (2026-05-16)** — README established alongside the first cross-repo policies pack (PR 2 of the policies/AGENTS.md split). Sibling to `schema-bump-policy.md` (landed PR 1, 2026-05-15). Formalizes the platform-policy SSOT framing dispatch flagged during PR 1 review.
+- **0.1.0 (2026-06-02)** — added `audience-appropriate-references-policy.md`; established at chanvoy's public-flip when release notes structured around internal brief identifiers surfaced the gap.
+- **0.2.0 (2026-07-15)** — audience-appropriate-references policy revised on two-lens review (Tier 2 excludes internal planning identifiers entirely; traceability relocated out of band per ADR-0017); pr-body-vs-squash-commit-shape policy aligned in the same change (PR body = short reviewer orientation, not a discovery snapshot).
