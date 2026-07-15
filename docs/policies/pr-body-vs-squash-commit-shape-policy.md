@@ -1,7 +1,7 @@
 ---
 title: PR Body vs Squash-Commit Shape Policy
 status: draft
-version: 0.1.0
+version: 0.2.0
 ---
 
 # PR Body vs Squash-Commit Shape Policy
@@ -14,9 +14,16 @@ It answers one question:
 
 ## Default Disposition
 
-**The PR body is a discovery snapshot for reviewers in this moment. The squash-commit message is a durable "what changed and why" for someone running `git log` or `git blame` years from now.**
+**The PR body is a short reviewer orientation for this moment. The squash-commit message is a durable "what changed and why" for someone running `git log` or `git blame` years from now. Neither is a traceability store — the detailed operational record lives out of band.**
 
-The two artifacts coexist and serve distinct purposes. Operational details that age out (timestamps, post IDs, byte counts, live identifiers) belong in the PR body — they help reviewers and stay containable as the PR thread ages. They do NOT belong in the squash-commit message, which lives forever in every clone of the repo.
+The two artifacts coexist and serve distinct purposes, and both are
+near-immutable public surfaces on public-bound repositories: PR text is hard
+to fully alter after the fact, and squash commits live forever in every
+clone. Content that ages out, leaks operational detail, or references
+internal-only resources belongs in neither — it belongs in the out-of-band
+planning corpus ([ADR-0017](../decisions/adr-0017-oob-planning-root.md)),
+which records the verification ledger, discovery narrative, and
+delivery-to-planning mapping on the internal side of the boundary.
 
 ## When This Policy Applies
 
@@ -28,17 +35,29 @@ Does NOT apply to: PRs merged via merge-commit or rebase-merge (the commit messa
 
 ## Practice
 
-### PR body content (discovery snapshot)
+### PR body content (reviewer orientation — keep it short)
 
 Include:
 
-- **Dogfood narrative** — "during the bootstrap I caught X", "while doing it I noticed Y"
-- **Verification ledger** — post IDs, byte counts, command output, `whoami` responses, screenshots
-- **Specific dates and version pins** — when something was discovered, what version was current at the time
-- **Sidebar findings** — "the 2026-04-30 secrev gap appears resolved", "noticed an unrelated thing worth flagging"
-- **First-person voice** describing the discovery flow
-- **Test plan checkboxes** — what was verified, with detail on commands run
-- **Attribution footer** per [commit-attribution-policy.md](./commit-attribution-policy.md) (Drafted-By + Role + PR-of-Record)
+- **What and why**, in a few sentences of self-contained plain language
+- **Verification summary** — what classes of checks ran and their outcome
+  (one or two lines; not the ledger itself)
+- **Reviewer pointers** where genuinely load-bearing — "the risk is
+  concentrated in X", "Y is the contested choice"
+- **Attribution footer** per [commit-attribution-policy.md](./commit-attribution-policy.md) (Drafted-By + Role + PR-of-Record; bare role names are publicly resolvable via the role catalog and are fine)
+
+Exclude (these live in the out-of-band planning corpus, not the PR):
+
+- **Internal planning identifiers** in any form, per the
+  [Audience-Appropriate References Policy](./audience-appropriate-references-policy.md)
+- **Verification ledgers** — post IDs, byte counts, command transcripts,
+  screenshots, `whoami` responses
+- **Discovery/dogfood narrative** — "during the bootstrap I caught X";
+  the story of the work is internal record, not public review surface
+- **Sidebar findings** unrelated to the change (internal record or a
+  separate issue, audience-safely worded)
+- **Moment-bound operational detail** — timestamps, live identifiers,
+  environment specifics
 
 ### Squash-commit message content (durable record)
 
@@ -46,7 +65,8 @@ Include:
 
 - **Posture changes + brief rationale** for non-obvious choices
 - **File-by-file what-changed** — one line each, high-signal
-- **Cross-references** to other commits, briefs, or specs that establish the contract being changed
+- **Cross-references the audience can resolve** — public issue/PR numbers,
+  commit hashes, public specs. No internal planning identifiers.
 - **Attribution trailers** per [commit-attribution-policy.md](./commit-attribution-policy.md) (Co-Authored-By + Role + Committer-of-Record)
 
 Exclude:
@@ -54,7 +74,7 @@ Exclude:
 - **No dates** tied to a moment (use version numbers or "this commit" instead)
 - **No post IDs, byte counts, row counts** tied to a moment in time
 - **No first-person dogfood voice** ("I noticed", "during dogfood", "while doing it I caught")
-- **No verification ledger** (already in PR body; merging duplicates it forever)
+- **No verification ledger** (out-of-band record; merging duplicates it forever)
 - **No sidebar findings** unrelated to the change (separate channel/issue post)
 - **No live identifiers** that the registry/code now contains (`user_id X`, `post_id Y`)
 
@@ -64,26 +84,39 @@ Before pasting a commit message into the squash-merge box, run these tests. Drop
 
 1. Starts with "I noticed" / "during dogfood" / "while doing it" / "surfaced"
 2. Names a specific timestamp, post ID, byte count, or row count tied to a moment in time
-3. Reports verification or test results (PR-body home)
+3. Reports verification or test results beyond a one-line summary (out-of-band home)
 4. Mentions an unrelated finding (separate channel post or issue)
 5. Repeats live identifiers (user IDs, channel IDs) that the registry/code now contains
+6. Contains an internal planning identifier (any surface, any form)
 
 If the agent or human authored the commit message before the PR body, expect to rewrite both before merge — the easy default is to paste, but the easy default produces over-detailed commit messages that age into noise.
 
 ### Why durable-vs-ephemeral matters
 
-A squash-merge message lives forever in every clone of the repo. Operational details that age out become noise after a quarter. They also create a mild attacker-recon surface — repeating internal details across every artifact instead of containing them in PR-body discussion that can be revisited intentionally.
+A squash-merge message lives forever in every clone of the repo, and PR text
+is near-immutable once posted — on a public-bound repository both are
+permanent public surfaces. Operational details that age out become noise
+after a quarter and create a mild attacker-recon surface. Containing them in
+the out-of-band record keeps the public artifacts clean and the full detail
+retrievable by the people entitled to it.
 
-The PR body and commit message both stay, but they answer different questions:
-
-- **PR body**: "what was discovered when this was reviewed?"
+- **PR body**: "what should a reviewer look at right now?"
 - **Commit message**: "what does this commit do?"
+- **Out-of-band record**: "what exactly happened, verified how, tracked where?"
 
 ## Cross-References
 
 - **`commit-attribution-policy.md`** — defines the trailer structure for both PR body footer and squash-commit message. The two-audience content split (this policy) is orthogonal to the attribution structure (other policy).
+- **`audience-appropriate-references-policy.md`** — the resolvability rule this policy's exclusions implement on the PR/commit surfaces.
+- **`adr-0017-oob-planning-root.md`** — where the excluded detail lives.
 - **`public-docs-redaction.md`** — adjacent concern on public-visible content. Squash-commit messages on public repos are public artifacts; this policy's "no live identifiers" rule reinforces the public-docs-redaction stance for the commit-history surface.
 
 ## History
 
+- **0.2.0 (2026-07-15)** — aligned with the audience-appropriate-references
+  policy 0.2.0 on two-lens review: PR body redefined from "discovery
+  snapshot" (verification ledgers, dogfood narrative, post IDs) to short
+  reviewer orientation; ledger/narrative relocated to the out-of-band
+  planning corpus; internal-planning-identifier exclusion made explicit on
+  both surfaces; litmus test 6 added.
 - **0.1.0 (2026-05-16)** — initial draft. Consolidates the prior session-memory entry on PR-body-vs-squash-commit content discipline into a platform-public policy. Convention established 2026-05-08 after squash-merges on two prior PRs surfaced the over-detail pattern; PR 1 cross-repo SSOT framing from dispatch 2026-05-14 prompted the move to policy form.
