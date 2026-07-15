@@ -1,0 +1,26 @@
+{
+  "missing-profile-schema.json": {
+    "keyword": "required",
+    "mentions": "profile_schema"
+  },
+  "unknown-property.json": {
+    "keyword": "additionalProperties",
+    "mentions": "certified"
+  },
+  "fenced-without-reason.json": {
+    "keyword": "type",
+    "mentions": "fence_reason"
+  },
+  "posture-without-evidence.json": {
+    "keyword": "minItems",
+    "mentions": "refs"
+  },
+  "posture-control-mismatch.json": {
+    "keyword": "const",
+    "mentions": "posture"
+  },
+  "bad-derived-at.json": {
+    "keyword": "pattern",
+    "mentions": "derived_at"
+  }
+}
