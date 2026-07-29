@@ -3,12 +3,19 @@
 # branch. Dry-run by default; destructive steps require --apply AND --confirm
 # with explicit absolute --worktree and --branch inputs.
 #
-# Steps (in order):
-#   1. Validate inputs (default branch, ownership, clean tree, merged tip)
-#   2. Delete remote branch if still present (auto-delete may already have)
-#   3. Remove the task worktree via `git worktree remove` on the exact path
-#   4. Optionally return a main checkout to the default branch and ff-only pull
-#   5. Prune stale worktree metadata and remote-tracking refs
+# Ordering (apply path):
+#   1. Validate all inputs and preflight every apply prerequisite
+#      (including optional --main-checkout) BEFORE any mutation
+#   2. Optional preflight refresh (fetch) — apply only, never dry-run
+#   3. Delete remote branch if still present
+#   4. Remove the task worktree via `git worktree remove` on the exact path
+#   5. Return primary checkout to default + ff-only pull (when requested)
+#   6. Prune stale worktree metadata and remote-tracking refs
+#
+# Dry-run is strictly non-mutating: no fetch, no push, no worktree remove,
+# no checkout, no prune. It uses already-present remote-tracking refs only
+# and fails closed with an explicit refresh instruction when freshness
+# cannot be proven from local state.
 #
 # Never deletes the default branch. Never removes a worktree that is not an
 # added linked worktree owned by this repository. Never uses globs or
@@ -28,9 +35,11 @@ Required:
   --branch <name>     Feature branch that was merged (must be checked out there)
 
 Options:
-  --main-checkout <path>  Absolute path of the primary checkout to return to
-                          the default branch and fast-forward (optional)
-  --remote <name>         Remote name (default: origin)
+  --main-checkout <path>  Absolute path of the PRIMARY checkout to return to
+                          the default branch and fast-forward (optional).
+                          When set: must be the exact primary worktree, clean,
+                          same common-dir, and safely reconcilable to default.
+  --remote <name>         Remote name (default: origin); must be configured
   --apply                 Perform changes (default is dry-run)
   --confirm               Required with --apply (explicit operator confirmation)
   -h, --help              Show this help
@@ -38,14 +47,18 @@ Options:
 Fail-secure refusals:
   - default branch as --branch
   - relative or non-absolute --worktree / --main-checkout
+  - unknown / unconfigured remote
+  - unresolved default branch (no current-branch fallback)
   - worktree not listed in `git worktree list --porcelain`
   - worktree is the primary (non-linked) checkout
   - worktree not belonging to this repository's common git dir
   - branch not checked out exactly in that worktree
   - branch checked out in more than one worktree (ambiguous ownership)
-  - dirty worktree
-  - branch tip not fully merged into remote default branch
+  - dirty task worktree
+  - branch tip not fully merged into remote-tracking default
+  - --main-checkout not the primary checkout / dirty / not ff-safe
   - --apply without --confirm
+  - dry-run when required remote-tracking refs are missing (refresh first)
 EOF
 }
 
@@ -75,6 +88,7 @@ done
 
 [[ -n "$WORKTREE" ]] || die "--worktree is required"
 [[ -n "$BRANCH" ]] || die "--branch is required"
+[[ -n "$REMOTE" ]] || die "--remote must be non-empty"
 [[ "$WORKTREE" == /* ]] || die "--worktree must be an absolute path (got: $WORKTREE)"
 if [[ -n "$MAIN_CHECKOUT" && "$MAIN_CHECKOUT" != /* ]]; then
   die "--main-checkout must be an absolute path (got: $MAIN_CHECKOUT)"
@@ -82,21 +96,28 @@ fi
 if $APPLY && ! $CONFIRM; then
   die "--apply requires --confirm (refusing destructive run without explicit confirmation)"
 fi
+# Ref-name hygiene: valid branch (slashes allowed) and simple remote name.
+git check-ref-format --branch "$BRANCH" >/dev/null 2>&1 \
+  || die "invalid --branch value: $BRANCH"
+case "$REMOTE" in
+  ''|*'..'*|*/*|*\\*|*[[:space:]]*) die "invalid --remote value: $REMOTE" ;;
+esac
 
 # Resolve repository root from the invoking cwd (Makefile cds to repo root).
 REPO_ROOT="$(pwd -P)"
 [[ -e "$REPO_ROOT/.git" ]] || die "not a git repository root: $REPO_ROOT (run from repo root or via make)"
 
+# Remote must be configured before any resolution against it.
+git remote get-url "$REMOTE" >/dev/null 2>&1 \
+  || die "remote '$REMOTE' is not configured in this repository"
+
 COMMON_DIR="$(git rev-parse --git-common-dir)"
-# git may return relative common-dir
 if [[ "$COMMON_DIR" != /* ]]; then
   COMMON_DIR="$(cd "$REPO_ROOT" && cd "$COMMON_DIR" && pwd -P)"
 else
   COMMON_DIR="$(cd "$COMMON_DIR" && pwd -P)"
 fi
 
-# Canonicalize worktree path if it exists; still allow dry-run validation
-# against porcelain even if already removed (will fail list check).
 if [[ -d "$WORKTREE" ]]; then
   WORKTREE="$(cd "$WORKTREE" && pwd -P)"
 fi
@@ -105,7 +126,6 @@ if [[ -n "$MAIN_CHECKOUT" && -d "$MAIN_CHECKOUT" ]]; then
 fi
 
 # --- parse worktree list ---
-# Porcelain records: worktree <path> / HEAD <sha> / branch refs/heads/<name> | detached
 declare -a WT_PATHS=()
 declare -a WT_BRANCHES=()
 declare -a WT_HEADS=()
@@ -130,37 +150,73 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   esac
 done < <(git worktree list --porcelain; echo)
 
-# Flush trailing record if porcelain lacked final blank line
 if [[ -n "$cur_path" ]]; then
   WT_PATHS+=("$cur_path")
   WT_BRANCHES+=("${cur_branch:-}")
   WT_HEADS+=("${cur_head:-}")
 fi
 
-# Resolve default branch from remote HEAD (authoritative for this clone).
+normalize_wt_path() {
+  local p="$1"
+  if [[ -d "$p" ]]; then
+    (cd "$p" && pwd -P)
+  else
+    printf '%s' "$p"
+  fi
+}
+
+find_primary_checkout() {
+  local i p
+  for i in "${!WT_PATHS[@]}"; do
+    p="$(normalize_wt_path "${WT_PATHS[$i]}")"
+    if [[ -d "$p/.git" ]]; then
+      local gd
+      gd="$(cd "$p/.git" && pwd -P)"
+      if [[ "$gd" == "$COMMON_DIR" ]]; then
+        printf '%s' "$p"
+        return 0
+      fi
+    fi
+  done
+  return 1
+}
+
+# Resolve default branch from remote-tracking metadata ONLY (fail closed).
+# No fallback to the invoking checkout's current branch.
+resolve_default_branch() {
+  local remote_head prefix
+  remote_head="$(git symbolic-ref -q "refs/remotes/${REMOTE}/HEAD" 2>/dev/null || true)"
+  if [[ -n "$remote_head" ]]; then
+    # SC2295: quote the prefix for nested parameter expansion
+    prefix="refs/remotes/${REMOTE}/"
+    DEFAULT_BRANCH="${remote_head#"$prefix"}"
+    [[ -n "$DEFAULT_BRANCH" && "$DEFAULT_BRANCH" != "$remote_head" ]] \
+      || die "could not parse default branch from $remote_head"
+    return 0
+  fi
+  return 1
+}
+
 DEFAULT_BRANCH=""
-if remote_head="$(git symbolic-ref -q "refs/remotes/${REMOTE}/HEAD" 2>/dev/null || true)"; then
-  # refs/remotes/origin/main → main
-  DEFAULT_BRANCH="${remote_head#refs/remotes/${REMOTE}/}"
+if ! resolve_default_branch; then
+  if $APPLY; then
+    # Apply preflight may refresh remote HEAD once, then re-resolve.
+    info "remote-tracking HEAD missing; preflight fetch of remote HEAD for '$REMOTE'"
+    git remote set-head "$REMOTE" --auto >/dev/null 2>&1 \
+      || git fetch "$REMOTE" --quiet
+    resolve_default_branch \
+      || die "could not resolve default branch for remote '$REMOTE' from remote-tracking metadata (no current-branch fallback); ensure 'git remote set-head $REMOTE --auto' or fetch has populated refs/remotes/$REMOTE/HEAD"
+  else
+    die "could not resolve default branch for remote '$REMOTE' from local remote-tracking metadata (dry-run is non-mutating). Refresh first: git remote set-head $REMOTE --auto && git fetch $REMOTE"
+  fi
 fi
-if [[ -z "$DEFAULT_BRANCH" ]]; then
-  DEFAULT_BRANCH="$(git remote show "$REMOTE" 2>/dev/null | awk '/HEAD branch/ {print $NF; exit}')"
-fi
-if [[ -z "$DEFAULT_BRANCH" ]]; then
-  DEFAULT_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
-fi
-[[ -n "$DEFAULT_BRANCH" ]] || die "could not resolve default branch for remote '$REMOTE'"
 
 [[ "$BRANCH" != "$DEFAULT_BRANCH" ]] || die "refusing to operate on the default branch ('$DEFAULT_BRANCH')"
 
 # Find matching worktree by exact path
 idx=-1
 for i in "${!WT_PATHS[@]}"; do
-  p="${WT_PATHS[$i]}"
-  # normalize listed path
-  if [[ -d "$p" ]]; then
-    p="$(cd "$p" && pwd -P)"
-  fi
+  p="$(normalize_wt_path "${WT_PATHS[$i]}")"
   if [[ "$p" == "$WORKTREE" ]]; then
     idx=$i
     break
@@ -171,12 +227,9 @@ done
 wt_branch="${WT_BRANCHES[$idx]}"
 wt_head="${WT_HEADS[$idx]}"
 
-# Primary worktree = the one whose path equals the worktree containing common-dir's parent
 # Linked worktrees have gitdir under $COMMON_DIR/worktrees/<name>
-# Primary checkout has .git as a directory equal to COMMON_DIR (or file pointing there without worktrees/ suffix)
 is_linked=false
 if [[ -f "$WORKTREE/.git" ]]; then
-  # linked worktree: .git is a file "gitdir: ..."
   gitdir_line="$(tr -d '\r' <"$WORKTREE/.git")"
   gitdir_path="${gitdir_line#gitdir: }"
   if [[ "$gitdir_path" != /* ]]; then
@@ -189,14 +242,12 @@ if [[ -f "$WORKTREE/.git" ]]; then
     *) die "worktree gitdir is not under this repo's common worktrees dir: $gitdir_path" ;;
   esac
 elif [[ -d "$WORKTREE/.git" ]]; then
-  # primary checkout — refuse removal
   die "refusing to remove the primary checkout worktree: $WORKTREE"
 else
   die "cannot determine worktree linkage for: $WORKTREE"
 fi
 $is_linked || die "internal: expected linked worktree"
 
-# Ownership: branch must be checked out exactly in this worktree, and nowhere else
 [[ -n "$wt_branch" ]] || die "worktree is detached HEAD; refuse (ambiguous ownership)"
 [[ "$wt_branch" == "$BRANCH" ]] || die "worktree branch mismatch: expected '$BRANCH', found '$wt_branch'"
 
@@ -208,49 +259,92 @@ for i in "${!WT_BRANCHES[@]}"; do
 done
 [[ $owners -eq 1 ]] || die "ambiguous ownership: branch '$BRANCH' is checked out in $owners worktrees (need exactly 1)"
 
-# Clean tree
 if [[ -d "$WORKTREE" ]]; then
   dirty="$(git -C "$WORKTREE" status --porcelain 2>/dev/null || true)"
   [[ -z "$dirty" ]] || die "worktree is dirty; commit/stash/discard before epilogue"
 fi
 
-# Ensure we have up-to-date remote default for merge check
-info "fetching ${REMOTE}/${DEFAULT_BRANCH} for merge verification"
-git fetch "$REMOTE" "$DEFAULT_BRANCH" --quiet
-
 remote_default_ref="refs/remotes/${REMOTE}/${DEFAULT_BRANCH}"
+
+# Apply-only preflight refresh (before any destructive mutation).
+if $APPLY; then
+  info "preflight fetch ${REMOTE} ${DEFAULT_BRANCH} (apply path only)"
+  git fetch "$REMOTE" "$DEFAULT_BRANCH" --quiet
+fi
+
 git rev-parse --verify "$remote_default_ref" >/dev/null 2>&1 \
-  || die "missing $remote_default_ref after fetch"
+  || die "missing $remote_default_ref. Refresh first: git fetch $REMOTE $DEFAULT_BRANCH"
 
 branch_tip=""
 if git show-ref --verify --quiet "refs/heads/${BRANCH}"; then
   branch_tip="$(git rev-parse "refs/heads/${BRANCH}")"
 else
-  # fall back to worktree HEAD
   branch_tip="$wt_head"
 fi
 [[ -n "$branch_tip" ]] || die "could not resolve tip of branch '$BRANCH'"
 
-# Fully merged: no commits on branch that are not on remote default
 unmerged_count="$(git rev-list --count "${remote_default_ref}..${branch_tip}")"
 [[ "$unmerged_count" == "0" ]] || die "branch '$BRANCH' is not fully merged into ${REMOTE}/${DEFAULT_BRANCH} ($unmerged_count commit(s) ahead); merge first"
 
-# Optional main-checkout validation
+# --- main-checkout preflight (BEFORE any destructive mutation) ---
+PRIMARY_PATH=""
+if PRIMARY_PATH="$(find_primary_checkout)"; then
+  :
+else
+  PRIMARY_PATH=""
+fi
+
 if [[ -n "$MAIN_CHECKOUT" ]]; then
   main_idx=-1
   for i in "${!WT_PATHS[@]}"; do
-    p="${WT_PATHS[$i]}"
-    if [[ -d "$p" ]]; then p="$(cd "$p" && pwd -P)"; fi
+    p="$(normalize_wt_path "${WT_PATHS[$i]}")"
     if [[ "$p" == "$MAIN_CHECKOUT" ]]; then main_idx=$i; break; fi
   done
   [[ $main_idx -ge 0 ]] || die "--main-checkout is not a worktree of this repository: $MAIN_CHECKOUT"
   [[ "$MAIN_CHECKOUT" != "$WORKTREE" ]] || die "--main-checkout must not equal --worktree"
+  [[ -n "$PRIMARY_PATH" ]] || die "could not identify the primary checkout for this repository"
+  [[ "$MAIN_CHECKOUT" == "$PRIMARY_PATH" ]] \
+    || die "--main-checkout must be the exact primary checkout ($PRIMARY_PATH), not a linked worktree (got: $MAIN_CHECKOUT)"
+  [[ -d "$MAIN_CHECKOUT/.git" ]] \
+    || die "--main-checkout is not a primary checkout directory: $MAIN_CHECKOUT"
+
+  main_dirty="$(git -C "$MAIN_CHECKOUT" status --porcelain 2>/dev/null || true)"
+  [[ -z "$main_dirty" ]] \
+    || die "--main-checkout is dirty; refuse before any mutation (clean it or omit --main-checkout)"
+
+  # Same common-dir already implied by worktree list membership; re-check.
+  main_common="$(git -C "$MAIN_CHECKOUT" rev-parse --git-common-dir)"
+  if [[ "$main_common" != /* ]]; then
+    main_common="$(cd "$MAIN_CHECKOUT" && cd "$main_common" && pwd -P)"
+  else
+    main_common="$(cd "$main_common" && pwd -P)"
+  fi
+  [[ "$main_common" == "$COMMON_DIR" ]] \
+    || die "--main-checkout common-dir mismatch (got $main_common, expected $COMMON_DIR)"
+
+  # Safely reconcilable to default: clean tree already; ensure ff-only update is possible.
+  # If local default exists, it must be an ancestor of remote default (ff-only).
+  if git -C "$MAIN_CHECKOUT" show-ref --verify --quiet "refs/heads/${DEFAULT_BRANCH}"; then
+    local_default_tip="$(git -C "$MAIN_CHECKOUT" rev-parse "refs/heads/${DEFAULT_BRANCH}")"
+    if ! git merge-base --is-ancestor "$local_default_tip" "$remote_default_ref"; then
+      die "local ${DEFAULT_BRANCH} has diverged from ${REMOTE}/${DEFAULT_BRANCH}; refuse ff-only pull before any mutation"
+    fi
+  fi
+  # If currently on another branch with a clean tree, checkout of default is safe.
 fi
 
-# Remote branch presence
+# Remote branch presence:
+# - dry-run: local remote-tracking knowledge only (non-mutating)
+# - apply: live probe via ls-remote (network read; no local ref mutation)
 remote_branch_exists=false
-if git ls-remote --exit-code --heads "$REMOTE" "$BRANCH" >/dev/null 2>&1; then
-  remote_branch_exists=true
+if $APPLY; then
+  if git ls-remote --exit-code --heads "$REMOTE" "$BRANCH" >/dev/null 2>&1; then
+    remote_branch_exists=true
+  fi
+else
+  if git show-ref --verify --quiet "refs/remotes/${REMOTE}/${BRANCH}"; then
+    remote_branch_exists=true
+  fi
 fi
 
 echo
@@ -260,7 +354,7 @@ echo "  remote:          $REMOTE"
 echo "  default branch:  $DEFAULT_BRANCH"
 echo "  feature branch:  $BRANCH  (tip ${branch_tip:0:12})"
 echo "  worktree:        $WORKTREE"
-echo "  remote branch:   $(if $remote_branch_exists; then echo present; else echo already absent; fi)"
+echo "  remote branch:   $(if $remote_branch_exists; then echo present; else echo already absent; fi)$(if ! $APPLY; then echo " (local tracking knowledge)"; fi)"
 echo "  main checkout:   ${MAIN_CHECKOUT:-"(skip)"}"
 echo "  mode:            $(if $APPLY; then echo APPLY; else echo DRY-RUN; fi)"
 echo
@@ -272,7 +366,7 @@ if ! $APPLY; then
   if $remote_branch_exists; then
     plan_step "git push ${REMOTE} --delete ${BRANCH}"
   else
-    plan_step "skip remote delete (already absent — likely auto-delete on merge)"
+    plan_step "skip remote delete (already absent or not present in local tracking)"
   fi
   plan_step "git worktree remove ${WORKTREE}"
   if [[ -n "$MAIN_CHECKOUT" ]]; then
@@ -282,11 +376,11 @@ if ! $APPLY; then
   plan_step "git worktree prune"
   plan_step "git fetch --prune ${REMOTE}"
   echo
-  ok "dry-run complete; re-run with --apply --confirm to execute"
+  ok "dry-run complete (no fetch, no mutations); re-run with --apply --confirm to execute"
   exit 0
 fi
 
-# --- apply ---
+# --- apply: all preflight passed; mutations begin only now ---
 if $remote_branch_exists; then
   run_step "git push ${REMOTE} --delete ${BRANCH}"
   git push "$REMOTE" --delete "$BRANCH"
@@ -296,17 +390,13 @@ else
 fi
 
 run_step "git worktree remove ${WORKTREE}"
-# Must be invoked from a remaining worktree; use REPO_ROOT if it is not the target.
-# If REPO_ROOT == WORKTREE we cannot remove from inside; use MAIN_CHECKOUT or common parent.
 remove_cwd="$REPO_ROOT"
 if [[ "$REPO_ROOT" == "$WORKTREE" ]]; then
   if [[ -n "$MAIN_CHECKOUT" && -d "$MAIN_CHECKOUT" ]]; then
     remove_cwd="$MAIN_CHECKOUT"
   else
-    # fall back to any other listed worktree
     for i in "${!WT_PATHS[@]}"; do
-      p="${WT_PATHS[$i]}"
-      if [[ -d "$p" ]]; then p="$(cd "$p" && pwd -P)"; fi
+      p="$(normalize_wt_path "${WT_PATHS[$i]}")"
       if [[ "$p" != "$WORKTREE" && -d "$p" ]]; then
         remove_cwd="$p"
         break
