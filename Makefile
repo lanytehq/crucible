@@ -23,8 +23,27 @@ clean: ## Remove build artifacts (placeholder)
 	@echo "[ok] nothing to clean"
 
 .PHONY: check
-check: guard-no-submodules guard-version-file check-dispatch-v0 ## Repo guards + schema family gates
+check: guard-no-submodules guard-version-file check-dispatch-v0 test-epilogue ## Repo guards + schema family gates
 	@echo "OK"
+
+.PHONY: test-epilogue
+test-epilogue: ## Fail-secure post-merge epilogue negative controls (no mutations)
+	@bash scripts/test-post-merge-epilogue.sh
+
+# Post-merge cleanup. Dry-run by default.
+# Required: WORKTREE=/abs/path BRANCH=feature/name
+# Optional: MAIN_CHECKOUT=/abs/path REMOTE=origin APPLY=1 CONFIRM=1
+.PHONY: post-merge-epilogue
+post-merge-epilogue: ## Post-merge worktree cleanup (dry-run default; see docs/guides/post-merge-epilogue.md)
+	@test -n "$(WORKTREE)" || { echo "[!!] WORKTREE=/abs/path is required" >&2; exit 1; }
+	@test -n "$(BRANCH)" || { echo "[!!] BRANCH=name is required" >&2; exit 1; }
+	@bash scripts/post-merge-epilogue.sh \
+		--worktree "$(WORKTREE)" \
+		--branch "$(BRANCH)" \
+		$(if $(MAIN_CHECKOUT),--main-checkout "$(MAIN_CHECKOUT)",) \
+		$(if $(REMOTE),--remote "$(REMOTE)",) \
+		$(if $(filter 1,$(APPLY)),--apply,) \
+		$(if $(filter 1,$(CONFIRM)),--confirm,)
 
 .PHONY: check-dispatch-v0
 check-dispatch-v0: ## Validate the agentic/dispatch v0 schema family (schemas + fixtures + semantic layer)

@@ -32,11 +32,21 @@ drafts the GitHub Release, but never signs. Signing keys never touch CI.
 
 Note: These are not secrets and typically aren't stored in encrypted env bundles.
 
+## After a feature PR merges
+
+- [ ] Run the post-merge epilogue (dry-run first) to drop the task worktree and
+      prune — see [docs/guides/post-merge-epilogue.md](docs/guides/post-merge-epilogue.md):
+  ```bash
+  make post-merge-epilogue WORKTREE=/abs/path/to/task-wt BRANCH=feature/name
+  make post-merge-epilogue WORKTREE=... BRANCH=... MAIN_CHECKOUT=... APPLY=1 CONFIRM=1
+  ```
+- [ ] Prefer `gh run list` / `gh run watch` for CI status (not `gh pr checks`)
+
 ## Pre-Release
 
 - [ ] `git status` is clean
-- [ ] Quality gates pass: `make check` (repo guards + dispatch family gate) and
-      `make quality` (lint)
+- [ ] Quality gates pass: `make check` (repo guards + dispatch family gate +
+      epilogue controls) and `make quality` (lint)
 - [ ] `CHANGELOG.md` updated (new `## [X.Y.Z] - YYYY-MM-DD` section; tag link added
       to the footer)
 - [ ] `docs/releases/vX.Y.Z.md` created
