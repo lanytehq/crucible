@@ -79,19 +79,12 @@ if [[ -d "$ROOT/.git" ]]; then
     "$SCRIPT" --worktree "$ROOT" --branch "feature/does-not-matter"
 fi
 
-# Unmerged tip against this repo's origin (creates a temporary linked wt; cleaned up).
-TMP_WT=""
-TEST_BRANCH="pme-test-epilogue-$$"
+# Unmerged/dirty tip controls live in Suite B (disposable) so CI checkouts
+# without refs/remotes/origin/<default> still exercise them deterministically.
 DISPOSABLE=""
 cleanup() {
-  if [[ -n "${TMP_WT:-}" ]]; then
-    git worktree unlock "$TMP_WT" 2>/dev/null || true
-    git worktree remove --force "$TMP_WT" 2>/dev/null || true
-  fi
-  git branch -D "$TEST_BRANCH" 2>/dev/null || true
   if [[ -n "${DISPOSABLE:-}" && -d "$DISPOSABLE" ]]; then
     if [[ -d "$DISPOSABLE/primary" ]]; then
-      # unlock then remove any linked worktrees
       git -C "$DISPOSABLE/primary" worktree list --porcelain 2>/dev/null \
         | awk '/^worktree /{print $2}' \
         | while read -r p; do
@@ -102,39 +95,12 @@ cleanup() {
     fi
     rm -rf "$DISPOSABLE"
   fi
-  rm -rf "${TMP_WT:-}" 2>/dev/null || true
   rm -f /tmp/pme-test-out.$$ /tmp/pme-test-err.$$ 2>/dev/null || true
 }
 trap cleanup EXIT
 
-if git rev-parse --verify "refs/remotes/origin/${DEFAULT}" >/dev/null 2>&1; then
-  TMP_WT="$(mktemp -d "${TMPDIR:-/tmp}/pme-wt.XXXXXX")"
-  git worktree add -b "$TEST_BRANCH" "$TMP_WT" "origin/${DEFAULT}" --quiet
-  echo "pme-test-marker $$" >"$TMP_WT/.pme-test-marker"
-  git -C "$TMP_WT" add .pme-test-marker
-  git -C "$TMP_WT" -c user.email=test@example.com -c user.name=test \
-    commit -m "test: unmerged marker for epilogue negative control" --quiet
-  assert_fails "unmerged branch tip" \
-    "$SCRIPT" --worktree "$TMP_WT" --branch "$TEST_BRANCH"
-  echo dirty >"$TMP_WT/.pme-dirty"
-  # After reset for dirty test we need merged tip; use hard reset then dirty
-  git -C "$TMP_WT" reset --hard "origin/${DEFAULT}" --quiet
-  echo dirty >"$TMP_WT/.pme-dirty"
-  assert_fails "dirty worktree" \
-    "$SCRIPT" --worktree "$TMP_WT" --branch "$TEST_BRANCH"
-  rm -f "$TMP_WT/.pme-dirty"
-  # Remove temp wt so shared repo is clean again (no FETCH_HEAD games)
-  git worktree remove --force "$TMP_WT" 2>/dev/null || true
-  TMP_WT=""
-  git branch -D "$TEST_BRANCH" 2>/dev/null || true
-  TEST_BRANCH=""
-else
-  echo "[!!] skip unmerged/dirty suite: missing refs/remotes/origin/${DEFAULT}" >&2
-  fail=$((fail + 1))
-fi
-
 # ---------------------------------------------------------------------------
-# Suite B — fully disposable bare remote (M1 + all H1 paths + apply success)
+# Suite B — fully disposable bare remote (unmerged/dirty + M1 + H1 + apply)
 # ---------------------------------------------------------------------------
 DISPOSABLE="$(mktemp -d "${TMPDIR:-/tmp}/pme-disposable.XXXXXX")"
 git init --bare "$DISPOSABLE/remote.git" --quiet
@@ -174,8 +140,25 @@ setup_merged_feature() {
   git -C "$DISPOSABLE/primary" worktree add "$DISPOSABLE/wt" feature/pme --quiet
 }
 
-# --- M1: dry-run non-mutation entirely inside disposable ---
+# --- unmerged tip + dirty task worktree (disposable; CI-safe) ---
 setup_merged_feature
+# Divergent local commit on feature/pme → unmerged vs origin/main
+echo "pme-unmerged-$$" >"$DISPOSABLE/wt/.pme-unmerged"
+git -C "$DISPOSABLE/wt" add .pme-unmerged
+git -C "$DISPOSABLE/wt" -c user.email=test@example.com -c user.name=test \
+  commit -m "unmerged tip" --quiet
+assert_fails "unmerged branch tip" \
+  bash -c "cd '$DISPOSABLE/primary' && '$SCRIPT' --worktree '$DISPOSABLE/wt' --branch feature/pme"
+# Reset to merged tip then dirty working tree
+git -C "$DISPOSABLE/wt" reset --hard "refs/remotes/origin/main" --quiet
+echo dirty >"$DISPOSABLE/wt/.pme-dirty"
+assert_fails "dirty worktree" \
+  bash -c "cd '$DISPOSABLE/primary' && '$SCRIPT' --worktree '$DISPOSABLE/wt' --branch feature/pme"
+rm -f "$DISPOSABLE/wt/.pme-dirty"
+# Ensure clean merged state for subsequent cases
+git -C "$DISPOSABLE/wt" reset --hard "refs/remotes/origin/main" --quiet
+
+# --- M1: dry-run non-mutation entirely inside disposable ---
 common_dir="$(git -C "$DISPOSABLE/primary" rev-parse --git-common-dir)"
 if [[ "$common_dir" != /* ]]; then
   common_dir="$(cd "$DISPOSABLE/primary" && cd "$common_dir" && pwd -P)"
