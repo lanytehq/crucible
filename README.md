@@ -25,6 +25,7 @@ schema-validated message framing.
 | 257     | `channel_257.schema.json` | fulminar — HTTP proxy   |
 | 258     | `channel_258.schema.json` | lanyte-admin — admin UI |
 | 259     | `channel_259.schema.json` | skill executor I/O      |
+| 260     | `channel_260.schema.json` | chanvoy — CHAT bridge   |
 
 ### `schemas/agentic/`
 
@@ -34,6 +35,13 @@ Schemas for agent-side contracts:
   sessions. Embedded by [stashvoy](https://github.com/lanytehq/stashvoy).
 - `v0/role-prompt.schema.json` — validation schema for agent role definitions
   in `config/agentic/roles/`.
+- `dispatch/v0/` — dispatch runner supervision seam (run envelope, harness
+  profile, semantic layer). See
+  [`schemas/agentic/dispatch/v0/README.md`](schemas/agentic/dispatch/v0/README.md).
+
+Release-note and release-doc conventions for platform packages live under
+[`docs/releases/`](docs/releases/) and the release-signing baseline in
+[`docs/policies/release-signing-manual-baseline-policy.md`](docs/policies/release-signing-manual-baseline-policy.md).
 
 ### `schemas/common/`
 

@@ -23,7 +23,7 @@ clean: ## Remove build artifacts (placeholder)
 	@echo "[ok] nothing to clean"
 
 .PHONY: check
-check: guard-no-submodules guard-version-file check-dispatch-v0 test-epilogue ## Repo guards + schema family gates
+check: guard-no-submodules guard-version-file check-dispatch-v0 test-epilogue fmt-check ## Repo guards + schema family gates + format honesty
 	@echo "OK"
 
 .PHONY: test-epilogue
@@ -58,12 +58,22 @@ check-dispatch-v0: ## Validate the agentic/dispatch v0 schema family (schemas + 
 	fi
 
 .PHONY: fmt
-fmt: ## Format all files (goneat: yaml, json, markdown)
+fmt: ## Format all files (goneat: yaml, json, markdown); nonzero if goneat fails any file
 	@if command -v goneat >/dev/null 2>&1; then \
-		goneat format --types yaml,json,markdown --folders . --finalize-eof --quiet 2>&1 | grep -v "encountered the following formatting errors" || true; \
+		goneat format --types yaml,json,markdown --folders . --finalize-eof --quiet && \
 		echo "[ok] fmt done"; \
 	else \
 		echo "[--] goneat not found, skipping"; \
+	fi
+
+.PHONY: fmt-check
+fmt-check: ## Fail if any yaml/json/markdown needs formatting (goneat required on PATH for this gate)
+	@if command -v goneat >/dev/null 2>&1; then \
+		goneat format --types yaml,json,markdown --folders . --finalize-eof --check && \
+		echo "[ok] fmt-check clean"; \
+	else \
+		echo "[!!] goneat not found; fmt-check requires goneat on PATH" >&2; \
+		exit 1; \
 	fi
 
 .PHONY: quality

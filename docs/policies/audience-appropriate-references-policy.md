@@ -13,8 +13,8 @@ for external audiences it also leaks internal structure. **Write for the audienc
 of the artifact, not the author's context.**
 
 This is the resolvability companion to the [Public Docs Redaction
-Policy](./public-docs-redaction.md): that policy governs *sensitive* content
-(security / attacker-enablement); this one governs *resolvability* (can the reader
+Policy](./public-docs-redaction.md): that policy governs _sensitive_ content
+(security / attacker-enablement); this one governs _resolvability_ (can the reader
 make sense of what you referenced). Both reduce to "write for the public audience."
 
 ## Default Disposition
@@ -50,7 +50,7 @@ References are governed by the audience of the surface they live on. Three tiers
 Release notes, CHANGELOG, README, public documentation sites, CLI `--help`, error
 messages, and issue/PR text in public repositories.
 
-- Self-contained plain language: state *what changed and why* in terms the reader
+- Self-contained plain language: state _what changed and why_ in terms the reader
   understands without internal context.
 - Do **not** use internal tracking identifiers in any form, and do not reference
   internal-only resources (private repositories, internal documentation trees,
@@ -107,9 +107,9 @@ their repository is public:
   do not express the rule as a deny-list of internal identifier prefixes. Naming
   those prefixes both leaks the internal taxonomy and is meaningless to an outside
   reader — the same failure the policy exists to prevent. State the principle
-  generically, e.g.: *"External-facing artifacts must be self-contained and must
+  generically, e.g.: _"External-facing artifacts must be self-contained and must
   not rely on internal-only tracking identifiers or resources that external
-  readers cannot resolve."*
+  readers cannot resolve."_
 
 This policy models its own rule: it is written to be publicly readable as-is —
 principles stated generically, no internal identifier taxonomy enumerated.

@@ -11,11 +11,11 @@ CI never signs.
 
 ### Contract surface at this tag
 
-| Family | Version | Contents |
-|--------|---------|----------|
-| `agentic/dispatch` | v0 | **New.** `run-envelope.schema.json` (supervised harness-run envelope: discriminated outcome model, per-field trust taxonomy, bounded sensitive surfaces) + `harness-profile.schema.json` (capability/posture evidence with validity-condition expiry) + semantic-validation layer `dispatch/v0-semantics` 0.1.1 + conforming/negative fixture suites |
-| `agentic` | v0, v0.1 | role-prompt, ledger-entry, agent-state (unchanged this release) |
-| `common`, `ipc` | v0 | unchanged this release |
+| Family             | Version  | Contents                                                                                                                                                                                                                                                                                                                                             |
+| ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `agentic/dispatch` | v0       | **New.** `run-envelope.schema.json` (supervised harness-run envelope: discriminated outcome model, per-field trust taxonomy, bounded sensitive surfaces) + `harness-profile.schema.json` (capability/posture evidence with validity-condition expiry) + semantic-validation layer `dispatch/v0-semantics` 0.1.1 + conforming/negative fixture suites |
+| `agentic`          | v0, v0.1 | role-prompt, ledger-entry, agent-state (unchanged this release)                                                                                                                                                                                                                                                                                      |
+| `common`, `ipc`    | v0       | unchanged this release                                                                                                                                                                                                                                                                                                                               |
 
 ### Verification
 

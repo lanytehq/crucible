@@ -18,6 +18,15 @@ jobs:
           python-version: "3.12"
       - name: Install jsonschema (dispatch v0 family gate — hard requirement of make check)
         run: python3 -m pip install jsonschema
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+      - name: Install goneat (fmt-check hard requirement of make check)
+        run: |
+          go install github.com/fulmenhq/goneat@v0.5.16
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+          goneat version
       - name: Repo Checks
         run: |
           make check
