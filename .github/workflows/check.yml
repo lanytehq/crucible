@@ -18,6 +18,24 @@ jobs:
           python-version: "3.12"
       - name: Install jsonschema (dispatch v0 family gate — hard requirement of make check)
         run: python3 -m pip install jsonschema
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install goneat and format backends (fmt-check hard requirement of make check)
+        run: |
+          # goneat orchestrates yamlfmt (yaml/json) + prettier (markdown)
+          go install github.com/fulmenhq/goneat@v0.5.16
+          go install github.com/google/yamlfmt/cmd/yamlfmt@v0.16.0
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+          npm install -g prettier@3.5.3
+          goneat version
+          command -v yamlfmt
+          prettier --version
       - name: Repo Checks
         run: |
           make check

@@ -19,7 +19,7 @@ Policy](../policies/audience-appropriate-references-policy.md)).
 Two anti-patterns keep re-emerging when this material has no designated home:
 
 1. **Planning files inside the repo tree, fenced by `.gitignore`.** A
-   `.gitignore` entry is an *accident* gate, not a confidentiality gate: one
+   `.gitignore` entry is an _accident_ gate, not a confidentiality gate: one
    `git add -f`, one ignore-file refactor, one tool that walks the tree
    ignoring git semantics, and the material is committed or published. If
    content must never be committed, it must never live where a commit can

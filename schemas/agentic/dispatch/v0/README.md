@@ -6,7 +6,7 @@ Contracts for the dispatch runner's supervision seam:
 | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
 | [`run-envelope.schema.json`](run-envelope.schema.json)       | One supervised harness run, discriminated by `outcome`.                                                 |
 | [`harness-profile.schema.json`](harness-profile.schema.json) | One lane's capability/posture evidence as data.                                                         |
-| [`semantic-validation.md`](semantic-validation.md)           | Versioned semantic layer (`dispatch/v0-semantics 0.1.0`) for the invariants JSON Schema cannot express. |
+| [`semantic-validation.md`](semantic-validation.md)           | Versioned semantic layer (`dispatch/v0-semantics 0.1.1`) for the invariants JSON Schema cannot express. |
 | `fixtures/`                                                  | Synthetic-normative fixtures (see below).                                                               |
 
 Validate the whole family:
@@ -125,17 +125,17 @@ portable core (objects/arrays/scalars, `enum`, all-properties-required,
 `additionalProperties: false`) plus exactly the constructs below — each
 justified, and each proven in both validators:
 
-| Construct                         | Where           | Justification                                                                                                                                                                         |
-| --------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Construct                         | Where           | Justification                                                                                                                                                                           |
+| --------------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `allOf` + `if`/`then` + `const`   | both schemas    | The discriminated outcome model (a flat schema either fails every refusal envelope or over-nullabilizes the completed shape) and the profile's control↔posture/fence↔reason bindings. |
-| `oneOf` (null unions over `$ref`) | both schemas    | Nullable-and-required fields whose non-null branch carries `pattern`/length constraints (digests, opaque paths).                                                                      |
-| `$defs` / `$ref`                  | both schemas    | Shared shapes (digests, posture enum, timestamps) defined once.                                                                                                                       |
-| `pattern`                         | both schemas    | SHA-256 hex, RFC 3339 shape, calendar dates — `format` alone is annotation-only in many validators.                                                                                   |
-| `format`                          | run-envelope    | Annotation only (`date-time`); the enforced floor is the accompanying `pattern`.                                                                                                      |
-| `minLength`/`maxLength`           | both schemas    | Null-not-empty (`harness`), and portable max bounds on sensitive surfaces (`raw_text` 262144, `rejected_verdict` 65536, `parse_error` 16384, `stderr_tail` 8192).                     |
-| `minimum`                         | run-envelope    | Non-negative durations/counts, positive timeout/pgid.                                                                                                                                 |
-| `minItems`/`maxItems`             | harness-profile | Posture-without-evidence rejection; bounded evidence-ref lists.                                                                                                                       |
-| `const` (top-level pins)          | both schemas    | `envelope_schema`/`profile_schema` exact-$id fail-closed check; `validity_condition.kind`.                                                                                            |
+| `oneOf` (null unions over `$ref`) | both schemas    | Nullable-and-required fields whose non-null branch carries `pattern`/length constraints (digests, opaque paths).                                                                        |
+| `$defs` / `$ref`                  | both schemas    | Shared shapes (digests, posture enum, timestamps) defined once.                                                                                                                         |
+| `pattern`                         | both schemas    | SHA-256 hex, RFC 3339 shape, calendar dates — `format` alone is annotation-only in many validators.                                                                                     |
+| `format`                          | run-envelope    | Annotation only (`date-time`); the enforced floor is the accompanying `pattern`.                                                                                                        |
+| `minLength`/`maxLength`           | both schemas    | Null-not-empty (`harness`), and portable max bounds on sensitive surfaces (`raw_text` 262144, `rejected_verdict` 65536, `parse_error` 16384, `stderr_tail` 8192).                       |
+| `minimum`                         | run-envelope    | Non-negative durations/counts, positive timeout/pgid.                                                                                                                                   |
+| `minItems`/`maxItems`             | harness-profile | Posture-without-evidence rejection; bounded evidence-ref lists.                                                                                                                         |
+| `const` (top-level pins)          | both schemas    | `envelope_schema`/`profile_schema` exact-$id fail-closed check; `validity_condition.kind`.                                                                                              |
 
 **Proof of support (both validators):**
 
