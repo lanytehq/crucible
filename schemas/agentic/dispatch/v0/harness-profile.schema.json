@@ -154,6 +154,34 @@
       },
       "additionalProperties": false
     },
+    "permission_binding": {
+      "type": "object",
+      "description": "Optional binding for lanes whose write-denial control depends on a host permission-profile layer (e.g. Codex named profile). When present, consumers MUST fail closed unless the named layer file exists under $CODEX_HOME, its SHA-256 matches config_sha256, and the layer does not enable legacy sandbox_mode. Absent for deny-rules/none lanes that do not use a host profile layer.",
+      "required": [
+        "profile_name",
+        "layer_filename",
+        "config_sha256"
+      ],
+      "properties": {
+        "profile_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Codex --profile name (must match layer file stem)."
+        },
+        "layer_filename": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*\\.config\\.toml$",
+          "description": "Filename under $CODEX_HOME (e.g. reviewer-lane.config.toml)."
+        },
+        "config_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 (hex) of the exact layer file bytes (canonical SSOT content)."
+        }
+      },
+      "additionalProperties": false
+    },
     "validity_condition": {
       "type": "object",
       "required": [

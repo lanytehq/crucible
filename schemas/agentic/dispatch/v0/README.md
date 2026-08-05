@@ -6,7 +6,7 @@ Contracts for the dispatch runner's supervision seam:
 | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
 | [`run-envelope.schema.json`](run-envelope.schema.json)       | One supervised harness run, discriminated by `outcome`.                                                 |
 | [`harness-profile.schema.json`](harness-profile.schema.json) | One lane's capability/posture evidence as data.                                                         |
-| [`semantic-validation.md`](semantic-validation.md)           | Versioned semantic layer (`dispatch/v0-semantics 0.1.0`) for the invariants JSON Schema cannot express. |
+| [`semantic-validation.md`](semantic-validation.md)           | Versioned semantic layer (`dispatch/v0-semantics 0.1.1`) for the invariants JSON Schema cannot express. |
 | `fixtures/`                                                  | Synthetic-normative fixtures (see below).                                                               |
 
 Validate the whole family:
