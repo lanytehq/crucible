@@ -90,6 +90,16 @@
         "none"
       ],
       "description": "Write-denial posture class, strongest to weakest: OS sandbox > tool deny-rules > none."
+    },
+    "group_reap_evidence": {
+      "type": "string",
+      "enum": [
+        "not_applicable",
+        "membership_verified",
+        "kill_dispatched",
+        "unknown"
+      ],
+      "description": "How process-group reap outcome was established. not_applicable: no reap path (group_reap is not_attempted). membership_verified: outcome from trusted membership probe. kill_dispatched: kill API accepted / process-not-found only (not membership drained). unknown: fail-closed residual. OPTIONAL in this pin revision (not required); when ABSENT, consumers MUST treat as unknown (never membership_verified). Path-emitted by the producer \u2014 never inferred from OS alone. Cross-field invariants: SEM-E13..E15."
     }
   },
   "properties": {
@@ -108,7 +118,7 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 64,
-      "description": "Version of the emitting program (wrapper-derived). Not the contract version — that is envelope_schema."
+      "description": "Version of the emitting program (wrapper-derived). Not the contract version \u2014 that is envelope_schema."
     },
     "outcome": {
       "type": "string",
@@ -119,7 +129,7 @@
         "timeout",
         "interrupted"
       ],
-      "description": "Discriminator for the run's terminal mode. completed: the harness was spawned and exited on its own. refused-pre-spawn: fail-closed posture/fence/evidence refusal — the harness was never spawned. config-fatal: configuration/environment error (may occur before or at spawn). timeout: the run exceeded its timeout and the process group was reaped. interrupted: the wrapper received SIGINT/SIGTERM and reaped the group. See the outcome ↔ runner_exit ↔ nullability table in the family README."
+      "description": "Discriminator for the run's terminal mode. completed: the harness was spawned and exited on its own. refused-pre-spawn: fail-closed posture/fence/evidence refusal \u2014 the harness was never spawned. config-fatal: configuration/environment error (may occur before or at spawn). timeout: the run exceeded its timeout and the process group was reaped. interrupted: the wrapper received SIGINT/SIGTERM and reaped the group. See the outcome \u2194 runner_exit \u2194 nullability table in the family README."
     },
     "runner_exit": {
       "enum": [
@@ -137,7 +147,7 @@
       ],
       "minLength": 1,
       "maxLength": 64,
-      "description": "RESOLVED harness lane id. Null unless the requested selector resolved to a configured lane — never the empty string, and never an unresolved raw selector (that trace lives in harness_requested)."
+      "description": "RESOLVED harness lane id. Null unless the requested selector resolved to a configured lane \u2014 never the empty string, and never an unresolved raw selector (that trace lives in harness_requested)."
     },
     "harness_requested": {
       "type": [
@@ -243,11 +253,15 @@
         "cleared_after_sigkill",
         "survivors"
       ],
-      "description": "Process-group reap outcome. not_attempted: no reap was needed or possible (incl. every pre-spawn path). survivors: at least one group member outlived SIGKILL — non-success semantics, bound to outcome/runner_exit by SEM-E06/SEM-E12 (never with runner_exit 0)."
+      "description": "Process-group reap outcome. not_attempted: no reap was needed or possible (incl. every pre-spawn path). survivors: at least one group member outlived SIGKILL \u2014 non-success semantics, bound to outcome/runner_exit by SEM-E06/SEM-E12 (never with runner_exit 0)."
+    },
+    "group_reap_evidence": {
+      "$ref": "#/$defs/group_reap_evidence",
+      "description": "Evidence grade for group_reap. Optional this revision; absent \u21d2 consumers treat as unknown. See $defs/group_reap_evidence and SEM-E13..E15."
     },
     "posture_enforced": {
       "$ref": "#/$defs/posture",
-      "description": "Write-denial mechanism actually applied to a harness that RAN (wrapper-derived from the enforcing flags it appended — never copied from config). \"none\" on every never-spawned path (refused-pre-spawn and config-fatal, schema-enforced): flags merely constructed into an argv that never executed enforce nothing."
+      "description": "Write-denial mechanism actually applied to a harness that RAN (wrapper-derived from the enforcing flags it appended \u2014 never copied from config). \"none\" on every never-spawned path (refused-pre-spawn and config-fatal, schema-enforced): flags merely constructed into an argv that never executed enforce nothing."
     },
     "harness_path": {
       "$ref": "#/$defs/nullable-opaque-path",
@@ -326,7 +340,7 @@
         "null"
       ],
       "maxLength": 262144,
-      "description": "The lane's original raw output text (harness-reported), preserved as forensic evidence when no verdict was accepted. Null whenever verdict is non-null (SEM-E02) — never both. Size-bounded sensitive surface; emitters MUST truncate to the bound (JSON Schema maxLength counts Unicode code points)."
+      "description": "The lane's original raw output text (harness-reported), preserved as forensic evidence when no verdict was accepted. Null whenever verdict is non-null (SEM-E02) \u2014 never both. Size-bounded sensitive surface; emitters MUST truncate to the bound (JSON Schema maxLength counts Unicode code points)."
     },
     "parse_error": {
       "type": [
@@ -334,7 +348,7 @@
         "null"
       ],
       "maxLength": 16384,
-      "description": "Wrapper-authored description of why no verdict was accepted. HYBRID provenance: the message is wrapper-derived but may quote harness-reported content verbatim — treat quoted material as untrusted. Size-bounded sensitive surface; emitters MUST truncate to the bound. Null whenever verdict is non-null (SEM-E03)."
+      "description": "Wrapper-authored description of why no verdict was accepted. HYBRID provenance: the message is wrapper-derived but may quote harness-reported content verbatim \u2014 treat quoted material as untrusted. Size-bounded sensitive surface; emitters MUST truncate to the bound. Null whenever verdict is non-null (SEM-E03)."
     },
     "runlog": {
       "$ref": "#/$defs/nullable-opaque-path"
@@ -387,7 +401,7 @@
         },
         "session_token_present": {
           "type": "boolean",
-          "description": "Presence-only boolean: whether a session token variable was set in the wrapper's environment. NOT PROOF of identity or attestation — never token material, never a hash. Env-recorded claim; over-trust is the failure mode this label exists to prevent."
+          "description": "Presence-only boolean: whether a session token variable was set in the wrapper's environment. NOT PROOF of identity or attestation \u2014 never token material, never a hash. Env-recorded claim; over-trust is the failure mode this label exists to prevent."
         }
       },
       "additionalProperties": false,
@@ -453,6 +467,9 @@
           },
           "posture_enforced": {
             "const": "none"
+          },
+          "group_reap_evidence": {
+            "const": "not_applicable"
           }
         }
       }

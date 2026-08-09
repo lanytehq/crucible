@@ -25,7 +25,7 @@
   "harness_exit": null,
   "timed_out": true,
   "interrupted": false,
-  "group_reap": "survivors",
+  "group_reap": "cleared_after_sigkill",
   "posture_enforced": "sandbox",
   "harness_path": "fixture-bin/fixture-lane-a",
   "harness_version": "1.2.3",
@@ -48,5 +48,5 @@
     "engagement": "fixture-eng",
     "session_token_present": false
   },
-  "group_reap_evidence": "membership_verified"
+  "group_reap_evidence": "kill_dispatched"
 }

@@ -1,7 +1,7 @@
 # Dispatch v0 semantic validation layer
 
 **Layer id:** `dispatch/v0-semantics`
-**Layer version:** `0.1.1`
+**Layer version:** `0.1.2`
 **Applies to:**
 `https://schemas.3leaps.dev/agentic/dispatch/v0/run-envelope.schema.json`,
 `https://schemas.3leaps.dev/agentic/dispatch/v0/harness-profile.schema.json`
@@ -46,20 +46,25 @@ block).
 
 ## Envelope rules (single instance)
 
-| Rule    | Invariant                                                                                                                                                                                     |
-| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SEM-E01 | `ended_at >= started_at` (RFC 3339 instant comparison).                                                                                                                                       |
-| SEM-E02 | `verdict != null` ⇒ `raw_text == null`. Never both — raw text is forensic evidence _for the absence_ of an accepted verdict.                                                                  |
-| SEM-E03 | `verdict != null` ⇒ `parse_error == null`.                                                                                                                                                    |
-| SEM-E04 | `verdict != null` ⇒ `verdict_schema_id != null` and `verdict_schema_sha256 != null` (a verdict is never unbound from the schema it was validated against).                                    |
-| SEM-E05 | `verdict_schema_sha256 != null` ⇔ `digests.schema_sha256 != null`, and when both are non-null they are equal. Likewise `verdict_schema_id != null` ⇔ `digests.schema_sha256 != null`.         |
-| SEM-E06 | `group_reap == "survivors"` ⇒ `runner_exit != 0`. Unreaped survivors are never a success.                                                                                                     |
-| SEM-E07 | `runner_exit == 2` ⇒ `verdict == null` and `digests.schema_sha256 != null` and `harness_exit == 0`. Exit class 2 is exactly "the harness succeeded but no schema-valid verdict was accepted". |
-| SEM-E08 | `outcome == "completed"` and `runner_exit == 0` and `digests.schema_sha256 != null` ⇒ `verdict != null`. A schema-requested run cannot succeed without an accepted verdict.                   |
-| SEM-E09 | `rejected_verdict != null` ⇒ `verdict == null` and `parse_error != null`. A rejected verdict is forensics only and is never re-promoted.                                                      |
-| SEM-E10 | `timed_out == true` ⇒ `outcome ∈ {timeout, interrupted}`; `interrupted == true` ⇒ `outcome == "interrupted"`. _(schema-enforced, re-check)_                                                   |
-| SEM-E11 | `outcome == "completed"` and `runner_exit == 5` ⇒ `harness_exit != 0` or `group_reap == "survivors"`.                                                                                         |
-| SEM-E12 | `outcome == "completed"` and `runner_exit == 0` ⇒ `harness_exit == 0` and `group_reap != "survivors"`.                                                                                        |
+| Rule    | Invariant                                                                                                                                                                                                                                                           |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SEM-E01 | `ended_at >= started_at` (RFC 3339 instant comparison).                                                                                                                                                                                                             |
+| SEM-E02 | `verdict != null` ⇒ `raw_text == null`. Never both — raw text is forensic evidence _for the absence_ of an accepted verdict.                                                                                                                                        |
+| SEM-E03 | `verdict != null` ⇒ `parse_error == null`.                                                                                                                                                                                                                          |
+| SEM-E04 | `verdict != null` ⇒ `verdict_schema_id != null` and `verdict_schema_sha256 != null` (a verdict is never unbound from the schema it was validated against).                                                                                                          |
+| SEM-E05 | `verdict_schema_sha256 != null` ⇔ `digests.schema_sha256 != null`, and when both are non-null they are equal. Likewise `verdict_schema_id != null` ⇔ `digests.schema_sha256 != null`.                                                                               |
+| SEM-E06 | `group_reap == "survivors"` ⇒ `runner_exit != 0`. Unreaped survivors are never a success.                                                                                                                                                                           |
+| SEM-E07 | `runner_exit == 2` ⇒ `verdict == null` and `digests.schema_sha256 != null` and `harness_exit == 0`. Exit class 2 is exactly "the harness succeeded but no schema-valid verdict was accepted".                                                                       |
+| SEM-E08 | `outcome == "completed"` and `runner_exit == 0` and `digests.schema_sha256 != null` ⇒ `verdict != null`. A schema-requested run cannot succeed without an accepted verdict.                                                                                         |
+| SEM-E09 | `rejected_verdict != null` ⇒ `verdict == null` and `parse_error != null`. A rejected verdict is forensics only and is never re-promoted.                                                                                                                            |
+| SEM-E10 | `timed_out == true` ⇒ `outcome ∈ {timeout, interrupted}`; `interrupted == true` ⇒ `outcome == "interrupted"`. _(schema-enforced, re-check)_                                                                                                                         |
+| SEM-E11 | `outcome == "completed"` and `runner_exit == 5` ⇒ `harness_exit != 0` or `group_reap == "survivors"`.                                                                                                                                                               |
+| SEM-E12 | `outcome == "completed"` and `runner_exit == 0` ⇒ `harness_exit == 0` and `group_reap != "survivors"`.                                                                                                                                                              |
+| SEM-E13 | When `group_reap_evidence` is **present**: `group_reap == "not_attempted"` ⇔ `group_reap_evidence == "not_applicable"` (biconditional). When **absent**, consumers MUST treat evidence as `unknown` (never `membership_verified`); producers SHOULD emit the field. |
+| SEM-E14 | When `group_reap_evidence` is present and `group_reap ∈ {cleared, cleared_after_sigkill}` ⇒ evidence ∈ `{membership_verified, kill_dispatched}`. Pairing cleared\* with `unknown` or `not_applicable` is invalid (unproven / greenwash success).                    |
+| SEM-E15 | When `group_reap_evidence` is present and `group_reap == "survivors"` ⇒ evidence ∈ `{membership_verified, unknown}`. `kill_dispatched` or `not_applicable` with survivors is invalid.                                                                               |
+
+**Producer obligation (normative):** `group_reap_evidence` is **path-emitted** — set by the code path that established `group_reap`, from what that path observed. Never inferred solely from `cfg(unix)` / build platform.
 
 ## Validity-condition rules (profile + live probe)
 
@@ -86,9 +91,9 @@ Posture strength order: `none (0) < deny-rules (1) < sandbox (2)`.
 
 ## Versioning
 
-Semantic rules version with this document (`0.1.1` — patch: missing-key
-handling in SEM-R01/R02/R03 made explicitly fail-closed in both
-implementations; no rule added or removed). Adding a rule is a
+Semantic rules version with this document (`0.1.2` — patch: SEM-E13..E15
+for optional `group_reap_evidence` invariants; prior `0.1.1` was R-rules
+missing-key fail-closed). Adding a rule is a
 minor bump; changing or removing one is a major bump and follows the
 schema-bump policy. Implementations MUST reject a fixture manifest whose
 `semantic_layer` field does not match the layer id + version they

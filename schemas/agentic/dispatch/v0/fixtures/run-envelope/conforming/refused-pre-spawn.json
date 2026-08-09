@@ -40,12 +40,13 @@
   "raw_text": null,
   "parse_error": null,
   "runlog": null,
-  "stderr_tail": "posture fail-closed: harness 'fixture-lane-c' is fenced in routing config (posture_enforced: \"none\") — refusing read-only dispatch",
+  "stderr_tail": "posture fail-closed: harness 'fixture-lane-c' is fenced in routing config (posture_enforced: \"none\") \u2014 refusing read-only dispatch",
   "env_identity": {
     "role": "fixture-role",
     "team": "fixture-team",
     "scope": null,
     "engagement": "fixture-eng",
     "session_token_present": false
-  }
+  },
+  "group_reap_evidence": "not_applicable"
 }

@@ -41,7 +41,7 @@
   "verdict_schema_sha256": "4e78d0d1b273da1a724e4dfb51da69975606c2910038622aeccabd69f1e2a271",
   "rejected_verdict": null,
   "raw_text": "fixture prose preamble\n```json\n{\"verdict\": \"SHIP\"}\n```",
-  "parse_error": "fixture: structured output missing from lane envelope — schema-validated verdict absent (no fallback to raw text by design)",
+  "parse_error": "fixture: structured output missing from lane envelope \u2014 schema-validated verdict absent (no fallback to raw text by design)",
   "runlog": "fixture-runlog/0001.runlog",
   "stderr_tail": null,
   "env_identity": {
@@ -50,5 +50,6 @@
     "scope": null,
     "engagement": "fixture-eng",
     "session_token_present": false
-  }
+  },
+  "group_reap_evidence": "not_applicable"
 }
