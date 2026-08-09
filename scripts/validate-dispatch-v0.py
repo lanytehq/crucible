@@ -42,7 +42,7 @@ FAMILY = REPO / "schemas/agentic/dispatch/v0"
 FIXTURES = FAMILY / "fixtures"
 
 SEMANTIC_LAYER_ID = "dispatch/v0-semantics"
-SEMANTIC_LAYER_VERSION = "0.1.1"
+SEMANTIC_LAYER_VERSION = "0.1.2"
 
 failures: list[str] = []
 
@@ -195,6 +195,20 @@ def envelope_violations(env: dict) -> list[str]:
         and (env["harness_exit"] != 0 or env["group_reap"] == "survivors")
     ):
         v.append("SEM-E12")
+    # SEM-E13..E15: optional group_reap_evidence — when present, enforce
+    # path-grade invariants (absent ⇒ consumer treats as unknown; not checked here).
+    evidence = env.get("group_reap_evidence")
+    if evidence is not None:
+        reap = env.get("group_reap")
+        if (reap == "not_attempted") != (evidence == "not_applicable"):
+            v.append("SEM-E13")
+        if reap in ("cleared", "cleared_after_sigkill") and evidence not in (
+            "membership_verified",
+            "kill_dispatched",
+        ):
+            v.append("SEM-E14")
+        if reap == "survivors" and evidence not in ("membership_verified", "unknown"):
+            v.append("SEM-E15")
     return v
 
 

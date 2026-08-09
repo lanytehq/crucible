@@ -56,6 +56,6 @@
       "engagement": "fixture-eng",
       "session_token_present": false
     },
-    "group_reap_evidence": "not_applicable"
+    "group_reap_evidence": "membership_verified"
   }
 }

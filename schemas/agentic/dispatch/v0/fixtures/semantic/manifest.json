@@ -1,7 +1,7 @@
 {
   "semantic_layer": {
     "id": "dispatch/v0-semantics",
-    "version": "0.1.1"
+    "version": "0.1.2"
   },
   "conforming": [
     "envelope-completed.json",
@@ -26,6 +26,9 @@
     "unprobeable-validity.json": "SEM-VC01",
     "verdict-unbound.json": "SEM-E04",
     "verdict-with-parse-error.json": "SEM-E03",
-    "verdict-with-raw-text.json": "SEM-E02"
+    "verdict-with-raw-text.json": "SEM-E02",
+    "cleared-with-unknown-evidence.json": "SEM-E14",
+    "not-attempted-with-membership-evidence.json": "SEM-E13",
+    "survivors-with-kill-dispatched-evidence.json": "SEM-E15"
   }
 }
