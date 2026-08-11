@@ -29,11 +29,14 @@ one or claim support based only on CLI version or daemon generation metadata.
 Before provider I/O, the daemon must validate:
 
 1. `arms` contains two through eight entries.
-2. Every arm carries an explicit non-empty `team` and `channel`.
+2. Every arm carries an explicit non-empty `team` and `channel`. Each is at
+   most 256 code points in the schema and 256 UTF-8 bytes at runtime, before
+   provider-specific validation.
 3. No two arms resolve to the same canonical channel id. Schema
    `uniqueItems` rejects byte-identical duplicates; canonical duplication is
    an additional runtime invariant.
-4. Every explicit `after` is bound to its arm's resolved channel.
+4. Every explicit `after` is non-empty, at most 256 code points in the schema
+   and 256 UTF-8 bytes at runtime, and is bound to its arm's resolved channel.
 5. `contains` and `pattern` are non-empty when present. Each source is at most
    256 UTF-8 bytes. JSON Schema `maxLength` is a code-point bound, so the byte
    bound remains mandatory runtime validation. The two filters combine with

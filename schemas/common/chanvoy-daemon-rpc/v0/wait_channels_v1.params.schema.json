@@ -12,7 +12,8 @@
     "selector-segment": {
       "type": "string",
       "minLength": 1,
-      "description": "Explicit Mattermost team or channel name segment. Provider-specific name validation remains mandatory before provider I/O."
+      "maxLength": 256,
+      "description": "Explicit Mattermost team or channel name segment. The runtime additionally enforces a 256 UTF-8 byte limit before provider I/O; provider-specific name validation may be stricter."
     },
     "nullable-filter": {
       "oneOf": [
@@ -47,10 +48,11 @@
             },
             {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "maxLength": 256
             }
           ],
-          "description": "Exclusive baseline post id. Null or absent means tip-at-arm with seam protection."
+          "description": "Exclusive baseline post id. The runtime additionally enforces a 256 UTF-8 byte limit before provider I/O. Null or absent means tip-at-arm with seam protection."
         }
       },
       "additionalProperties": false
