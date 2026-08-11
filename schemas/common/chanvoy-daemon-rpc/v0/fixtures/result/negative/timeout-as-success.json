@@ -1,0 +1,15 @@
+{
+  "mode": "fan_in",
+  "timeout": true,
+  "timeout_secs": 1200,
+  "channels": [
+    {
+      "team": "org-example",
+      "channel": "release-floor"
+    },
+    {
+      "team": "org-example",
+      "channel": "feature-brief"
+    }
+  ]
+}

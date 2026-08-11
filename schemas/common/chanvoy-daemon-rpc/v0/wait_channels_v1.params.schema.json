@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/common/chanvoy-daemon-rpc/v0/wait_channels_v1.params.schema.json",
+  "title": "Chanvoy wait_channels_v1 Parameters",
+  "description": "Strict parameters for one bounded, all-or-nothing multi-channel wait under a shared absolute deadline.",
+  "type": "object",
+  "required": [
+    "arms",
+    "timeout_secs"
+  ],
+  "$defs": {
+    "selector-segment": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Explicit Mattermost team or channel name segment. Provider-specific name validation remains mandatory before provider I/O."
+    },
+    "nullable-filter": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      ],
+      "description": "Optional body-filter source. The runtime additionally enforces a 256 UTF-8 byte limit; JSON Schema maxLength counts code points."
+    },
+    "arm": {
+      "type": "object",
+      "required": [
+        "team",
+        "channel"
+      ],
+      "properties": {
+        "team": {
+          "$ref": "#/$defs/selector-segment"
+        },
+        "channel": {
+          "$ref": "#/$defs/selector-segment"
+        },
+        "after": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ],
+          "description": "Exclusive baseline post id. Null or absent means tip-at-arm with seam protection."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "arms": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/arm"
+      }
+    },
+    "timeout_secs": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 18446744073709551615,
+      "description": "Required positive u64 duration. The absolute deadline starts at RPC entry and activity does not extend it."
+    },
+    "contains": {
+      "$ref": "#/$defs/nullable-filter",
+      "description": "Optional case-sensitive literal body substring shared by every arm."
+    },
+    "pattern": {
+      "$ref": "#/$defs/nullable-filter",
+      "description": "Optional Rust-regex body pattern shared by every arm. It combines with contains using logical AND."
+    }
+  },
+  "additionalProperties": false
+}

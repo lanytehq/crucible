@@ -1,0 +1,9 @@
+{
+  "arms": [
+    {
+      "team": "org-example",
+      "channel": "release-floor"
+    }
+  ],
+  "timeout_secs": 1200
+}

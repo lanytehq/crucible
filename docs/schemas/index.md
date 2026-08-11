@@ -7,9 +7,15 @@ description: Schema catalog (human-facing index)
 
 Schemas are SSOT artifacts intended for **machine consumption**. The canonical files live in `schemas/`.
 
-## IPC Schemas
+## IPC schemas
 
-- `schemas/ipc/` (to be created)
+- `schemas/ipc/` — numbered Lanyte core-gateway channel contracts loaded by
+  ipcprims.
+
+## Common protocol schemas
+
+- `schemas/common/chanvoy-daemon-rpc/v0/` — Chanvoy local daemon JSON-RPC
+  method contracts, including the bounded multi-channel wait capability.
 
 ## Policy
 

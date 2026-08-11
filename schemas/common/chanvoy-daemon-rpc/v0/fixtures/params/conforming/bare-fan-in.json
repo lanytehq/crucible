@@ -1,0 +1,17 @@
+{
+  "arms": [
+    {
+      "team": "org-example",
+      "channel": "release-floor",
+      "after": null
+    },
+    {
+      "team": "org-example",
+      "channel": "feature-brief",
+      "after": null
+    }
+  ],
+  "timeout_secs": 1200,
+  "contains": null,
+  "pattern": null
+}

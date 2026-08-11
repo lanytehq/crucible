@@ -1,0 +1,14 @@
+{
+  "arms": [
+    {
+      "team": "org-example",
+      "channel": "release-floor"
+    },
+    {
+      "team": "org-example",
+      "channel": "feature-brief"
+    }
+  ],
+  "timeout_secs": 1200,
+  "per_arm_timeout": 600
+}
