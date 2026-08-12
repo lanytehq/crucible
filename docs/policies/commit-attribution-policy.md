@@ -62,11 +62,11 @@ PR-of-Record: <Bot Display Name>
 
 ### Choosing the mode
 
-| Situation | Mode |
-| --------- | ---- |
-| Agent uses human supervisor git identity / PAT | **Supervised** (human author; agent in Co-Authored-By) |
+| Situation                                                   | Mode                                                          |
+| ----------------------------------------------------------- | ------------------------------------------------------------- |
+| Agent uses human supervisor git identity / PAT              | **Supervised** (human author; agent in Co-Authored-By)        |
 | Agent commits as its own bot user / GitHub App installation | **Bot-account** (bot author; collaborators in Co-Authored-By) |
-| Human typed the commit with no agent | Neither — no agent trailers |
+| Human typed the commit with no agent                        | Neither — no agent trailers                                   |
 
 Prefer linking the bot git email to a GitHub user (or use the App's noreply form GitHub documents) so `author_login` resolves; App-only PR authorship with `author_login: null` on commits is a known gap to close.
 
