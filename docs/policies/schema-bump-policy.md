@@ -52,7 +52,6 @@ These rules apply to any bump that clears the bar above. They are not optional.
 1. **Breaking by default**. Every peer or consumer that uses the channel/schema must be updated simultaneously. Coordinate the lockstep regen explicitly; do not land the bump without a confirmed plan for each consumer.
 
 2. **`oneOf` for additions**. New message types or alternatives go through `oneOf` extension. Never remove or rename existing types without:
-
    - An ADR documenting the decision (`docs/decisions/`)
    - A migration plan for existing consumers
 
@@ -66,12 +65,10 @@ These rules apply to any bump that clears the bar above. They are not optional.
 4. **`additionalProperties: false` on all schema objects**. `ipcprims` strict mode enforces this; be explicit in the schema regardless.
 
 5. **Version-bump strategy**:
-
    - **Additive-only changes** (new optional fields, new `oneOf` alternatives, relaxed-but-compatible constraints): minor bump within the major version (e.g., `v0` → `v0.1`). Consumers continue to read older payloads.
    - **Breaking changes** (removed/renamed fields, tightened constraints, type changes): major bump (e.g., `v0` → `v1`). All consumers must regen and ship before the bump lands in production.
 
 6. **Cross-consumer coordination**:
-
    - Identify every consumer that embeds the schema (`grep` the relevant schema filename across `~/dev/lanytehq/` + `~/dev/3leaps/` + `~/dev/fulmenhq/` worktrees).
    - File a tracking issue or wave-coordination thread in the relevant project board.
    - Land the bump only after each consumer has a regen PR queued and reviewed.
