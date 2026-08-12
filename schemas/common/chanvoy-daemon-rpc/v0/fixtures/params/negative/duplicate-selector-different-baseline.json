@@ -1,0 +1,15 @@
+{
+  "arms": [
+    {
+      "team": "org-example",
+      "channel": "release-floor",
+      "after": "post0000000000000000000001"
+    },
+    {
+      "team": "org-example",
+      "channel": "release-floor",
+      "after": "post0000000000000000000002"
+    }
+  ],
+  "timeout_secs": 1200
+}

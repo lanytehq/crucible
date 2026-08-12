@@ -49,6 +49,9 @@ Shared type definitions referenced across schemas:
 
 - `v0/naming.schema.json` — naming conventions (role slugs, instance names,
   scope paths).
+- `chanvoy-daemon-rpc/v0/` — versioned contracts for Chanvoy's local daemon
+  JSON-RPC boundary. This is separate from the numbered core-gateway IPC
+  channels.
 
 ### `config/agentic/roles/`
 

@@ -1,0 +1,27 @@
+{
+  "mode": "fan_in",
+  "channels": [
+    {
+      "team": "org-example",
+      "channel": "release-floor"
+    },
+    {
+      "team": "org-example",
+      "channel": "feature-brief"
+    }
+  ],
+  "matched_channel": {
+    "team": "org-example",
+    "channel": "feature-brief"
+  },
+  "messages": [
+    {
+      "id": "post0000000000000000000002",
+      "user_id": "user0000000000000000000001",
+      "username": "reviewer",
+      "message": "ASSENT",
+      "create_at": 1786481000000,
+      "root_id": ""
+    }
+  ]
+}

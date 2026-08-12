@@ -1,0 +1,41 @@
+{
+  "arms": [
+    {
+      "team": "org-example",
+      "channel": "floor-one"
+    },
+    {
+      "team": "org-example",
+      "channel": "floor-two"
+    },
+    {
+      "team": "org-example",
+      "channel": "floor-three"
+    },
+    {
+      "team": "org-example",
+      "channel": "floor-four"
+    },
+    {
+      "team": "org-example",
+      "channel": "floor-five"
+    },
+    {
+      "team": "org-example",
+      "channel": "floor-six"
+    },
+    {
+      "team": "org-example",
+      "channel": "floor-seven"
+    },
+    {
+      "team": "org-example",
+      "channel": "floor-eight"
+    },
+    {
+      "team": "org-example",
+      "channel": "floor-nine"
+    }
+  ],
+  "timeout_secs": 1200
+}

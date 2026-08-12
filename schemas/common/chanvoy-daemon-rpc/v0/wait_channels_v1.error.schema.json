@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/common/chanvoy-daemon-rpc/v0/wait_channels_v1.error.schema.json",
+  "title": "Chanvoy wait_channels_v1 JSON-RPC Error Detail",
+  "description": "The existing Chanvoy daemon JSON-RPC error detail restricted to wait_channels_v1 outcome codes. Only -32005 represents a clean deadman; -32601 is the old-daemon capability failure.",
+  "type": "object",
+  "required": [
+    "code",
+    "message"
+  ],
+  "properties": {
+    "code": {
+      "type": "integer",
+      "enum": [
+        -32601,
+        -32008,
+        -32007,
+        -32005,
+        -32000
+      ]
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Locally constructed, redacted diagnostic. Arm-specific failures may name only the requested canonical selector and error class."
+    }
+  },
+  "additionalProperties": false
+}

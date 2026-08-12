@@ -1,0 +1,16 @@
+{
+  "arms": [
+    {
+      "team": "org-example",
+      "channel": "release-floor",
+      "after": "post0000000000000000000001"
+    },
+    {
+      "team": "org-example",
+      "channel": "feature-brief"
+    }
+  ],
+  "timeout_secs": 900,
+  "contains": "ASSENT",
+  "pattern": "(?i)review"
+}
