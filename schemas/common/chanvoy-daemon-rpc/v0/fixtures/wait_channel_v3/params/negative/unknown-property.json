@@ -1,0 +1,5 @@
+{
+  "channel": "brief-per-040",
+  "timeout_secs": 30,
+  "force": true
+}

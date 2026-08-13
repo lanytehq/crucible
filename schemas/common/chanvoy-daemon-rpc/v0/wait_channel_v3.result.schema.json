@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/common/chanvoy-daemon-rpc/v0/wait_channel_v3.result.schema.json",
+  "title": "Chanvoy wait_channel_v3 Successful Result",
+  "description": "A successful first-match result. Clean deadman and hard failures, including ownership conflicts, are JSON-RPC errors, not successful results.",
+  "type": "object",
+  "required": [
+    "channel",
+    "messages"
+  ],
+  "$defs": {
+    "message": {
+      "type": "object",
+      "required": [
+        "id",
+        "user_id",
+        "username",
+        "message",
+        "create_at",
+        "root_id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "user_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "username": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string"
+        },
+        "create_at": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "root_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Top-level posts carry their own id; replies carry the thread root id."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "channel": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Requested channel selector echoed on match. Canonical team/channel for conflicts live on error data, not here."
+    },
+    "messages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "items": {
+        "$ref": "#/$defs/message"
+      }
+    },
+    "wait_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Opaque id of the waiter that matched. Optional diagnostic; absence does not change match meaning."
+    },
+    "replaced_wait_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Present when this waiter was admitted by compare-and-replace. Optional diagnostic only."
+    }
+  },
+  "additionalProperties": false
+}

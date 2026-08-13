@@ -1,0 +1,231 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/common/chanvoy-daemon-rpc/v0/wait_channel_v3.error.schema.json",
+  "title": "Chanvoy wait_channel_v3 JSON-RPC Error Detail",
+  "description": "JSON-RPC error detail for wait_channel_v3. Only -32005 is a clean deadman. Ownership outcomes are hard codes -32009 through -32012 and carry structured data. Data never includes filter text, baselines, message bodies, provider URLs, credentials, or host pids.",
+  "type": "object",
+  "required": [
+    "code",
+    "message"
+  ],
+  "$defs": {
+    "already-active": {
+      "type": "object",
+      "required": [
+        "class",
+        "team",
+        "channel",
+        "existing_wait_id",
+        "started_at_ms"
+      ],
+      "properties": {
+        "class": {
+          "const": "wait_already_active"
+        },
+        "team": {
+          "type": "string",
+          "minLength": 1
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "existing_wait_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "started_at_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "conflict-changed": {
+      "type": "object",
+      "required": [
+        "class"
+      ],
+      "properties": {
+        "class": {
+          "const": "wait_conflict_changed"
+        },
+        "team": {
+          "type": "string",
+          "minLength": 1
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "replaced": {
+      "type": "object",
+      "required": [
+        "class",
+        "wait_id",
+        "replaced_by_wait_id"
+      ],
+      "properties": {
+        "class": {
+          "const": "wait_replaced"
+        },
+        "wait_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "replaced_by_wait_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      },
+      "additionalProperties": false
+    },
+    "replace-unconfirmed": {
+      "type": "object",
+      "required": [
+        "class",
+        "existing_wait_id"
+      ],
+      "properties": {
+        "class": {
+          "const": "wait_replace_unconfirmed"
+        },
+        "team": {
+          "type": "string",
+          "minLength": 1
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "existing_wait_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "code": {
+      "type": "integer",
+      "enum": [
+        -32601,
+        -32012,
+        -32011,
+        -32010,
+        -32009,
+        -32008,
+        -32007,
+        -32005,
+        -32000
+      ]
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Locally constructed, redacted diagnostic. Ownership messages may name only the canonical selector, opaque wait id, and class."
+    },
+    "data": {
+      "description": "Required structured payload for ownership codes -32009 through -32012. Omitted for deadman, input, provider, and capability failures."
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": -32009
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/already-active"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": -32010
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/conflict-changed"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": -32011
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/replaced"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": -32012
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/replace-unconfirmed"
+          }
+        }
+      }
+    }
+  ]
+}

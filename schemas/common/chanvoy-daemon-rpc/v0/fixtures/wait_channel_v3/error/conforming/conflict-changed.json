@@ -1,0 +1,9 @@
+{
+  "code": -32010,
+  "message": "wait replace token is stale or does not match this profile daemon channel",
+  "data": {
+    "class": "wait_conflict_changed",
+    "team": "org-example",
+    "channel": "brief-per-040"
+  }
+}

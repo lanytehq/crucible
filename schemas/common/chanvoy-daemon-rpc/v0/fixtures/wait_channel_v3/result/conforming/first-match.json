@@ -1,0 +1,14 @@
+{
+  "channel": "brief-per-040",
+  "messages": [
+    {
+      "id": "postid00000000000000000002",
+      "user_id": "userid00000000000000000001",
+      "username": "agent-example",
+      "message": "ASSENT",
+      "create_at": 1786480000000,
+      "root_id": "postid00000000000000000002"
+    }
+  ],
+  "wait_id": "wait_0123456789abcdef0123456789abcdef"
+}

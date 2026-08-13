@@ -12,6 +12,9 @@ numbered Lanyte core-gateway channels and are not loaded by ipcprims.
 | `wait_channels_v1.params.schema.json` | Strict parameters for bounded multi-channel wait                          |
 | `wait_channels_v1.result.schema.json` | Successful first-match result                                             |
 | `wait_channels_v1.error.schema.json`  | Existing daemon JSON-RPC error-detail shape and allowed codes             |
+| `wait_channel_v3.params.schema.json`  | Single-channel wait with single-waiter ownership and compare-and-replace  |
+| `wait_channel_v3.result.schema.json`  | Successful first-match result plus optional wait ids                      |
+| `wait_channel_v3.error.schema.json`   | Deadman/input/provider codes plus structured ownership hard errors        |
 | `fixtures/`                           | Conforming and negative examples for every schema                         |
 
 All schemas use JSON Schema 2020-12 and reject unknown object properties.

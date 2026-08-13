@@ -1,0 +1,12 @@
+{
+  "code": -32009,
+  "message": "wait already active",
+  "data": {
+    "class": "wait_already_active",
+    "team": "org-example",
+    "channel": "brief-per-040",
+    "existing_wait_id": "wait_0123456789abcdef0123456789abcdef",
+    "started_at_ms": 1786480000000,
+    "contains": "ASSENT"
+  }
+}

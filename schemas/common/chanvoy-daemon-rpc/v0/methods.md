@@ -110,3 +110,119 @@ cancels the subscription and all losing arm state before every return.
 The operation is cursor- and attention-neutral. It does not acknowledge,
 post, mark read, or advance persistent state. The daemon's own posts never
 match.
+
+## `wait_channel_v3`
+
+`wait_channel_v3` waits on one channel under an absolute deadline and
+enforces **one active wait per profile daemon + canonical channel**. It
+is a new capability; it does not alter `wait_channel`, `wait_channel_v2`,
+or `wait_channels_v1`.
+
+| Surface           | Contract                             |
+| ----------------- | ------------------------------------ |
+| JSON-RPC method   | `wait_channel_v3`                    |
+| Parameters        | `wait_channel_v3.params.schema.json` |
+| Successful result | `wait_channel_v3.result.schema.json` |
+| Error detail      | `wait_channel_v3.error.schema.json`  |
+
+### Capability and compatibility
+
+Method presence is the capability gate. A daemon which does not implement
+the method returns JSON-RPC method-not-found code `-32601`. A client that
+claims single-waiter ownership must treat that response as a hard
+capability failure (exit 2), advise the operator to cycle an outdated
+daemon, and **must not** fall back to `wait_channel_v2` or `wait_channel`.
+
+There is no separate capability payload in v0.
+
+A new daemon that still serves `wait_channel` / `wait_channel_v2` must
+pass those requests through the same in-memory registry with
+`replace_wait_id = null`. Legacy clients gain refuse-default behavior
+and cannot replace a wait.
+
+### Parameters and pre-provider validation
+
+Before provider I/O other than canonical resolve and explicit `--after`
+binding, the daemon must validate:
+
+1. `channel` is non-empty. Schema `maxLength` is a code-point bound; the
+   runtime additionally enforces a 256 UTF-8 byte limit.
+2. `timeout_secs` is greater than zero.
+3. `contains` and `pattern` are non-empty when present. Each source is at
+   most 256 UTF-8 bytes. `pattern` compiles within the implementation's
+   64 KiB regex-size limit. The two filters combine with logical AND.
+4. An explicit `after` is non-empty and is bound to the resolved channel
+   before registry acquisition.
+5. `replace_wait_id`, when present, is a non-empty string at most 64
+   code points. A malformed, stale, absent, or other-channel value does
+   not cancel anything; it is `wait_conflict_changed`.
+
+An omitted or null `after` means tip-at-arm with seam protection after
+the waiter is admitted. An omitted or null `replace_wait_id` is default
+refusal if the key is already owned.
+
+### Registry lifecycle
+
+The registry is memory-only and keyed by **canonical channel id** inside
+one profile daemon:
+
+```text
+key = (profile daemon, canonical channel_id)
+```
+
+It is not a host-global lock and is not persisted across daemon restart.
+
+1. Validate timeout and filters.
+2. Resolve the channel and bind any explicit `after`.
+3. Acquire the registry key **before** subscribe or backfill.
+4. A generation-checked scope guard releases the key on every terminal
+   path: match, deadman, hard error, client disconnect, cancellation,
+   panic/task abort, and daemon shutdown.
+5. Default concurrent acquire on the same key returns `wait_already_active`.
+6. `--replace-wait` is compare-and-replace on the current id only. On
+   match, the daemon cancels the old waiter and waits up to **five
+   seconds** (also bounded by any shorter remaining request deadline)
+   for cleanup acknowledgement before admitting the new waiter.
+7. The new waiter must not subscribe until that acknowledgement.
+8. Unconfirmed cleanup returns `wait_replace_unconfirmed`, does not arm
+   the new waiter, and leaves the old generation ownership-visible. A
+   late old guard may release that generation but must never delete a
+   newer admitted generation.
+
+Different canonical channel ids may wait concurrently. Textual aliases
+that resolve to the same channel id conflict. Fan-in multi-key
+acquisition is out of scope for this method.
+
+### Successful result
+
+A successful daemon result contains the requested `channel`, exactly one
+shared `Message`, and may include `wait_id` and `replaced_wait_id` as
+optional diagnostics. It must not set `timeout` and must not omit the
+triggering message.
+
+The CLI match projection uses `messages[0].id` as the fire id. There is
+no top-level match id.
+
+### Error and CLI outcome mapping
+
+|     Code | `data.class`               | CLI outcome                            |
+| -------: | -------------------------- | -------------------------------------- |
+| `-32601` | (none)                     | hard capability failure, exit 2        |
+| `-32012` | `wait_replace_unconfirmed` | hard ownership failure, exit 2         |
+| `-32011` | `wait_replaced`            | displaced waiter, exit 2               |
+| `-32010` | `wait_conflict_changed`    | hard ownership failure, exit 2         |
+| `-32009` | `wait_already_active`      | hard ownership failure, exit 2         |
+| `-32008` | (none)                     | hard provider-degraded failure, exit 2 |
+| `-32007` | (none)                     | hard input failure, exit 2             |
+| `-32005` | (none)                     | clean deadman, exit 1                  |
+| `-32000` | (none)                     | hard failure, exit 2                   |
+
+Only `-32005` may be projected by the CLI as `timeout: true`. Ownership
+codes are never deadman and never carry `timeout: true`.
+
+Ownership `data` may name canonical team/channel, opaque wait ids, and
+`started_at_ms`. It must not include filter text, baseline post ids,
+message bodies, provider URLs, credentials, command lines, or pids.
+
+The operation is cursor- and attention-neutral. Replacement and refusal
+do not acknowledge, post, mark read, or advance persistent state.
