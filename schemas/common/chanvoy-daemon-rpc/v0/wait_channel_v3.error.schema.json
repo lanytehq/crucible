@@ -226,6 +226,30 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "not": {
+          "properties": {
+            "code": {
+              "enum": [
+                -32012,
+                -32011,
+                -32010,
+                -32009
+              ]
+            }
+          },
+          "required": [
+            "code"
+          ]
+        }
+      },
+      "then": {
+        "properties": {
+          "data": false
+        }
+      }
     }
   ]
 }
