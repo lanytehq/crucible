@@ -1,0 +1,21 @@
+{
+  "channel": "brief-per-040",
+  "messages": [
+    {
+      "id": "postid00000000000000000002",
+      "user_id": "userid00000000000000000001",
+      "username": "agent-example",
+      "message": "one",
+      "create_at": 1,
+      "root_id": "postid00000000000000000002"
+    },
+    {
+      "id": "postid00000000000000000003",
+      "user_id": "userid00000000000000000001",
+      "username": "agent-example",
+      "message": "two",
+      "create_at": 2,
+      "root_id": "postid00000000000000000003"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "code": -32005,
+  "message": "no matching messages before the deadline",
+  "data": {
+    "contains": "ASSENT",
+    "after": "postid00000000000000000001"
+  }
+}

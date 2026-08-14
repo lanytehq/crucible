@@ -26,11 +26,24 @@ except ImportError:  # pragma: no cover
 REPO = pathlib.Path(__file__).resolve().parent.parent
 FAMILY = REPO / "schemas/common/chanvoy-daemon-rpc/v0"
 FIXTURES = FAMILY / "fixtures"
-SCHEMAS = {
-    "params": FAMILY / "wait_channels_v1.params.schema.json",
-    "result": FAMILY / "wait_channels_v1.result.schema.json",
-    "error": FAMILY / "wait_channels_v1.error.schema.json",
-}
+METHODS = (
+    "wait_channels_v1",
+    "wait_channel_v3",
+)
+
+
+def schema_paths(method: str) -> dict[str, pathlib.Path]:
+    return {
+        "params": FAMILY / f"{method}.params.schema.json",
+        "result": FAMILY / f"{method}.result.schema.json",
+        "error": FAMILY / f"{method}.error.schema.json",
+    }
+
+
+def fixture_root(method: str, kind: str) -> pathlib.Path:
+    if method == "wait_channels_v1":
+        return FIXTURES / kind
+    return FIXTURES / method / kind
 
 failures: list[str] = []
 
@@ -68,44 +81,56 @@ def semantic_violations(name: str, instance: dict) -> list[str]:
     return violations
 
 
-for name, schema_path in SCHEMAS.items():
-    schema = load(schema_path)
-    try:
-        Draft202012Validator.check_schema(schema)
-    except Exception as error:  # noqa: BLE001
-        fail(f"lint {schema_path.name}: {error}")
-        continue
+for method in METHODS:
+    for name, schema_path in schema_paths(method).items():
+        schema = load(schema_path)
+        label = f"{method} {name}"
+        try:
+            Draft202012Validator.check_schema(schema)
+        except Exception as error:  # noqa: BLE001
+            fail(f"lint {schema_path.name}: {error}")
+            continue
 
-    if schema.get("$id", "").rsplit("/", 1)[-1] != schema_path.name:
-        fail(f"lint {schema_path.name}: $id basename mismatch")
-        continue
+        if schema.get("$id", "").rsplit("/", 1)[-1] != schema_path.name:
+            fail(f"lint {schema_path.name}: $id basename mismatch")
+            continue
 
-    validator = Draft202012Validator(schema)
-    conforming = sorted((FIXTURES / name / "conforming").glob("*.json"))
-    negative = sorted((FIXTURES / name / "negative").glob("*.json"))
-    if not conforming or not negative:
-        fail(f"{name}: fixture set is empty")
-        continue
+        validator = Draft202012Validator(schema)
+        conforming = sorted((fixture_root(method, name) / "conforming").glob("*.json"))
+        negative = sorted((fixture_root(method, name) / "negative").glob("*.json"))
+        if not conforming or not negative:
+            fail(f"{label}: fixture set is empty")
+            continue
 
-    ok(f"lint {schema_path.name}")
-    for fixture in conforming:
-        instance = load(fixture)
-        errors = list(validator.iter_errors(instance))
-        if errors:
-            fail(f"{name} conforming {fixture.name}: {errors[0].message}")
-        elif violations := semantic_violations(name, instance):
-            fail(f"{name} conforming {fixture.name}: {violations[0]}")
-        else:
-            ok(f"{name} conforming {fixture.name}")
+        ok(f"lint {schema_path.name}")
+        for fixture in conforming:
+            instance = load(fixture)
+            errors = list(validator.iter_errors(instance))
+            if errors:
+                fail(f"{label} conforming {fixture.name}: {errors[0].message}")
+            elif name == "params" and method == "wait_channels_v1" and (
+                violations := semantic_violations(name, instance)
+            ):
+                fail(f"{label} conforming {fixture.name}: {violations[0]}")
+            elif name == "result" and method == "wait_channels_v1" and (
+                violations := semantic_violations(name, instance)
+            ):
+                fail(f"{label} conforming {fixture.name}: {violations[0]}")
+            else:
+                ok(f"{label} conforming {fixture.name}")
 
-    for fixture in negative:
-        instance = load(fixture)
-        errors = list(validator.iter_errors(instance))
-        violations = semantic_violations(name, instance)
-        if errors or violations:
-            ok(f"{name} negative {fixture.name}")
-        else:
-            fail(f"{name} negative {fixture.name}: expected rejection, got pass")
+        for fixture in negative:
+            instance = load(fixture)
+            errors = list(validator.iter_errors(instance))
+            violations = (
+                semantic_violations(name, instance)
+                if method == "wait_channels_v1"
+                else []
+            )
+            if errors or violations:
+                ok(f"{label} negative {fixture.name}")
+            else:
+                fail(f"{label} negative {fixture.name}: expected rejection, got pass")
 
 if failures:
     print(f"\n{len(failures)} failure(s)")

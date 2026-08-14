@@ -1,0 +1,9 @@
+{
+  "code": -32011,
+  "message": "wait replaced on this profile daemon",
+  "data": {
+    "class": "wait_replaced",
+    "wait_id": "wait_0123456789abcdef0123456789abcdef",
+    "replaced_by_wait_id": "wait_fedcba9876543210fedcba9876543210"
+  }
+}

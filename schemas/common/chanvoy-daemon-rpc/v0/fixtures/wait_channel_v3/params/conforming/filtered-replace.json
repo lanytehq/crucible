@@ -1,0 +1,9 @@
+{
+  "channel": "brief-per-040",
+  "timeout_secs": 30,
+  "team": "org-example",
+  "contains": "ASSENT",
+  "pattern": "(?i)panel",
+  "after": "postid00000000000000000001",
+  "replace_wait_id": "wait_0123456789abcdef0123456789abcdef"
+}
