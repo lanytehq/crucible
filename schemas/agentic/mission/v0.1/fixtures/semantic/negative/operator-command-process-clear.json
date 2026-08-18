@@ -179,22 +179,20 @@
       "entry_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
       "occurred_at": "2026-08-18T17:02:05Z",
       "recorded_at": "2026-08-18T17:02:05Z",
-      "event_type": "protocol_cancel_attempted",
+      "event_type": "process_termination_attempted",
       "source": {
-        "kind": "driver_reported",
-        "subject": "codex",
+        "kind": "operator_command",
+        "subject": "operator-1",
         "producer_version": "lanyte/0.3.0",
-        "assurance": "driver_observed",
-        "evidence_ref": "codex/turn-1/interrupted"
+        "assurance": "resource_attested",
+        "evidence_ref": "control/forged-clear"
       },
       "payload": {
-        "type": "protocol_cancel_attempted",
+        "type": "process_termination_attempted",
         "attempt_id": "88888888-8888-4888-8888-888888888888",
         "generation": 1,
         "lease_generation": 1,
-        "thread_id": "thread-1",
-        "turn_id": "turn-1",
-        "outcome": "interrupted"
+        "outcome": "cleared"
       }
     },
     {

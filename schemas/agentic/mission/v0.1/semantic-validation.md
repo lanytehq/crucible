@@ -2,7 +2,7 @@
 
 **Layer id:** `mission/v0.1-semantics`
 
-**Layer version:** `0.2.0`
+**Layer version:** `0.2.1`
 
 **Applies to:**
 
@@ -109,17 +109,18 @@ terminal -> no transition
 
 ## Cancel, lease, and restart (Wave 3)
 
-| Rule    | Invariant                                                                                                                                                                                                                                               |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SEM-C01 | `cancel_requested` is not terminal. An attempt may become `cancelled` only after protocol `interrupted` or process `cleared`.                                                                                                                           |
-| SEM-C02 | Protocol-confirmed cancel is `turn/completed` `interrupted` for the exact thread and turn. `request_accepted`, `unavailable`, `timeout`, and `unrelated_completion` cannot fold `cancelled`. Created-with-no-attempt may fold after `cancel_requested`. |
-| SEM-C03 | Process fallback folds `cancelled` only on membership-verified `cleared`. `kill_dispatched`, `survivors`, and `unknown` are non-success.                                                                                                                |
-| SEM-C05 | Deadman silence is `unresponsive`. It is never inferred as `crashed`, `timed_out`, or `lost`.                                                                                                                                                           |
-| SEM-L01 | `lease_generation` is monotonic. A later event with a lower lease generation cannot mutate supervision.                                                                                                                                                 |
-| SEM-L03 | At most one overdue `restart_reconciled` receipt exists in a history. A second restart is a no-op.                                                                                                                                                      |
-| SEM-L04 | When `lease_policy.enabled` is false, attempt lease runtime fields are null. When enabled and live, wall deadlines and last observation are present.                                                                                                    |
-| SEM-L05 | `last_observation_source` is never seat or Chanvoy activity.                                                                                                                                                                                            |
-| SEM-P01 | Codex protocol evidence stays driver/harness assurance. Process-membership probes stay kernel assurance. Reading bytes does not upgrade provenance.                                                                                                     |
+| Rule    | Invariant                                                                                                                                                                                                                                                                                                                       |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SEM-C01 | `cancel_requested` is not terminal. An attempt may become `cancelled` only after protocol `interrupted` or process `cleared`.                                                                                                                                                                                                   |
+| SEM-C02 | Protocol-confirmed cancel is `turn/completed` `interrupted` bound to the exact attempt id, attempt generation, lease generation, harness thread, and harness turn. `request_accepted`, `unavailable`, `timeout`, and `unrelated_completion` cannot fold `cancelled`. Created-with-no-attempt may fold after `cancel_requested`. |
+| SEM-C03 | Process fallback folds `cancelled` only on membership-verified `cleared` with kernel provenance and the current attempt fence. `kill_dispatched`, `survivors`, and `unknown` are non-success.                                                                                                                                   |
+| SEM-C05 | Deadman silence is `unresponsive`. It is never inferred as `crashed`, `timed_out`, or `lost`.                                                                                                                                                                                                                                   |
+| SEM-C06 | A terminal mission history ends with `mission_terminal` whose phase, reason, and hash bind the record.                                                                                                                                                                                                                          |
+| SEM-L01 | `lease_generation` is an attempt-scoped fence. A later event on that attempt with a lower generation, or a mutation whose fence is not the attempt's current lease generation, cannot apply.                                                                                                                                    |
+| SEM-L03 | At most one overdue `restart_reconciled` receipt exists per attempt and lease generation. A second application of that same overdue transition is a no-op.                                                                                                                                                                      |
+| SEM-L04 | When `lease_policy.enabled` is false, attempt lease runtime fields are null. When enabled and live, wall deadlines and last observation are present.                                                                                                                                                                            |
+| SEM-L05 | `last_observation_source` is never seat or Chanvoy activity.                                                                                                                                                                                                                                                                    |
+| SEM-P01 | Codex protocol evidence stays driver/harness assurance. Process-membership probes stay kernel assurance. Reading bytes does not upgrade provenance.                                                                                                                                                                             |
 
 See `wave3-transition-evidence.md` for the full matrix.
 

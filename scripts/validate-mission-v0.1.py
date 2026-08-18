@@ -48,7 +48,7 @@ SCHEMA_NAMES = (
 SCHEMA_BASE_URI = "https://schemas.3leaps.dev/agentic/mission/v0.1/"
 
 SEMANTIC_LAYER_ID = "mission/v0.1-semantics"
-SEMANTIC_LAYER_VERSION = "0.2.0"
+SEMANTIC_LAYER_VERSION = "0.2.1"
 
 TERMINAL_MISSION_PHASES = {
     "completed",
@@ -762,6 +762,9 @@ def semantic_violations(fixture: Any) -> list[str]:
         violations.add("SEM-T04")
 
     for event in events:
+        payload = mapping(event.get("payload"))
+        if payload.get("type") in {"mission_terminal", "mission_created"}:
+            continue
         before, after = phase_change(event)
         if before is not None or after is not None:
             transitions = (
@@ -848,38 +851,80 @@ def semantic_violations(fixture: Any) -> list[str]:
     protocol_interrupted = False
     process_cleared = False
     cancel_requested_seen = False
-    restart_overdue = 0
     deadman_only_crash = False
-    lease_generations_seen: list[int] = []
+    max_lease_gen: dict[str, int] = {}
+    restart_keys: set[tuple[Any, Any]] = set()
+    fence_kinds = {
+        "cancel_requested",
+        "protocol_cancel_attempted",
+        "process_termination_attempted",
+        "lease_tick",
+        "restart_reconciled",
+    }
+
+    def protocol_matches(payload: Mapping[str, Any], attempt: Mapping[str, Any] | None) -> bool:
+        return bool(
+            attempt is not None
+            and payload.get("attempt_id") == attempt.get("attempt_id")
+            and payload.get("generation") == attempt.get("generation")
+            and payload.get("lease_generation") == attempt.get("lease_generation")
+            and payload.get("thread_id")
+            and payload.get("turn_id")
+            and payload.get("thread_id") == attempt.get("harness_thread_id")
+            and payload.get("turn_id") == attempt.get("harness_turn_id")
+        )
+
     for event in events:
         payload = mapping(event.get("payload"))
         kind = payload.get("type")
+        source = mapping(event.get("source"))
+        attempt = attempts_by_id.get(payload.get("attempt_id"))
         if kind == "cancel_requested":
             cancel_requested_seen = True
         if kind == "protocol_cancel_attempted":
             if payload.get("outcome") == "interrupted":
-                if payload.get("thread_id") and payload.get("turn_id"):
+                if protocol_matches(payload, attempt):
                     protocol_interrupted = True
                 else:
                     violations.add("SEM-C02")
-        if kind == "process_termination_attempted" and payload.get("outcome") == "cleared":
-            process_cleared = True
-        if kind == "restart_reconciled":
-            if payload.get("overdue") is True:
-                restart_overdue += 1
+            if source.get("kind") == "kernel_observed":
+                violations.add("SEM-P01")
+        if kind == "process_termination_attempted":
+            if source.get("kind") != "kernel_observed":
+                violations.add("SEM-P01")
+            if (
+                payload.get("outcome") == "cleared"
+                and source.get("kind") == "kernel_observed"
+                and attempt is not None
+                and payload.get("generation") == attempt.get("generation")
+                and payload.get("lease_generation") == attempt.get("lease_generation")
+            ):
+                process_cleared = True
+        if kind == "restart_reconciled" and payload.get("overdue") is True:
+            key = (payload.get("attempt_id"), payload.get("lease_generation"))
+            if key in restart_keys:
+                violations.add("SEM-L03")
+            restart_keys.add(key)
         lease_gen = payload.get("lease_generation")
-        if isinstance(lease_gen, int) and not isinstance(lease_gen, bool):
-            lease_generations_seen.append(lease_gen)
-        source = mapping(event.get("source"))
-        if kind == "protocol_cancel_attempted" and source.get("kind") == "kernel_observed":
-            # Protocol bytes remain driver/harness evidence; kernel must not
-            # upgrade them merely because it read the stream.
-            violations.add("SEM-P01")
-        if kind == "process_termination_attempted" and source.get("kind") in {
-            "driver_reported",
-            "harness_reported",
-        }:
-            violations.add("SEM-P01")
+        attempt_id = payload.get("attempt_id")
+        if (
+            isinstance(attempt_id, str)
+            and isinstance(lease_gen, int)
+            and not isinstance(lease_gen, bool)
+        ):
+            previous = max_lease_gen.get(attempt_id)
+            if previous is not None and lease_gen < previous:
+                violations.add("SEM-L01")
+            max_lease_gen[attempt_id] = (
+                lease_gen if previous is None else max(previous, lease_gen)
+            )
+            if (
+                kind in fence_kinds
+                and attempt is not None
+                and attempt.get("lease_generation") is not None
+                and lease_gen != attempt.get("lease_generation")
+            ):
+                violations.add("SEM-L01")
         if kind == "lease_tick" and payload.get("kind") == "deadman_fired":
             deadman_only_crash = True
 
@@ -887,15 +932,6 @@ def semantic_violations(fixture: Any) -> list[str]:
         for attempt in attempts_by_id.values():
             if attempt.get("state") in {"crashed", "timed_out", "lost"}:
                 violations.add("SEM-C05")
-
-    if restart_overdue > 1:
-        violations.add("SEM-L03")
-    if lease_generations_seen:
-        current = 0
-        for value in lease_generations_seen:
-            if value < current:
-                violations.add("SEM-L01")
-            current = max(current, value)
 
     cancelled_attempts = [
         attempt
@@ -910,6 +946,20 @@ def semantic_violations(fixture: Any) -> list[str]:
             violations.add("SEM-C02")
     if cancelled_attempts and not process_cleared and not protocol_interrupted:
         violations.add("SEM-C03")
+
+    if mission.get("phase") in TERMINAL_MISSION_PHASES:
+        if not events:
+            violations.add("SEM-C06")
+        else:
+            last = events[-1]
+            last_payload = mapping(last.get("payload"))
+            if (
+                last_payload.get("type") != "mission_terminal"
+                or last_payload.get("phase") != mission.get("phase")
+                or last_payload.get("reason") != mission.get("terminal_reason")
+                or last_payload.get("terminal_entry_hash") != last.get("entry_hash")
+            ):
+                violations.add("SEM-C06")
 
     lease_policy = mapping(mission.get("lease_policy"))
     lease_enabled = lease_policy.get("enabled") is True

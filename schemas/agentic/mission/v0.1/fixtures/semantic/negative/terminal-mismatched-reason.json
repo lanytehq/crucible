@@ -243,7 +243,7 @@
       "payload": {
         "type": "mission_terminal",
         "phase": "cancelled",
-        "reason": "operator_cancelled",
+        "reason": "internal_error",
         "terminal_entry_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
       }
     }

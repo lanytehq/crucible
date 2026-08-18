@@ -1,7 +1,7 @@
 {
   "semantic_layer": {
     "id": "mission/v0.1-semantics",
-    "version": "0.2.0"
+    "version": "0.2.1"
   },
   "conforming": [
     "create-only-wave1.json",
@@ -28,6 +28,13 @@
     "kill-dispatched-as-cancelled.json": "SEM-C03",
     "survivors-as-cancelled.json": "SEM-C03",
     "second-restart-receipt.json": "SEM-L03",
-    "unresponsive-as-crashed.json": "SEM-C05"
+    "unresponsive-as-crashed.json": "SEM-C05",
+    "protocol-unrelated-thread.json": "SEM-C02",
+    "protocol-unrelated-turn.json": "SEM-C02",
+    "protocol-stale-attempt-generation.json": "SEM-C02",
+    "protocol-stale-lease-generation.json": "SEM-L01",
+    "operator-command-process-clear.json": "SEM-P01",
+    "terminal-missing-mission-terminal.json": "SEM-C06",
+    "terminal-mismatched-reason.json": "SEM-C06"
   }
 }

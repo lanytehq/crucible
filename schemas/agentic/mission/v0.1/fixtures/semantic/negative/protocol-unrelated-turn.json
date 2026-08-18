@@ -193,7 +193,7 @@
         "generation": 1,
         "lease_generation": 1,
         "thread_id": "thread-1",
-        "turn_id": "turn-1",
+        "turn_id": "unrelated-turn",
         "outcome": "interrupted"
       }
     },

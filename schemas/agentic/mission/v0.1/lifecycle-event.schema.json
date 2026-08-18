@@ -667,7 +667,35 @@
           "description": "interrupted is the only protocol outcome that may fold cancelled. request_accepted is JSON-RPC accept of turn/interrupt only."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "interrupted"
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "thread_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              },
+              "turn_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              }
+            }
+          }
+        }
+      ]
     },
     "process-termination-attempted": {
       "type": "object",

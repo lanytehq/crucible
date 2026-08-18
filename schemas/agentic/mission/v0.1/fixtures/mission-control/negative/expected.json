@@ -18,5 +18,9 @@
   "cancel-without-idempotency.json": {
     "keyword": "type",
     "mentions": "idempotency_key"
+  },
+  "cancel-interrupted-without-ids.json": {
+    "keyword": "type",
+    "mentions": "thread_id"
   }
 }
