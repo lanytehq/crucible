@@ -1,0 +1,33 @@
+{
+  "semantic_layer": {
+    "id": "mission/v0.1-semantics",
+    "version": "0.2.0"
+  },
+  "conforming": [
+    "create-only-wave1.json",
+    "unresponsive-replaced.json",
+    "created-cancel-immediate.json",
+    "protocol-confirmed-cancel.json",
+    "restart-reconcile-once.json"
+  ],
+  "negative": {
+    "noncanonical-mission-id.json": "SEM-M01",
+    "premature-authorizer.json": "SEM-A01",
+    "recovery-identity-role-mutation.json": "SEM-A02",
+    "forbidden-secret-field.json": "SEM-A03",
+    "successor-without-replaced-predecessor.json": "SEM-T07",
+    "two-live-attempts.json": "SEM-T03",
+    "terminal-mission-live-attempt.json": "SEM-T05",
+    "sequence-gap.json": "SEM-M04",
+    "illegal-mission-phase-edge.json": "SEM-T01",
+    "capability-gating.json": "SEM-D03",
+    "stale-generation-fence.json": "SEM-T08",
+    "unauthorized-cancel.json": "SEM-A04",
+    "stale-lease-generation.json": "SEM-L01",
+    "protocol-unavailable-as-cancelled.json": "SEM-C02",
+    "kill-dispatched-as-cancelled.json": "SEM-C03",
+    "survivors-as-cancelled.json": "SEM-C03",
+    "second-restart-receipt.json": "SEM-L03",
+    "unresponsive-as-crashed.json": "SEM-C05"
+  }
+}

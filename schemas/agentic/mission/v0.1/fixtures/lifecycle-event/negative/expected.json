@@ -1,0 +1,14 @@
+{
+  "missing-schema-pin.json": {
+    "keyword": "required",
+    "mentions": "event_schema"
+  },
+  "open-payload.json": {
+    "keyword": "additionalProperties",
+    "mentions": "prompt"
+  },
+  "unknown-property.json": {
+    "keyword": "additionalProperties",
+    "mentions": "unexpected"
+  }
+}

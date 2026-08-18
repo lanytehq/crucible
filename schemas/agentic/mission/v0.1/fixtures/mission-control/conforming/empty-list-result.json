@@ -1,0 +1,12 @@
+{
+  "control_schema": "https://schemas.3leaps.dev/agentic/mission/v0.1/mission-control.schema.json",
+  "kind": "result",
+  "request_id": "55555555-5555-4555-8555-555555555555",
+  "idempotency_key": null,
+  "expected_revision": null,
+  "operation": "mission.list",
+  "body": {
+    "records": [],
+    "next_cursor": null
+  }
+}

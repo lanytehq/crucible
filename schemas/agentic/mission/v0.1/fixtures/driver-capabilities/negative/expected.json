@@ -1,0 +1,18 @@
+{
+  "missing-schema-pin.json": {
+    "keyword": "required",
+    "mentions": "capabilities_schema"
+  },
+  "unknown-property.json": {
+    "keyword": "additionalProperties",
+    "mentions": "unexpected"
+  },
+  "unknown-capability-name.json": {
+    "keyword": "enum",
+    "mentions": "name"
+  },
+  "unsupported-without-limitation.json": {
+    "keyword": "type",
+    "mentions": "limitation"
+  }
+}

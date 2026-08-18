@@ -23,7 +23,7 @@ clean: ## Remove build artifacts (placeholder)
 	@echo "[ok] nothing to clean"
 
 .PHONY: check
-check: guard-no-submodules guard-version-file check-dispatch-v0 check-mission-v0 check-chanvoy-daemon-rpc-v0 test-epilogue fmt-check ## Repo guards + schema family gates + format honesty
+check: guard-no-submodules guard-version-file check-dispatch-v0 check-mission-v0 check-mission-v0.1 check-chanvoy-daemon-rpc-v0 test-epilogue fmt-check ## Repo guards + schema family gates + format honesty
 	@echo "OK"
 
 .PHONY: test-epilogue
@@ -77,6 +77,18 @@ check-mission-v0: ## Validate the agentic/mission v0 schema family (schemas + fi
 		uv run --with jsonschema scripts/validate-mission-v0.py; \
 	else \
 		echo "[!!] the mission v0 family gate REQUIRES the python 'jsonschema' package"; \
+		echo "[!!] install it (pip install jsonschema) or install uv — this gate never soft-skips"; \
+		exit 1; \
+	fi
+
+.PHONY: check-mission-v0.1
+check-mission-v0.1: ## Validate the agentic/mission v0.1 schema family (Wave 3 lease/cancel)
+	@if python3 -c 'import jsonschema' >/dev/null 2>&1; then \
+		python3 scripts/validate-mission-v0.1.py; \
+	elif command -v uv >/dev/null 2>&1; then \
+		uv run --with jsonschema scripts/validate-mission-v0.1.py; \
+	else \
+		echo "[!!] the mission v0.1 family gate REQUIRES the python 'jsonschema' package"; \
 		echo "[!!] install it (pip install jsonschema) or install uv — this gate never soft-skips"; \
 		exit 1; \
 	fi
