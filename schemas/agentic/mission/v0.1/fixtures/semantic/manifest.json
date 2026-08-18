@@ -10,7 +10,8 @@
     "protocol-confirmed-cancel.json",
     "restart-reconcile-once.json",
     "deadman-then-process-exit.json",
-    "multi-renewal-then-cancel.json"
+    "multi-renewal-then-cancel.json",
+    "process-cleared-cancel.json"
   ],
   "negative": {
     "noncanonical-mission-id.json": "SEM-M01",
@@ -67,6 +68,7 @@
     "cancelled-edge-driver-source.json": "SEM-C10",
     "cancelled-edge-wrong-cause.json": "SEM-C10",
     "cancelled-edge-before-proof.json": "SEM-C10",
-    "stale-projection-timestamps.json": "SEM-M06"
+    "stale-projection-timestamps.json": "SEM-M06",
+    "process-cleared-wrong-cause.json": "SEM-C10"
   }
 }
