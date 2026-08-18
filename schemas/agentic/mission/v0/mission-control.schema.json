@@ -50,7 +50,8 @@
       "enum": [
         "mission.create",
         "mission.show",
-        "mission.list"
+        "mission.list",
+        "mission.launch"
       ]
     },
     "body": {
@@ -150,12 +151,43 @@
       "if": {
         "properties": {
           "kind": {
+            "const": "request"
+          },
+          "operation": {
+            "const": "mission.launch"
+          }
+        },
+        "required": [
+          "kind",
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "idempotency_key": {
+            "type": "string"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "body": {
+            "$ref": "#/$defs/launch-request"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
             "const": "result"
           },
           "operation": {
             "enum": [
               "mission.create",
-              "mission.show"
+              "mission.show",
+              "mission.launch"
             ]
           }
         },
@@ -217,6 +249,33 @@
           },
           "expected_revision": {
             "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "result"
+          },
+          "operation": {
+            "const": "mission.launch"
+          }
+        },
+        "required": [
+          "kind",
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "idempotency_key": {
+            "type": "string"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0
           }
         }
       }
@@ -306,6 +365,38 @@
       },
       "additionalProperties": false,
       "description": "Authenticated initiator, authorizer, supervisor, and operating role are bound from verified server context, never accepted from the request body."
+    },
+    "launch-request": {
+      "type": "object",
+      "required": [
+        "mission_id",
+        "workspace",
+        "binary"
+      ],
+      "properties": {
+        "mission_id": {
+          "$ref": "#/$defs/uuid-v4"
+        },
+        "workspace": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "binary": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "description": "Launch a pinned Codex App Server attempt on an existing created mission. Identity fields stay server-bound."
     },
     "show-request": {
       "type": "object",
