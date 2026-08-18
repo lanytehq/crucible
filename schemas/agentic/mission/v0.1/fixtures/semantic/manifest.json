@@ -1,14 +1,15 @@
 {
   "semantic_layer": {
     "id": "mission/v0.1-semantics",
-    "version": "0.2.2"
+    "version": "0.2.3"
   },
   "conforming": [
     "create-only-wave1.json",
     "unresponsive-replaced.json",
     "created-cancel-immediate.json",
     "protocol-confirmed-cancel.json",
-    "restart-reconcile-once.json"
+    "restart-reconcile-once.json",
+    "deadman-then-process-exit.json"
   ],
   "negative": {
     "noncanonical-mission-id.json": "SEM-M01",
@@ -40,6 +41,13 @@
     "proof-before-request.json": "SEM-C01",
     "predecessor-proof-successor-cancel.json": "SEM-C01",
     "protocol-operator-command-source.json": "SEM-P01",
-    "protocol-verified-attestation-source.json": "SEM-P01"
+    "protocol-verified-attestation-source.json": "SEM-P01",
+    "cancel-driver-reported-request.json": "SEM-A04",
+    "cancelled-mission-replaced-attempt.json": "SEM-C09",
+    "duplicate-cancel-request.json": "SEM-C08",
+    "live-lease-null-observation-source.json": "SEM-L04",
+    "deadman-at-mismatch.json": "SEM-L06",
+    "deadman-fired-early.json": "SEM-L07",
+    "lease-tick-driver-source.json": "SEM-L09"
   }
 }

@@ -69,7 +69,8 @@
         "to": "waiting",
         "reason": "late observation",
         "fencing_token_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
-        "fence": "stale-fence"
+        "fence": "stale-fence",
+        "cause": "policy"
       }
     }
   ],

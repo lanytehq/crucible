@@ -220,7 +220,8 @@
         "generation": 1,
         "from": "cancelling",
         "to": "cancelled",
-        "reason": "protocol interrupted"
+        "reason": "protocol interrupted",
+        "cause": "protocol_interrupt"
       }
     },
     {

@@ -221,7 +221,8 @@
         "generation": 1,
         "from": "running",
         "to": "crashed",
-        "reason": "collapsed deadman to crash"
+        "reason": "collapsed deadman to crash",
+        "cause": "deadman_silence"
       }
     }
   ],

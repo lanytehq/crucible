@@ -194,7 +194,8 @@
         "generation": 1,
         "from": "cancelling",
         "to": "cancelled",
-        "reason": "pretend success"
+        "reason": "pretend success",
+        "cause": "protocol_interrupt"
       }
     }
   ],

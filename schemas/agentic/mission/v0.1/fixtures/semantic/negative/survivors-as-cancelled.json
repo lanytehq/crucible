@@ -168,7 +168,8 @@
         "generation": 1,
         "from": "cancelling",
         "to": "cancelled",
-        "reason": "ignored survivors"
+        "reason": "ignored survivors",
+        "cause": "protocol_interrupt"
       }
     }
   ],

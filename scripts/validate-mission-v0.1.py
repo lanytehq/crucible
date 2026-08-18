@@ -20,7 +20,7 @@ import pathlib
 import sys
 import uuid
 from collections.abc import Iterable, Mapping
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 try:
@@ -48,7 +48,7 @@ SCHEMA_NAMES = (
 SCHEMA_BASE_URI = "https://schemas.3leaps.dev/agentic/mission/v0.1/"
 
 SEMANTIC_LAYER_ID = "mission/v0.1-semantics"
-SEMANTIC_LAYER_VERSION = "0.2.2"
+SEMANTIC_LAYER_VERSION = "0.2.3"
 
 TERMINAL_MISSION_PHASES = {
     "completed",
@@ -849,7 +849,6 @@ def semantic_violations(fixture: Any) -> list[str]:
 
     # Wave 3: cancel proof, lease fences, and restart receipts.
     cancel_requested_seen = False
-    deadman_only_crash = False
     max_lease_gen: dict[str, int] = {}
     restart_keys: set[tuple[Any, Any]] = set()
     cancel_requests: dict[tuple[Any, Any, Any], int] = {}
@@ -891,8 +890,15 @@ def semantic_violations(fixture: Any) -> list[str]:
         sequence = event.get("sequence")
         if kind == "cancel_requested":
             cancel_requested_seen = True
-            if isinstance(sequence, int):
-                cancel_requests[fence_key(payload)] = sequence
+            if source.get("kind") != "operator_command" or source.get(
+                "assurance"
+            ) != "resource_attested" or not source.get("evidence_ref"):
+                violations.add("SEM-A04")
+            key = fence_key(payload)
+            if key in cancel_requests:
+                violations.add("SEM-C08")
+            elif isinstance(sequence, int):
+                cancel_requests[key] = sequence
         if kind == "protocol_cancel_attempted":
             if source.get("kind") not in protocol_sources:
                 violations.add("SEM-P01")
@@ -939,13 +945,32 @@ def semantic_violations(fixture: Any) -> list[str]:
                 and lease_gen != attempt.get("lease_generation")
             ):
                 violations.add("SEM-L01")
-        if kind == "lease_tick" and payload.get("kind") == "deadman_fired":
-            deadman_only_crash = True
-
-    if deadman_only_crash:
-        for attempt in attempts_by_id.values():
-            if attempt.get("state") in {"crashed", "timed_out", "lost"}:
-                violations.add("SEM-C05")
+        if kind == "lease_tick":
+            if source.get("kind") != "kernel_observed":
+                violations.add("SEM-L09")
+            if attempt is not None:
+                if (
+                    payload.get("lease_expires_at") != attempt.get("lease_expires_at")
+                    or payload.get("deadman_at") != attempt.get("deadman_at")
+                ):
+                    violations.add("SEM-L08")
+                occurred = parse_instant(event.get("occurred_at"))
+                if payload.get("kind") == "deadman_fired":
+                    deadline = parse_instant(attempt.get("deadman_at"))
+                    if occurred is not None and deadline is not None and occurred < deadline:
+                        violations.add("SEM-L07")
+                if payload.get("kind") == "expired":
+                    deadline = parse_instant(attempt.get("lease_expires_at"))
+                    if occurred is not None and deadline is not None and occurred < deadline:
+                        violations.add("SEM-L07")
+        if kind == "restart_reconciled" and source.get("kind") != "kernel_observed":
+            violations.add("SEM-L09")
+        if (
+            kind == "attempt_state_changed"
+            and payload.get("to") in {"crashed", "timed_out", "lost"}
+            and payload.get("cause") == "deadman_silence"
+        ):
+            violations.add("SEM-C05")
 
     cancelled_attempts = [
         attempt
@@ -973,6 +998,8 @@ def semantic_violations(fixture: Any) -> list[str]:
         no_attempt = not attempts_by_id
         if not (protocol_interrupted or process_cleared or (no_attempt and cancel_requested_seen)):
             violations.add("SEM-C02")
+        if attempts_by_id and not cancelled_attempts:
+            violations.add("SEM-C09")
 
     if mission.get("phase") in TERMINAL_MISSION_PHASES:
         if not events:
@@ -999,8 +1026,23 @@ def semantic_violations(fixture: Any) -> list[str]:
         if not lease_enabled and any(value is not None for value in runtime):
             violations.add("SEM-L04")
         if lease_enabled and attempt.get("state") in LIVE_ATTEMPT_STATES:
-            if any(value is None for value in runtime) or attempt.get("last_observed_at") is None:
+            if (
+                any(value is None for value in runtime)
+                or attempt.get("last_observed_at") is None
+                or attempt.get("last_observation_source") is None
+            ):
                 violations.add("SEM-L04")
+            observed = parse_instant(attempt.get("last_observed_at"))
+            deadman_at = parse_instant(attempt.get("deadman_at"))
+            deadman_seconds = lease_policy.get("deadman_seconds")
+            if (
+                observed is not None
+                and deadman_at is not None
+                and isinstance(deadman_seconds, int)
+                and not isinstance(deadman_seconds, bool)
+                and deadman_at != observed + timedelta(seconds=deadman_seconds)
+            ):
+                violations.add("SEM-L06")
         source = attempt.get("last_observation_source")
         if source in {"seat", "chanvoy", "operator_presence"}:
             violations.add("SEM-L05")

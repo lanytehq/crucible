@@ -407,7 +407,8 @@
         "generation",
         "from",
         "to",
-        "reason"
+        "reason",
+        "cause"
       ],
       "properties": {
         "type": {
@@ -433,6 +434,22 @@
           ],
           "minLength": 1,
           "maxLength": 1024
+        },
+        "cause": {
+          "type": "string",
+          "enum": [
+            "operator_cancel",
+            "protocol_interrupt",
+            "process_exit",
+            "process_signal",
+            "deadman_silence",
+            "lease_expired",
+            "connectivity_lost",
+            "successor_replace",
+            "harness_completed",
+            "policy"
+          ],
+          "description": "Closed discriminator. deadman_silence may not fold crashed, timed_out, or lost."
         }
       },
       "additionalProperties": false

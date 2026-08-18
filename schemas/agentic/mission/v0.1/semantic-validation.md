@@ -2,7 +2,7 @@
 
 **Layer id:** `mission/v0.1-semantics`
 
-**Layer version:** `0.2.2`
+**Layer version:** `0.2.3`
 
 **Applies to:**
 

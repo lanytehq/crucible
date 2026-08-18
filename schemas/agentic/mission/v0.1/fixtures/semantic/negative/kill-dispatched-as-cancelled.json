@@ -192,7 +192,8 @@
         "generation": 1,
         "from": "cancelling",
         "to": "cancelled",
-        "reason": "kill sent"
+        "reason": "kill sent",
+        "cause": "protocol_interrupt"
       }
     }
   ],

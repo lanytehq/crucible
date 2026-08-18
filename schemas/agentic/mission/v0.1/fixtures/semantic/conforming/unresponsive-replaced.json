@@ -155,7 +155,8 @@
         "generation": 1,
         "from": "unresponsive",
         "to": "replaced",
-        "reason": "successor authorized"
+        "reason": "successor authorized",
+        "cause": "successor_replace"
       }
     }
   ],
