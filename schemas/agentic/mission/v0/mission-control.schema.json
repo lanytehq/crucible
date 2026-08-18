@@ -51,7 +51,9 @@
         "mission.create",
         "mission.show",
         "mission.list",
-        "mission.launch"
+        "mission.launch",
+        "mission.observe",
+        "mission.close"
       ]
     },
     "body": {
@@ -181,6 +183,65 @@
       "if": {
         "properties": {
           "kind": {
+            "const": "request"
+          },
+          "operation": {
+            "const": "mission.observe"
+          }
+        },
+        "required": [
+          "kind",
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "idempotency_key": {
+            "type": "null"
+          },
+          "expected_revision": {
+            "type": "null"
+          },
+          "body": {
+            "$ref": "#/$defs/show-request"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "request"
+          },
+          "operation": {
+            "const": "mission.close"
+          }
+        },
+        "required": [
+          "kind",
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "idempotency_key": {
+            "type": "string"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "body": {
+            "$ref": "#/$defs/show-request"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
             "const": "result"
           },
           "operation": {
@@ -289,7 +350,8 @@
           "operation": {
             "enum": [
               "mission.show",
-              "mission.list"
+              "mission.list",
+              "mission.observe"
             ]
           }
         },
@@ -305,6 +367,59 @@
           },
           "expected_revision": {
             "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "result"
+          },
+          "operation": {
+            "const": "mission.observe"
+          }
+        },
+        "required": [
+          "kind",
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "body": {
+            "$ref": "#/$defs/observe-result"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "result"
+          },
+          "operation": {
+            "const": "mission.close"
+          }
+        },
+        "required": [
+          "kind",
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "idempotency_key": {
+            "type": "string"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "body": {
+            "$ref": "#/$defs/close-result"
           }
         }
       }
@@ -465,6 +580,152 @@
         }
       },
       "additionalProperties": false
+    },
+    "observe-result": {
+      "type": "object",
+      "required": [
+        "mission_id",
+        "attempt_id",
+        "events"
+      ],
+      "properties": {
+        "mission_id": {
+          "$ref": "#/$defs/uuid-v4"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/uuid-v4"
+        },
+        "events": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/normalized-harness-event"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "close-result": {
+      "type": "object",
+      "required": [
+        "mission_id",
+        "attempt_id",
+        "closed"
+      ],
+      "properties": {
+        "mission_id": {
+          "$ref": "#/$defs/uuid-v4"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/uuid-v4"
+        },
+        "closed": {
+          "const": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "normalized-harness-event": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "oneOf": [
+        {
+          "properties": {
+            "kind": {
+              "const": "started"
+            },
+            "occurred_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "attempt_id": {
+              "$ref": "#/$defs/uuid-v4"
+            },
+            "harness_session_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "detail": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "occurred_at",
+            "attempt_id",
+            "harness_session_id",
+            "detail"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "kind": {
+              "const": "tool_proposed"
+            },
+            "occurred_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "attempt_id": {
+              "$ref": "#/$defs/uuid-v4"
+            },
+            "tool": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "detail": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "occurred_at",
+            "attempt_id",
+            "tool",
+            "detail"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "properties": {
+            "kind": {
+              "const": "exited"
+            },
+            "occurred_at": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "attempt_id": {
+              "$ref": "#/$defs/uuid-v4"
+            },
+            "success": {
+              "type": "boolean"
+            },
+            "detail": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "occurred_at",
+            "attempt_id",
+            "success",
+            "detail"
+          ],
+          "additionalProperties": false
+        }
+      ]
     },
     "list-result": {
       "type": "object",

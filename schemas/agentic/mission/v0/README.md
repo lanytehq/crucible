@@ -69,7 +69,7 @@ envelope and then validates its mission handler payload against this family.
 ## Wave 1 surface
 
 Wave 1 implements `mission.create`, `mission.show`, and `mission.list`.
-Wave 2 adds `mission.launch` (Codex App Server create/identify/observe/close). A newly created record is in `created`, has revision zero,
+Wave 2 adds `mission.launch`, `mission.observe`, and `mission.close` (Codex App Server create/identify/observe/close). A newly created record is in `created`, has revision zero,
 contains no attempts, and has no authorizer. Lease, deadman, budget, driver,
 and recovery execution fields may be null or disabled; their runtime
 semantics are intentionally deferred.
