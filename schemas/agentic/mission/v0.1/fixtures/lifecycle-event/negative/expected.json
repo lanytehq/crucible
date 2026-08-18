@@ -10,5 +10,9 @@
   "unknown-property.json": {
     "keyword": "additionalProperties",
     "mentions": "unexpected"
+  },
+  "restart-overdue-false.json": {
+    "keyword": "const",
+    "mentions": "overdue"
   }
 }

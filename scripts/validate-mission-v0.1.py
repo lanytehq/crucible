@@ -48,7 +48,7 @@ SCHEMA_NAMES = (
 SCHEMA_BASE_URI = "https://schemas.3leaps.dev/agentic/mission/v0.1/"
 
 SEMANTIC_LAYER_ID = "mission/v0.1-semantics"
-SEMANTIC_LAYER_VERSION = "0.2.4"
+SEMANTIC_LAYER_VERSION = "0.2.5"
 
 TERMINAL_MISSION_PHASES = {
     "completed",
@@ -927,11 +927,53 @@ def semantic_violations(fixture: Any) -> list[str]:
             "protocol_cancel_attempted",
             "process_termination_attempted",
             "restart_reconciled",
-        } and running is not None and event_lease_gen is not None:
-            if event_lease_gen != running.get("lease_generation"):
+        } and isinstance(payload.get("attempt_id"), str) and lease_enabled:
+            if running is None:
+                violations.add("SEM-L11")
+            elif event_lease_gen is not None and event_lease_gen != running.get(
+                "lease_generation"
+            ):
                 violations.add("SEM-L01")
+        if kind in {"lease_started", "lease_tick", "restart_reconciled"} and not lease_enabled:
+            violations.add("SEM-L04")
         if kind == "lease_started":
             aid = payload.get("attempt_id")
+            observed = parse_instant(payload.get("observed_at"))
+            occurred = parse_instant(event.get("occurred_at"))
+            recorded = parse_instant(event.get("recorded_at"))
+            if source.get("kind") != "kernel_observed":
+                violations.add("SEM-L09")
+            if observed is not None and occurred is not None and observed > occurred:
+                violations.add("SEM-M02")
+            if occurred is not None and recorded is not None and occurred > recorded:
+                violations.add("SEM-M02")
+            created_ok = any(
+                mapping(item.get("payload")).get("type") == "attempt_created"
+                and mapping(item.get("payload")).get("attempt_id") == aid
+                and mapping(item.get("payload")).get("generation") == payload.get("generation")
+                and item.get("sequence", 0) < event.get("sequence", 0)
+                for item in events
+            )
+            if not created_ok:
+                violations.add("SEM-L11")
+            if attempt is not None and payload.get("generation") != attempt.get("generation"):
+                violations.add("SEM-L11")
+            if (
+                observed is not None
+                and isinstance(lease_seconds, int)
+                and not isinstance(lease_seconds, bool)
+                and parse_instant(payload.get("lease_expires_at"))
+                != observed + timedelta(seconds=lease_seconds)
+            ):
+                violations.add("SEM-L06")
+            if (
+                observed is not None
+                and isinstance(deadman_seconds, int)
+                and not isinstance(deadman_seconds, bool)
+                and parse_instant(payload.get("deadman_at"))
+                != observed + timedelta(seconds=deadman_seconds)
+            ):
+                violations.add("SEM-L06")
             if not isinstance(aid, str) or aid in running_leases:
                 violations.add("SEM-L11")
             elif payload.get("lease_generation") != 1:
@@ -948,6 +990,15 @@ def semantic_violations(fixture: Any) -> list[str]:
             aid = payload.get("attempt_id")
             obs_source = payload.get("observation_source")
             tick_kind = payload.get("kind")
+            if source.get("kind") != "kernel_observed":
+                violations.add("SEM-L09")
+            observed = parse_instant(payload.get("observed_at"))
+            occurred = parse_instant(event.get("occurred_at"))
+            recorded = parse_instant(event.get("recorded_at"))
+            if observed is not None and occurred is not None and observed > occurred:
+                violations.add("SEM-M02")
+            if occurred is not None and recorded is not None and occurred > recorded:
+                violations.add("SEM-M02")
             if running is None:
                 violations.add("SEM-L11")
             else:

@@ -895,7 +895,8 @@
           "minimum": 1
         },
         "overdue": {
-          "type": "boolean"
+          "const": true,
+          "description": "This receipt exists only for an applied overdue edge."
         }
       },
       "additionalProperties": false,

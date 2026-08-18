@@ -1,7 +1,7 @@
 {
   "semantic_layer": {
     "id": "mission/v0.1-semantics",
-    "version": "0.2.4"
+    "version": "0.2.5"
   },
   "conforming": [
     "create-only-wave1.json",
@@ -54,6 +54,12 @@
     "noop-lease-renewal.json": "SEM-L10",
     "missing-lease-started.json": "SEM-L11",
     "duplicate-deadman-fired.json": "SEM-L10",
-    "restart-not-overdue.json": "SEM-L07"
+    "restart-not-overdue.json": "SEM-L07",
+    "lease-started-driver-source.json": "SEM-L09",
+    "lease-started-wrong-generation.json": "SEM-L11",
+    "lease-started-underived-deadline.json": "SEM-L06",
+    "fenced-mutation-before-anchor.json": "SEM-L11",
+    "lease-events-policy-disabled.json": "SEM-L04",
+    "renewed-driver-lifecycle-source.json": "SEM-L09"
   }
 }
