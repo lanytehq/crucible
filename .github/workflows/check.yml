@@ -16,7 +16,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install jsonschema (dispatch v0 family gate — hard requirement of make check)
+      - name: Install jsonschema (schema family gates — hard requirement of make check)
         run: python3 -m pip install jsonschema
       - name: Setup Go
         uses: actions/setup-go@v5

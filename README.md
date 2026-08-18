@@ -38,6 +38,9 @@ Schemas for agent-side contracts:
 - `dispatch/v0/` — dispatch runner supervision seam (run envelope, harness
   profile, semantic layer). See
   [`schemas/agentic/dispatch/v0/README.md`](schemas/agentic/dispatch/v0/README.md).
+- `mission/v0/` — durable mission records, control payloads, driver capability
+  evidence, lifecycle events, and semantic transition rules. See
+  [`schemas/agentic/mission/v0/README.md`](schemas/agentic/mission/v0/README.md).
 
 Release-note and release-doc conventions for platform packages live under
 [`docs/releases/`](docs/releases/) and the release-signing baseline in

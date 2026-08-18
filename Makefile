@@ -23,7 +23,7 @@ clean: ## Remove build artifacts (placeholder)
 	@echo "[ok] nothing to clean"
 
 .PHONY: check
-check: guard-no-submodules guard-version-file check-dispatch-v0 check-chanvoy-daemon-rpc-v0 test-epilogue fmt-check ## Repo guards + schema family gates + format honesty
+check: guard-no-submodules guard-version-file check-dispatch-v0 check-mission-v0 check-chanvoy-daemon-rpc-v0 test-epilogue fmt-check ## Repo guards + schema family gates + format honesty
 	@echo "OK"
 
 .PHONY: test-epilogue
@@ -65,6 +65,18 @@ check-chanvoy-daemon-rpc-v0: ## Validate the Chanvoy daemon RPC v0 schemas and f
 		uv run --with jsonschema scripts/validate-chanvoy-daemon-rpc-v0.py; \
 	else \
 		echo "[!!] the Chanvoy daemon RPC v0 gate REQUIRES the python 'jsonschema' package"; \
+		echo "[!!] install it (pip install jsonschema) or install uv — this gate never soft-skips"; \
+		exit 1; \
+	fi
+
+.PHONY: check-mission-v0
+check-mission-v0: ## Validate the agentic/mission v0 schema family (schemas + fixtures + semantic layer)
+	@if python3 -c 'import jsonschema' >/dev/null 2>&1; then \
+		python3 scripts/validate-mission-v0.py; \
+	elif command -v uv >/dev/null 2>&1; then \
+		uv run --with jsonschema scripts/validate-mission-v0.py; \
+	else \
+		echo "[!!] the mission v0 family gate REQUIRES the python 'jsonschema' package"; \
 		echo "[!!] install it (pip install jsonschema) or install uv — this gate never soft-skips"; \
 		exit 1; \
 	fi

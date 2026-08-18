@@ -1,0 +1,563 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.3leaps.dev/agentic/mission/v0/lifecycle-event.schema.json",
+  "title": "Lanyte Mission Lifecycle Event",
+  "description": "Append-only mission lifecycle evidence with explicit provenance and a closed, typed payload.",
+  "type": "object",
+  "required": [
+    "event_schema",
+    "event_id",
+    "mission_id",
+    "sequence",
+    "previous_entry_hash",
+    "entry_hash",
+    "occurred_at",
+    "recorded_at",
+    "event_type",
+    "source",
+    "payload"
+  ],
+  "properties": {
+    "event_schema": {
+      "const": "https://schemas.3leaps.dev/agentic/mission/v0/lifecycle-event.schema.json"
+    },
+    "event_id": {
+      "$ref": "#/$defs/uuid-v4"
+    },
+    "mission_id": {
+      "$ref": "#/$defs/uuid-v4"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "previous_entry_hash": {
+      "$ref": "#/$defs/nullable-sha256"
+    },
+    "entry_hash": {
+      "$ref": "#/$defs/sha256"
+    },
+    "occurred_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "recorded_at": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "event_type": {
+      "$ref": "#/$defs/event-type"
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "payload": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/mission-created"
+        },
+        {
+          "$ref": "#/$defs/authorization-bound"
+        },
+        {
+          "$ref": "#/$defs/mission-phase-changed"
+        },
+        {
+          "$ref": "#/$defs/attempt-created"
+        },
+        {
+          "$ref": "#/$defs/attempt-state-changed"
+        },
+        {
+          "$ref": "#/$defs/driver-capability-evaluated"
+        },
+        {
+          "$ref": "#/$defs/recovery-requested"
+        },
+        {
+          "$ref": "#/$defs/recovery-point-recorded"
+        },
+        {
+          "$ref": "#/$defs/mission-terminal"
+        }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "uuid-v4": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "nullable-uuid-v4": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/uuid-v4"
+        }
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?(Z|[+-][0-9]{2}:[0-9]{2})$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nullable-sha256": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/sha256"
+        }
+      ]
+    },
+    "opaque-id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$"
+    },
+    "event-type": {
+      "type": "string",
+      "enum": [
+        "mission_created",
+        "authorization_bound",
+        "mission_phase_changed",
+        "attempt_created",
+        "attempt_state_changed",
+        "driver_capability_evaluated",
+        "recovery_requested",
+        "recovery_point_recorded",
+        "mission_terminal"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "kind",
+        "subject",
+        "producer_version",
+        "assurance",
+        "evidence_ref"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "kernel_observed",
+            "verified_attestation",
+            "driver_reported",
+            "harness_reported",
+            "operator_command"
+          ]
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "producer_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "assurance": {
+          "type": "string",
+          "enum": [
+            "claim",
+            "driver_observed",
+            "kernel_observed",
+            "resource_attested"
+          ]
+        },
+        "evidence_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "verified_attestation",
+                  "operator_command"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_ref": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "principal-ref": {
+      "type": "object",
+      "required": [
+        "kind",
+        "subject",
+        "attestation_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "attested_session"
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "attestation_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      },
+      "additionalProperties": false
+    },
+    "mission-phase": {
+      "type": "string",
+      "enum": [
+        "created",
+        "active",
+        "waiting",
+        "recovery_pending",
+        "suspended",
+        "completed",
+        "cancelled",
+        "failed",
+        "deadline_exceeded",
+        "budget_exhausted"
+      ]
+    },
+    "attempt-state": {
+      "type": "string",
+      "enum": [
+        "starting",
+        "running",
+        "waiting",
+        "unresponsive",
+        "cancelling",
+        "completed",
+        "cancelled",
+        "replaced",
+        "failed",
+        "crashed",
+        "timed_out",
+        "lost"
+      ]
+    },
+    "terminal-reason": {
+      "type": "string",
+      "enum": [
+        "goal_satisfied",
+        "operator_cancelled",
+        "mission_deadline_exceeded",
+        "budget_exhausted",
+        "policy_denied",
+        "restore_exhausted",
+        "required_driver_capability_unavailable",
+        "internal_error"
+      ]
+    },
+    "mission-created": {
+      "type": "object",
+      "required": [
+        "type",
+        "revision"
+      ],
+      "properties": {
+        "type": {
+          "const": "mission_created"
+        },
+        "revision": {
+          "const": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "authorization-bound": {
+      "type": "object",
+      "required": [
+        "type",
+        "authorizer"
+      ],
+      "properties": {
+        "type": {
+          "const": "authorization_bound"
+        },
+        "authorizer": {
+          "$ref": "#/$defs/principal-ref"
+        }
+      },
+      "additionalProperties": false
+    },
+    "mission-phase-changed": {
+      "type": "object",
+      "required": [
+        "type",
+        "from",
+        "to",
+        "reason"
+      ],
+      "properties": {
+        "type": {
+          "const": "mission_phase_changed"
+        },
+        "from": {
+          "$ref": "#/$defs/mission-phase"
+        },
+        "to": {
+          "$ref": "#/$defs/mission-phase"
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "additionalProperties": false
+    },
+    "attempt-created": {
+      "type": "object",
+      "required": [
+        "type",
+        "attempt_id",
+        "ordinal",
+        "generation",
+        "recovery_relation",
+        "predecessor_attempt_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "attempt_created"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/uuid-v4"
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "recovery_relation": {
+          "type": "string",
+          "enum": [
+            "initial",
+            "resumes",
+            "relaunches"
+          ]
+        },
+        "predecessor_attempt_id": {
+          "$ref": "#/$defs/nullable-uuid-v4"
+        }
+      },
+      "additionalProperties": false
+    },
+    "attempt-state-changed": {
+      "type": "object",
+      "required": [
+        "type",
+        "attempt_id",
+        "generation",
+        "from",
+        "to",
+        "reason"
+      ],
+      "properties": {
+        "type": {
+          "const": "attempt_state_changed"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/uuid-v4"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "from": {
+          "$ref": "#/$defs/attempt-state"
+        },
+        "to": {
+          "$ref": "#/$defs/attempt-state"
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "additionalProperties": false
+    },
+    "driver-capability-evaluated": {
+      "type": "object",
+      "required": [
+        "type",
+        "attempt_id",
+        "generation",
+        "driver_id",
+        "capability",
+        "availability",
+        "fidelity",
+        "report_id"
+      ],
+      "properties": {
+        "type": {
+          "const": "driver_capability_evaluated"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/uuid-v4"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "driver_id": {
+          "$ref": "#/$defs/opaque-id"
+        },
+        "capability": {
+          "type": "string",
+          "enum": [
+            "create",
+            "identify",
+            "heartbeat",
+            "cancel",
+            "resume",
+            "close",
+            "observe",
+            "deliver_input",
+            "approval_events",
+            "tool_effect_events",
+            "artifacts",
+            "checkpoint",
+            "usage_metering",
+            "terminal_status",
+            "local_process_termination"
+          ]
+        },
+        "availability": {
+          "type": "string",
+          "enum": [
+            "available",
+            "temporarily_unavailable",
+            "unknown"
+          ]
+        },
+        "fidelity": {
+          "type": "string",
+          "enum": [
+            "native",
+            "mapped",
+            "lossy",
+            "unsupported"
+          ]
+        },
+        "report_id": {
+          "$ref": "#/$defs/uuid-v4"
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery-requested": {
+      "type": "object",
+      "required": [
+        "type",
+        "predecessor_attempt_id",
+        "relation"
+      ],
+      "properties": {
+        "type": {
+          "const": "recovery_requested"
+        },
+        "predecessor_attempt_id": {
+          "$ref": "#/$defs/uuid-v4"
+        },
+        "relation": {
+          "type": "string",
+          "enum": [
+            "resumes",
+            "relaunches"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "recovery-point-recorded": {
+      "type": "object",
+      "required": [
+        "type",
+        "recovery_point_ref"
+      ],
+      "properties": {
+        "type": {
+          "const": "recovery_point_recorded"
+        },
+        "recovery_point_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        }
+      },
+      "additionalProperties": false
+    },
+    "mission-terminal": {
+      "type": "object",
+      "required": [
+        "type",
+        "phase",
+        "reason",
+        "terminal_entry_hash"
+      ],
+      "properties": {
+        "type": {
+          "const": "mission_terminal"
+        },
+        "phase": {
+          "type": "string",
+          "enum": [
+            "completed",
+            "cancelled",
+            "failed",
+            "deadline_exceeded",
+            "budget_exhausted"
+          ]
+        },
+        "reason": {
+          "$ref": "#/$defs/terminal-reason"
+        },
+        "terminal_entry_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
