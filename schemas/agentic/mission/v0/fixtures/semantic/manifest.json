@@ -1,0 +1,23 @@
+{
+  "semantic_layer": {
+    "id": "mission/v0-semantics",
+    "version": "0.1.0"
+  },
+  "conforming": [
+    "create-only-wave1.json",
+    "unresponsive-replaced.json"
+  ],
+  "negative": {
+    "noncanonical-mission-id.json": "SEM-M01",
+    "premature-authorizer.json": "SEM-A01",
+    "recovery-identity-role-mutation.json": "SEM-A02",
+    "forbidden-secret-field.json": "SEM-A03",
+    "successor-without-replaced-predecessor.json": "SEM-T07",
+    "two-live-attempts.json": "SEM-T03",
+    "terminal-mission-live-attempt.json": "SEM-T05",
+    "sequence-gap.json": "SEM-M04",
+    "illegal-mission-phase-edge.json": "SEM-T01",
+    "capability-gating.json": "SEM-D03",
+    "stale-generation-fence.json": "SEM-T08"
+  }
+}

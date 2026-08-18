@@ -1,0 +1,14 @@
+{
+  "control_schema": "https://schemas.3leaps.dev/agentic/mission/v0/mission-control.schema.json",
+  "kind": "request",
+  "request_id": "44444444-4444-4444-8444-444444444444",
+  "idempotency_key": null,
+  "expected_revision": null,
+  "operation": "mission.create",
+  "body": {
+    "goal": "Produce a locally reviewed mission-domain contract.",
+    "policy_id": "policy.default",
+    "deadline_at": null,
+    "recovery_policy": "ask_operator"
+  }
+}

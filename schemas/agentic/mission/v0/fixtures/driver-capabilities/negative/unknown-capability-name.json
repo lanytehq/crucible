@@ -1,0 +1,30 @@
+{
+  "capabilities_schema": "https://schemas.3leaps.dev/agentic/mission/v0/driver-capabilities.schema.json",
+  "report_id": "66666666-6666-4666-8666-666666666666",
+  "driver_id": "driver.local-process",
+  "driver_version": "0.1.0",
+  "harness_kind": "codex",
+  "observed_at": "2026-08-17T14:00:00Z",
+  "expires_at": "2026-08-18T14:00:00Z",
+  "availability": "available",
+  "capabilities": [
+    {
+      "name": "arbitrary_provider_operation",
+      "fidelity": "native",
+      "observation": "driver_observed",
+      "enforcement": "request_only",
+      "replay": "none",
+      "limitation": null,
+      "evidence_ref": null
+    }
+  ],
+  "validity_condition": {
+    "kind": "executable-version-platform-match",
+    "executable_version": "0.1.0",
+    "executable_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "configuration_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "platform": "aarch64-apple-darwin",
+    "probe_ref": "probes/local-driver/2026-08-17"
+  },
+  "evidence_ref": "capability-reports/66666666-6666-4666-8666-666666666666"
+}
