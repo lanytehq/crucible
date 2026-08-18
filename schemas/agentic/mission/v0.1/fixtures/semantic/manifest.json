@@ -1,7 +1,7 @@
 {
   "semantic_layer": {
     "id": "mission/v0.1-semantics",
-    "version": "0.2.3"
+    "version": "0.2.4"
   },
   "conforming": [
     "create-only-wave1.json",
@@ -9,7 +9,8 @@
     "created-cancel-immediate.json",
     "protocol-confirmed-cancel.json",
     "restart-reconcile-once.json",
-    "deadman-then-process-exit.json"
+    "deadman-then-process-exit.json",
+    "multi-renewal-then-cancel.json"
   ],
   "negative": {
     "noncanonical-mission-id.json": "SEM-M01",
@@ -48,6 +49,11 @@
     "live-lease-null-observation-source.json": "SEM-L04",
     "deadman-at-mismatch.json": "SEM-L06",
     "deadman-fired-early.json": "SEM-L07",
-    "lease-tick-driver-source.json": "SEM-L09"
+    "lease-tick-driver-source.json": "SEM-L09",
+    "stale-late-lease-tick.json": "SEM-L01",
+    "noop-lease-renewal.json": "SEM-L10",
+    "missing-lease-started.json": "SEM-L11",
+    "duplicate-deadman-fired.json": "SEM-L10",
+    "restart-not-overdue.json": "SEM-L07"
   }
 }

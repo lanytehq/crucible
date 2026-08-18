@@ -48,7 +48,7 @@ SCHEMA_NAMES = (
 SCHEMA_BASE_URI = "https://schemas.3leaps.dev/agentic/mission/v0.1/"
 
 SEMANTIC_LAYER_ID = "mission/v0.1-semantics"
-SEMANTIC_LAYER_VERSION = "0.2.3"
+SEMANTIC_LAYER_VERSION = "0.2.4"
 
 TERMINAL_MISSION_PHASES = {
     "completed",
@@ -849,19 +849,17 @@ def semantic_violations(fixture: Any) -> list[str]:
 
     # Wave 3: cancel proof, lease fences, and restart receipts.
     cancel_requested_seen = False
-    max_lease_gen: dict[str, int] = {}
-    restart_keys: set[tuple[Any, Any]] = set()
     cancel_requests: dict[tuple[Any, Any, Any], int] = {}
     protocol_proofs: dict[tuple[Any, Any, Any], int] = {}
     process_proofs: dict[tuple[Any, Any, Any], int] = {}
-    fence_kinds = {
-        "cancel_requested",
-        "protocol_cancel_attempted",
-        "process_termination_attempted",
-        "lease_tick",
-        "restart_reconciled",
-    }
+    running_leases: dict[str, dict[str, Any]] = {}
+    consumed_timer_edges: set[tuple[Any, Any, Any, Any]] = set()
+    consumed_restarts: set[tuple[Any, Any]] = set()
     protocol_sources = {"driver_reported", "harness_reported"}
+    lease_policy = mapping(mission.get("lease_policy"))
+    lease_enabled = lease_policy.get("enabled") is True
+    lease_seconds = lease_policy.get("lease_seconds")
+    deadman_seconds = lease_policy.get("deadman_seconds")
 
     def fence_key(payload: Mapping[str, Any]) -> tuple[Any, Any, Any]:
         return (
@@ -920,51 +918,150 @@ def semantic_violations(fixture: Any) -> list[str]:
             ):
                 if isinstance(sequence, int):
                     process_proofs[fence_key(payload)] = sequence
-        if kind == "restart_reconciled" and payload.get("overdue") is True:
-            key = (payload.get("attempt_id"), payload.get("lease_generation"))
-            if key in restart_keys:
-                violations.add("SEM-L03")
-            restart_keys.add(key)
-        lease_gen = payload.get("lease_generation")
-        attempt_id = payload.get("attempt_id")
-        if (
-            isinstance(attempt_id, str)
-            and isinstance(lease_gen, int)
-            and not isinstance(lease_gen, bool)
-        ):
-            previous = max_lease_gen.get(attempt_id)
-            if previous is not None and lease_gen < previous:
+        running = running_leases.get(payload.get("attempt_id")) if isinstance(
+            payload.get("attempt_id"), str
+        ) else None
+        event_lease_gen = payload.get("lease_generation")
+        if kind in {
+            "cancel_requested",
+            "protocol_cancel_attempted",
+            "process_termination_attempted",
+            "restart_reconciled",
+        } and running is not None and event_lease_gen is not None:
+            if event_lease_gen != running.get("lease_generation"):
                 violations.add("SEM-L01")
-            max_lease_gen[attempt_id] = (
-                lease_gen if previous is None else max(previous, lease_gen)
-            )
-            if (
-                kind in fence_kinds
-                and attempt is not None
-                and attempt.get("lease_generation") is not None
-                and lease_gen != attempt.get("lease_generation")
-            ):
-                violations.add("SEM-L01")
+        if kind == "lease_started":
+            aid = payload.get("attempt_id")
+            if not isinstance(aid, str) or aid in running_leases:
+                violations.add("SEM-L11")
+            elif payload.get("lease_generation") != 1:
+                violations.add("SEM-L11")
+            else:
+                running_leases[aid] = {
+                    "lease_generation": 1,
+                    "lease_expires_at": payload.get("lease_expires_at"),
+                    "deadman_at": payload.get("deadman_at"),
+                    "last_observed_at": payload.get("observed_at"),
+                    "last_observation_source": payload.get("observation_source"),
+                }
         if kind == "lease_tick":
+            aid = payload.get("attempt_id")
+            obs_source = payload.get("observation_source")
+            tick_kind = payload.get("kind")
+            if running is None:
+                violations.add("SEM-L11")
+            else:
+                if (
+                    payload.get("prior_lease_generation") != running.get("lease_generation")
+                    or payload.get("prior_lease_expires_at") != running.get("lease_expires_at")
+                    or payload.get("prior_deadman_at") != running.get("deadman_at")
+                ):
+                    violations.add("SEM-L01")
+                    violations.add("SEM-L08")
+                observed = parse_instant(payload.get("observed_at"))
+                occurred = parse_instant(event.get("occurred_at"))
+                prior_lease = parse_instant(payload.get("prior_lease_expires_at"))
+                prior_dead = parse_instant(payload.get("prior_deadman_at"))
+                result_lease = parse_instant(payload.get("result_lease_expires_at"))
+                result_dead = parse_instant(payload.get("result_deadman_at"))
+                if tick_kind == "renewed":
+                    if payload.get("result_lease_generation") != (
+                        payload.get("prior_lease_generation") or 0
+                    ) + 1:
+                        violations.add("SEM-L01")
+                    if obs_source == "kernel_clock":
+                        violations.add("SEM-L09")
+                    if obs_source == "process_probe":
+                        if payload.get("result_lease_expires_at") != payload.get(
+                            "prior_lease_expires_at"
+                        ):
+                            violations.add("SEM-L06")
+                    elif obs_source in {"driver_event", "harness_event"}:
+                        if (
+                            observed is not None
+                            and isinstance(lease_seconds, int)
+                            and not isinstance(lease_seconds, bool)
+                            and result_lease != observed + timedelta(seconds=lease_seconds)
+                        ):
+                            violations.add("SEM-L06")
+                    if (
+                        observed is not None
+                        and isinstance(deadman_seconds, int)
+                        and not isinstance(deadman_seconds, bool)
+                        and result_dead != observed + timedelta(seconds=deadman_seconds)
+                    ):
+                        violations.add("SEM-L06")
+                    moved = False
+                    if result_dead is not None and prior_dead is not None and result_dead > prior_dead:
+                        moved = True
+                    if (
+                        obs_source in {"driver_event", "harness_event"}
+                        and result_lease is not None
+                        and prior_lease is not None
+                        and result_lease > prior_lease
+                    ):
+                        moved = True
+                    if not moved:
+                        violations.add("SEM-L10")
+                    if payload.get("prior_lease_generation") == running.get("lease_generation"):
+                        running_leases[aid] = {
+                            "lease_generation": payload.get("result_lease_generation"),
+                            "lease_expires_at": payload.get("result_lease_expires_at"),
+                            "deadman_at": payload.get("result_deadman_at"),
+                            "last_observed_at": payload.get("observed_at"),
+                            "last_observation_source": obs_source,
+                        }
+                elif tick_kind in {"deadman_fired", "expired"}:
+                    if (
+                        payload.get("prior_lease_generation")
+                        != payload.get("result_lease_generation")
+                        or payload.get("prior_lease_expires_at")
+                        != payload.get("result_lease_expires_at")
+                        or payload.get("prior_deadman_at") != payload.get("result_deadman_at")
+                    ):
+                        violations.add("SEM-L08")
+                    if obs_source != "kernel_clock" or source.get("kind") != "kernel_observed":
+                        violations.add("SEM-L09")
+                    deadline = (
+                        parse_instant(running.get("deadman_at"))
+                        if tick_kind == "deadman_fired"
+                        else parse_instant(running.get("lease_expires_at"))
+                    )
+                    if occurred is not None and deadline is not None and occurred < deadline:
+                        violations.add("SEM-L07")
+                    edge = (
+                        aid,
+                        running.get("lease_generation"),
+                        tick_kind,
+                        running.get("deadman_at")
+                        if tick_kind == "deadman_fired"
+                        else running.get("lease_expires_at"),
+                    )
+                    if edge in consumed_timer_edges:
+                        violations.add("SEM-L10")
+                    consumed_timer_edges.add(edge)
+        if kind == "restart_reconciled":
             if source.get("kind") != "kernel_observed":
                 violations.add("SEM-L09")
-            if attempt is not None:
-                if (
-                    payload.get("lease_expires_at") != attempt.get("lease_expires_at")
-                    or payload.get("deadman_at") != attempt.get("deadman_at")
-                ):
-                    violations.add("SEM-L08")
-                occurred = parse_instant(event.get("occurred_at"))
-                if payload.get("kind") == "deadman_fired":
-                    deadline = parse_instant(attempt.get("deadman_at"))
-                    if occurred is not None and deadline is not None and occurred < deadline:
+            if payload.get("overdue") is True:
+                gen = (
+                    running.get("lease_generation")
+                    if running is not None
+                    else payload.get("lease_generation")
+                )
+                key = (payload.get("attempt_id"), gen)
+                if key in consumed_restarts:
+                    violations.add("SEM-L03")
+                consumed_restarts.add(key)
+                if running is not None:
+                    occurred = parse_instant(event.get("occurred_at"))
+                    due = False
+                    for stamp in (running.get("deadman_at"), running.get("lease_expires_at")):
+                        instant = parse_instant(stamp)
+                        if occurred is not None and instant is not None and occurred >= instant:
+                            due = True
+                    if not due:
                         violations.add("SEM-L07")
-                if payload.get("kind") == "expired":
-                    deadline = parse_instant(attempt.get("lease_expires_at"))
-                    if occurred is not None and deadline is not None and occurred < deadline:
-                        violations.add("SEM-L07")
-        if kind == "restart_reconciled" and source.get("kind") != "kernel_observed":
-            violations.add("SEM-L09")
         if (
             kind == "attempt_state_changed"
             and payload.get("to") in {"crashed", "timed_out", "lost"}
@@ -1015,8 +1112,6 @@ def semantic_violations(fixture: Any) -> list[str]:
             ):
                 violations.add("SEM-C06")
 
-    lease_policy = mapping(mission.get("lease_policy"))
-    lease_enabled = lease_policy.get("enabled") is True
     for attempt in attempts_by_id.values():
         runtime = [
             attempt.get("lease_expires_at"),
@@ -1043,6 +1138,28 @@ def semantic_violations(fixture: Any) -> list[str]:
                 and deadman_at != observed + timedelta(seconds=deadman_seconds)
             ):
                 violations.add("SEM-L06")
+            lease_at = parse_instant(attempt.get("lease_expires_at"))
+            if (
+                observed is not None
+                and lease_at is not None
+                and isinstance(lease_seconds, int)
+                and not isinstance(lease_seconds, bool)
+                and lease_at != observed + timedelta(seconds=lease_seconds)
+            ):
+                violations.add("SEM-L06")
+        if lease_enabled and attempt.get("lease_generation") is not None:
+            running = running_leases.get(attempt.get("attempt_id"))
+            if running is None:
+                violations.add("SEM-L11")
+            elif (
+                running.get("lease_generation") != attempt.get("lease_generation")
+                or running.get("lease_expires_at") != attempt.get("lease_expires_at")
+                or running.get("deadman_at") != attempt.get("deadman_at")
+                or running.get("last_observed_at") != attempt.get("last_observed_at")
+                or running.get("last_observation_source")
+                != attempt.get("last_observation_source")
+            ):
+                violations.add("SEM-L08")
         source = attempt.get("last_observation_source")
         if source in {"seat", "chanvoy", "operator_presence"}:
             violations.add("SEM-L05")

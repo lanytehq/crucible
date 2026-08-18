@@ -88,6 +88,9 @@
           "$ref": "#/$defs/process-termination-attempted"
         },
         {
+          "$ref": "#/$defs/lease-started"
+        },
+        {
           "$ref": "#/$defs/lease-tick"
         },
         {
@@ -152,6 +155,7 @@
         "cancel_requested",
         "protocol_cancel_attempted",
         "process_termination_attempted",
+        "lease_started",
         "lease_tick",
         "restart_reconciled"
       ]
@@ -751,16 +755,72 @@
       },
       "additionalProperties": false
     },
-    "lease-tick": {
+    "observation-source": {
+      "type": "string",
+      "enum": [
+        "driver_event",
+        "harness_event",
+        "process_probe",
+        "kernel_clock"
+      ]
+    },
+    "lease-started": {
       "type": "object",
       "required": [
         "type",
         "attempt_id",
         "generation",
         "lease_generation",
-        "kind",
         "lease_expires_at",
-        "deadman_at"
+        "deadman_at",
+        "observed_at",
+        "observation_source"
+      ],
+      "properties": {
+        "type": {
+          "const": "lease_started"
+        },
+        "attempt_id": {
+          "$ref": "#/$defs/uuid-v4"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "lease_generation": {
+          "const": 1
+        },
+        "lease_expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "deadman_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "observation_source": {
+          "$ref": "#/$defs/observation-source"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Durable initial lease anchor. The first tick prior tuple must match this receipt."
+    },
+    "lease-tick": {
+      "type": "object",
+      "required": [
+        "type",
+        "attempt_id",
+        "generation",
+        "kind",
+        "prior_lease_generation",
+        "result_lease_generation",
+        "prior_lease_expires_at",
+        "prior_deadman_at",
+        "result_lease_expires_at",
+        "result_deadman_at",
+        "observed_at",
+        "observation_source"
       ],
       "properties": {
         "type": {
@@ -773,24 +833,39 @@
           "type": "integer",
           "minimum": 1
         },
-        "lease_generation": {
-          "type": "integer",
-          "minimum": 1
-        },
         "kind": {
           "type": "string",
           "enum": [
             "renewed",
             "deadman_fired",
             "expired"
-          ],
-          "description": "Emit only on a semantic edge. Scheduler wakes without a state change produce no receipt."
+          ]
         },
-        "lease_expires_at": {
+        "prior_lease_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "result_lease_generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "prior_lease_expires_at": {
           "$ref": "#/$defs/timestamp"
         },
-        "deadman_at": {
+        "prior_deadman_at": {
           "$ref": "#/$defs/timestamp"
+        },
+        "result_lease_expires_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "result_deadman_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "observation_source": {
+          "$ref": "#/$defs/observation-source"
         }
       },
       "additionalProperties": false
