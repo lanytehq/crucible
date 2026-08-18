@@ -48,7 +48,7 @@ SCHEMA_NAMES = (
 SCHEMA_BASE_URI = "https://schemas.3leaps.dev/agentic/mission/v0.1/"
 
 SEMANTIC_LAYER_ID = "mission/v0.1-semantics"
-SEMANTIC_LAYER_VERSION = "0.2.1"
+SEMANTIC_LAYER_VERSION = "0.2.2"
 
 TERMINAL_MISSION_PHASES = {
     "completed",
@@ -848,12 +848,13 @@ def semantic_violations(fixture: Any) -> list[str]:
         violations.add("SEM-T08")
 
     # Wave 3: cancel proof, lease fences, and restart receipts.
-    protocol_interrupted = False
-    process_cleared = False
     cancel_requested_seen = False
     deadman_only_crash = False
     max_lease_gen: dict[str, int] = {}
     restart_keys: set[tuple[Any, Any]] = set()
+    cancel_requests: dict[tuple[Any, Any, Any], int] = {}
+    protocol_proofs: dict[tuple[Any, Any, Any], int] = {}
+    process_proofs: dict[tuple[Any, Any, Any], int] = {}
     fence_kinds = {
         "cancel_requested",
         "protocol_cancel_attempted",
@@ -861,6 +862,14 @@ def semantic_violations(fixture: Any) -> list[str]:
         "lease_tick",
         "restart_reconciled",
     }
+    protocol_sources = {"driver_reported", "harness_reported"}
+
+    def fence_key(payload: Mapping[str, Any]) -> tuple[Any, Any, Any]:
+        return (
+            payload.get("attempt_id"),
+            payload.get("generation"),
+            payload.get("lease_generation"),
+        )
 
     def protocol_matches(payload: Mapping[str, Any], attempt: Mapping[str, Any] | None) -> bool:
         return bool(
@@ -879,16 +888,20 @@ def semantic_violations(fixture: Any) -> list[str]:
         kind = payload.get("type")
         source = mapping(event.get("source"))
         attempt = attempts_by_id.get(payload.get("attempt_id"))
+        sequence = event.get("sequence")
         if kind == "cancel_requested":
             cancel_requested_seen = True
+            if isinstance(sequence, int):
+                cancel_requests[fence_key(payload)] = sequence
         if kind == "protocol_cancel_attempted":
+            if source.get("kind") not in protocol_sources:
+                violations.add("SEM-P01")
             if payload.get("outcome") == "interrupted":
-                if protocol_matches(payload, attempt):
-                    protocol_interrupted = True
+                if protocol_matches(payload, attempt) and source.get("kind") in protocol_sources:
+                    if isinstance(sequence, int):
+                        protocol_proofs[fence_key(payload)] = sequence
                 else:
                     violations.add("SEM-C02")
-            if source.get("kind") == "kernel_observed":
-                violations.add("SEM-P01")
         if kind == "process_termination_attempted":
             if source.get("kind") != "kernel_observed":
                 violations.add("SEM-P01")
@@ -899,7 +912,8 @@ def semantic_violations(fixture: Any) -> list[str]:
                 and payload.get("generation") == attempt.get("generation")
                 and payload.get("lease_generation") == attempt.get("lease_generation")
             ):
-                process_cleared = True
+                if isinstance(sequence, int):
+                    process_proofs[fence_key(payload)] = sequence
         if kind == "restart_reconciled" and payload.get("overdue") is True:
             key = (payload.get("attempt_id"), payload.get("lease_generation"))
             if key in restart_keys:
@@ -938,14 +952,27 @@ def semantic_violations(fixture: Any) -> list[str]:
         for attempt in attempts_by_id.values()
         if attempt.get("state") == "cancelled"
     ]
-    if cancelled_attempts and not protocol_interrupted and not process_cleared:
-        violations.add("SEM-C01")
+    protocol_interrupted = bool(protocol_proofs)
+    process_cleared = bool(process_proofs)
+    for attempt in cancelled_attempts:
+        key = (
+            attempt.get("attempt_id"),
+            attempt.get("generation"),
+            attempt.get("lease_generation"),
+        )
+        request_seq = cancel_requests.get(key)
+        proto_seq = protocol_proofs.get(key)
+        proc_seq = process_proofs.get(key)
+        proof_seqs = [seq for seq in (proto_seq, proc_seq) if isinstance(seq, int)]
+        if request_seq is None or not proof_seqs or min(proof_seqs) <= request_seq:
+            violations.add("SEM-C01")
+        if proto_seq is None and proc_seq is None:
+            violations.add("SEM-C02")
+            violations.add("SEM-C03")
     if mission.get("phase") == "cancelled":
         no_attempt = not attempts_by_id
         if not (protocol_interrupted or process_cleared or (no_attempt and cancel_requested_seen)):
             violations.add("SEM-C02")
-    if cancelled_attempts and not process_cleared and not protocol_interrupted:
-        violations.add("SEM-C03")
 
     if mission.get("phase") in TERMINAL_MISSION_PHASES:
         if not events:

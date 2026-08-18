@@ -1,7 +1,7 @@
 {
   "semantic_layer": {
     "id": "mission/v0.1-semantics",
-    "version": "0.2.1"
+    "version": "0.2.2"
   },
   "conforming": [
     "create-only-wave1.json",
@@ -35,6 +35,11 @@
     "protocol-stale-lease-generation.json": "SEM-L01",
     "operator-command-process-clear.json": "SEM-P01",
     "terminal-missing-mission-terminal.json": "SEM-C06",
-    "terminal-mismatched-reason.json": "SEM-C06"
+    "terminal-mismatched-reason.json": "SEM-C06",
+    "cancel-without-request.json": "SEM-C01",
+    "proof-before-request.json": "SEM-C01",
+    "predecessor-proof-successor-cancel.json": "SEM-C01",
+    "protocol-operator-command-source.json": "SEM-P01",
+    "protocol-verified-attestation-source.json": "SEM-P01"
   }
 }
