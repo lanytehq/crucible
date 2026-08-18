@@ -275,7 +275,7 @@
         "from": "cancelling",
         "to": "cancelled",
         "reason": "protocol interrupted",
-        "cause": "protocol_interrupt"
+        "cause": "deadman_silence"
       }
     },
     {

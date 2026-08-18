@@ -262,10 +262,10 @@
       "recorded_at": "2026-08-18T17:02:10Z",
       "event_type": "attempt_state_changed",
       "source": {
-        "kind": "kernel_observed",
+        "kind": "driver_reported",
         "subject": "lanyte-kernel",
         "producer_version": "lanyte/0.3.0",
-        "assurance": "kernel_observed",
+        "assurance": "driver_observed",
         "evidence_ref": "evidence/attempt-1/cancelled"
       },
       "payload": {

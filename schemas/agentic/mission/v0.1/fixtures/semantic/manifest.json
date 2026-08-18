@@ -1,7 +1,7 @@
 {
   "semantic_layer": {
     "id": "mission/v0.1-semantics",
-    "version": "0.2.5"
+    "version": "0.2.6"
   },
   "conforming": [
     "create-only-wave1.json",
@@ -60,6 +60,13 @@
     "lease-started-underived-deadline.json": "SEM-L06",
     "fenced-mutation-before-anchor.json": "SEM-L11",
     "lease-events-policy-disabled.json": "SEM-L04",
-    "renewed-driver-lifecycle-source.json": "SEM-L09"
+    "renewed-driver-lifecycle-source.json": "SEM-L09",
+    "orphan-attempt-lifecycle.json": "SEM-T09",
+    "attempt-created-ordinal-drift.json": "SEM-T09",
+    "missing-cancelled-state-edge.json": "SEM-C10",
+    "cancelled-edge-driver-source.json": "SEM-C10",
+    "cancelled-edge-wrong-cause.json": "SEM-C10",
+    "cancelled-edge-before-proof.json": "SEM-C10",
+    "stale-projection-timestamps.json": "SEM-M06"
   }
 }

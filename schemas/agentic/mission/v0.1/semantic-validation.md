@@ -2,7 +2,7 @@
 
 **Layer id:** `mission/v0.1-semantics`
 
-**Layer version:** `0.2.5`
+**Layer version:** `0.2.6`
 
 **Applies to:**
 
@@ -39,13 +39,14 @@ negative fixture to produce its declared rule identifier.
 
 ## Identity and chronology
 
-| Rule    | Invariant                                                                                                                                 |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| SEM-M01 | Every mission, attempt, event, report, and request UUID is canonical lower-case UUID v4.                                                  |
-| SEM-M02 | Every timestamp is a parseable RFC 3339 instant; mission update, attempt end, event, and capability-expiry ordering never moves backward. |
-| SEM-M03 | `evidence_chain_id` equals `mission_id`; every event carries that mission ID.                                                             |
-| SEM-M04 | Event sequences begin at one, increase by exactly one, and preserve the previous-entry hash link.                                         |
-| SEM-M05 | `event_type` equals `payload.type`; the record terminal hash equals the terminal lifecycle entry hash.                                    |
+| Rule    | Invariant                                                                                                                                         |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SEM-M01 | Every mission, attempt, event, report, and request UUID is canonical lower-case UUID v4.                                                          |
+| SEM-M02 | Every timestamp is a parseable RFC 3339 instant; mission update, attempt end, event, and capability-expiry ordering never moves backward.         |
+| SEM-M03 | `evidence_chain_id` equals `mission_id`; every event carries that mission ID.                                                                     |
+| SEM-M04 | Event sequences begin at one, increase by exactly one, and preserve the previous-entry hash link.                                                 |
+| SEM-M05 | `event_type` equals `payload.type`; the record terminal hash equals the terminal lifecycle entry hash.                                            |
+| SEM-M06 | Mission `updated_at` is at or after the final recorded lifecycle time. A terminal attempt `ended_at` is at or after every event for that attempt. |
 
 ## Authority and durable identity
 
@@ -69,6 +70,7 @@ negative fixture to produce its declared rule identifier.
 | SEM-T06 | Attempt ordinals are unique and contiguous. `initial` has no predecessor; `resumes` and `relaunches` name an earlier attempt.                                                                     |
 | SEM-T07 | A successor attempt may be created only after its predecessor is terminal and recorded as `replaced`.                                                                                             |
 | SEM-T08 | Attempt generations are unique and increasing. Driver observations and operations must carry the current server-issued generation and fence; stale generations cannot change authoritative state. |
+| SEM-T09 | Attempt-scoped lifecycle events resolve to a durable attempt. `attempt_created` binds id, ordinal, generation, recovery relation, and predecessor to that record.                                 |
 
 Mission graph:
 

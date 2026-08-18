@@ -48,7 +48,7 @@ SCHEMA_NAMES = (
 SCHEMA_BASE_URI = "https://schemas.3leaps.dev/agentic/mission/v0.1/"
 
 SEMANTIC_LAYER_ID = "mission/v0.1-semantics"
-SEMANTIC_LAYER_VERSION = "0.2.5"
+SEMANTIC_LAYER_VERSION = "0.2.6"
 
 TERMINAL_MISSION_PHASES = {
     "completed",
@@ -855,6 +855,7 @@ def semantic_violations(fixture: Any) -> list[str]:
     running_leases: dict[str, dict[str, Any]] = {}
     consumed_timer_edges: set[tuple[Any, Any, Any, Any]] = set()
     consumed_restarts: set[tuple[Any, Any]] = set()
+    cancel_state_edges: dict[str, dict[str, Any]] = {}
     protocol_sources = {"driver_reported", "harness_reported"}
     lease_policy = mapping(mission.get("lease_policy"))
     lease_enabled = lease_policy.get("enabled") is True
@@ -886,6 +887,28 @@ def semantic_violations(fixture: Any) -> list[str]:
         source = mapping(event.get("source"))
         attempt = attempts_by_id.get(payload.get("attempt_id"))
         sequence = event.get("sequence")
+        scoped_attempt = payload.get("attempt_id")
+        if (
+            isinstance(scoped_attempt, str)
+            and kind
+            not in {
+                None,
+            }
+            and scoped_attempt not in attempts_by_id
+        ):
+            violations.add("SEM-T09")
+        if kind == "attempt_created":
+            record = attempts_by_id.get(payload.get("attempt_id"))
+            if record is None:
+                violations.add("SEM-T09")
+            elif (
+                payload.get("ordinal") != record.get("ordinal")
+                or payload.get("generation") != record.get("generation")
+                or payload.get("recovery_relation") != record.get("recovery_relation")
+                or payload.get("predecessor_attempt_id")
+                != record.get("predecessor_attempt_id")
+            ):
+                violations.add("SEM-T09")
         if kind == "cancel_requested":
             cancel_requested_seen = True
             if source.get("kind") != "operator_command" or source.get(
@@ -1119,6 +1142,18 @@ def semantic_violations(fixture: Any) -> list[str]:
             and payload.get("cause") == "deadman_silence"
         ):
             violations.add("SEM-C05")
+        if (
+            kind == "attempt_state_changed"
+            and payload.get("to") == "cancelled"
+            and isinstance(payload.get("attempt_id"), str)
+        ):
+            cancel_state_edges[payload["attempt_id"]] = {
+                "sequence": sequence,
+                "source": source.get("kind"),
+                "cause": payload.get("cause"),
+                "generation": payload.get("generation"),
+                "occurred_at": event.get("occurred_at"),
+            }
 
     cancelled_attempts = [
         attempt
@@ -1142,6 +1177,33 @@ def semantic_violations(fixture: Any) -> list[str]:
         if proto_seq is None and proc_seq is None:
             violations.add("SEM-C02")
             violations.add("SEM-C03")
+        edge = cancel_state_edges.get(attempt.get("attempt_id"))
+        expected_cause = "protocol_interrupt" if proto_seq is not None else (
+            "process_exit" if proc_seq is not None else None
+        )
+        proof_seq = min(proof_seqs) if proof_seqs else None
+        if (
+            edge is None
+            or edge.get("source") != "kernel_observed"
+            or edge.get("generation") != attempt.get("generation")
+            or edge.get("cause") != expected_cause
+            or not isinstance(edge.get("sequence"), int)
+            or (
+                isinstance(request_seq, int)
+                and isinstance(proof_seq, int)
+                and edge["sequence"] <= max(request_seq, proof_seq)
+            )
+        ):
+            violations.add("SEM-C10")
+        terminal_seq = events[-1].get("sequence") if events else None
+        if (
+            mission.get("phase") == "cancelled"
+            and isinstance(edge, Mapping)
+            and isinstance(edge.get("sequence"), int)
+            and isinstance(terminal_seq, int)
+            and terminal_seq <= edge["sequence"]
+        ):
+            violations.add("SEM-C10")
     if mission.get("phase") == "cancelled":
         no_attempt = not attempts_by_id
         if not (protocol_interrupted or process_cleared or (no_attempt and cancel_requested_seen)):
@@ -1214,6 +1276,33 @@ def semantic_violations(fixture: Any) -> list[str]:
         source = attempt.get("last_observation_source")
         if source in {"seat", "chanvoy", "operator_presence"}:
             violations.add("SEM-L05")
+
+    if events:
+        last_recorded = parse_instant(events[-1].get("recorded_at"))
+        updated = parse_instant(mission.get("updated_at"))
+        if last_recorded is not None and updated is not None and updated < last_recorded:
+            violations.add("SEM-M06")
+    for attempt in attempts_by_id.values():
+        if attempt.get("state") not in {
+            "completed",
+            "cancelled",
+            "replaced",
+            "failed",
+            "crashed",
+            "timed_out",
+            "lost",
+        }:
+            continue
+        ended = parse_instant(attempt.get("ended_at"))
+        if ended is None:
+            continue
+        for event in events:
+            payload = mapping(event.get("payload"))
+            if payload.get("attempt_id") != attempt.get("attempt_id"):
+                continue
+            occurred = parse_instant(event.get("occurred_at"))
+            if occurred is not None and ended < occurred:
+                violations.add("SEM-M06")
 
     return sorted(violations)
 

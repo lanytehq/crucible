@@ -7,7 +7,7 @@
     "goal": "Supervise a Codex attempt.",
     "policy_id": "policy.default",
     "created_at": "2026-08-18T17:00:00Z",
-    "updated_at": "2026-08-18T17:12:00Z",
+    "updated_at": "2026-08-18T17:12:30Z",
     "initiator": {
       "kind": "attested_session",
       "subject": "operator-1",
