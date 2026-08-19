@@ -1,0 +1,26 @@
+{
+  "create-without-idempotency.json": {
+    "keyword": "type",
+    "mentions": "idempotency_key"
+  },
+  "missing-schema-pin.json": {
+    "keyword": "required",
+    "mentions": "control_schema"
+  },
+  "request-supplies-identity.json": {
+    "keyword": "additionalProperties",
+    "mentions": "authenticated_role"
+  },
+  "unknown-property.json": {
+    "keyword": "additionalProperties",
+    "mentions": "unexpected"
+  },
+  "cancel-without-idempotency.json": {
+    "keyword": "type",
+    "mentions": "idempotency_key"
+  },
+  "cancel-interrupted-without-ids.json": {
+    "keyword": "type",
+    "mentions": "thread_id"
+  }
+}

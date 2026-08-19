@@ -1,4 +1,4 @@
-# Mission contract family v0
+# Mission contract family v0.1
 
 This family defines the durable mission domain above replaceable harness
 attempts. It is the contract boundary for mission records, handler payloads,
@@ -69,20 +69,20 @@ envelope and then validates its mission handler payload against this family.
 ## Wave 1 surface
 
 Wave 1 implements `mission.create`, `mission.show`, and `mission.list`.
-Wave 2 adds `mission.launch`, `mission.observe`, and `mission.close` (Codex App Server create/identify/observe/close). A newly created record is in `created`, has revision zero,
-contains no attempts, and has no authorizer. Lease, deadman, budget, driver,
-and recovery execution fields may be null or disabled; their runtime
-semantics are intentionally deferred.
+Wave 2 adds `mission.launch`, `mission.observe`, and `mission.close`.
+Wave 3 (`v0.1`) adds `mission.cancel`, attempt-scoped lease/deadman runtime,
+protocol-confirmed interrupt evidence, and `sysprims` fallback outcomes.
+The Wave 2 `v0` family remains frozen. See `wave3-transition-evidence.md`.
 
-This `v0` family is frozen. Wave 3 lease, deadman, and `mission.cancel`
-live in `../v0.1/`.
+A newly created record is in `created`, has revision zero, contains no
+attempts, and has no authorizer.
 
 ## Validation
 
 Run:
 
 ```sh
-make check-mission-v0
+make check-mission-v0.1
 ```
 
 The gate checks Draft 2020-12 schemas, conforming and negative fixtures, the

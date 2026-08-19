@@ -1,0 +1,4 @@
+{
+  "event_schema": "https://schemas.3leaps.dev/agentic/mission/v0.1/lifecycle-event.schema.json",
+  "unexpected": true
+}

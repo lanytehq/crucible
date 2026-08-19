@@ -1,0 +1,14 @@
+{
+  "missing-schema-pin.json": {
+    "keyword": "required",
+    "mentions": "mission_schema"
+  },
+  "noncanonical-mission-id.json": {
+    "keyword": "pattern",
+    "mentions": "mission_id"
+  },
+  "unknown-property.json": {
+    "keyword": "additionalProperties",
+    "mentions": "unexpected"
+  }
+}
