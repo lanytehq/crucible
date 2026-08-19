@@ -55,7 +55,8 @@
         "$ref": "#/$defs/capability"
       },
       "minItems": 1,
-      "maxItems": 32
+      "maxItems": 32,
+      "uniqueItems": true
     },
     "validity_condition": {
       "$ref": "#/$defs/validity-condition"

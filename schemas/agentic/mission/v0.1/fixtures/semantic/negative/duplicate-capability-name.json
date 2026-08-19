@@ -7,7 +7,7 @@
     "goal": "Supervise a Codex attempt.",
     "policy_id": "policy.default",
     "created_at": "2026-08-18T17:00:00Z",
-    "updated_at": "2026-08-18T17:02:10Z",
+    "updated_at": "2026-08-18T17:02:11Z",
     "initiator": {
       "kind": "attested_session",
       "subject": "operator-1",
@@ -79,7 +79,7 @@
         "driver_id": "driver.codex-app-server",
         "harness_session_id": "thread-1",
         "started_at": "2026-08-18T17:01:00Z",
-        "ended_at": "2026-08-18T17:02:10Z",
+        "ended_at": "2026-08-18T17:02:11Z",
         "terminal_reason": "protocol_cancelled",
         "evidence_ref": "evidence/attempt-1",
         "lease_expires_at": "2026-08-18T17:11:00Z",
@@ -193,7 +193,7 @@
       "payload": {
         "type": "lease_started",
         "attempt_id": "88888888-8888-4888-8888-888888888888",
-        "generation": 9,
+        "generation": 1,
         "lease_generation": 1,
         "lease_expires_at": "2026-08-18T17:11:00Z",
         "deadman_at": "2026-08-18T17:06:00Z",
@@ -304,7 +304,47 @@
       }
     }
   ],
-  "driver_capabilities": [],
+  "driver_capabilities": [
+    {
+      "capabilities_schema": "https://schemas.3leaps.dev/agentic/mission/v0.1/driver-capabilities.schema.json",
+      "report_id": "66666666-6666-4666-8666-666666666666",
+      "driver_id": "driver.codex-app-server",
+      "driver_version": "0.1.0",
+      "harness_kind": "codex",
+      "observed_at": "2026-08-18T17:00:00Z",
+      "expires_at": "2026-08-19T17:00:00Z",
+      "availability": "available",
+      "capabilities": [
+        {
+          "name": "cancel",
+          "fidelity": "native",
+          "observation": "kernel_observed",
+          "enforcement": "protocol_confirmed",
+          "replay": "idempotent",
+          "limitation": null,
+          "evidence_ref": "probes/dup/cancel"
+        },
+        {
+          "name": "cancel",
+          "fidelity": "lossy",
+          "observation": "kernel_observed",
+          "enforcement": "protocol_confirmed",
+          "replay": "idempotent",
+          "limitation": null,
+          "evidence_ref": "probes/dup/cancel-2"
+        }
+      ],
+      "validity_condition": {
+        "kind": "executable-version-platform-match",
+        "executable_version": "0.1.0",
+        "executable_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "configuration_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "platform": "aarch64-apple-darwin",
+        "probe_ref": "probes/dup"
+      },
+      "evidence_ref": "capability-reports/66666666-6666-4666-8666-666666666666"
+    }
+  ],
   "control_records": [
     {
       "operation": "mission.cancel",

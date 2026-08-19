@@ -11,7 +11,9 @@
     "idempotency_key",
     "expected_revision",
     "operation",
-    "body"
+    "body",
+    "request_fingerprint",
+    "original_result_hash"
   ],
   "properties": {
     "control_schema": {
@@ -36,6 +38,22 @@
       "maxLength": 256,
       "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{15,255}$",
       "description": "Caller-stable replay key persisted for mutating operations. Reuse with different content is a conflict."
+    },
+    "request_fingerprint": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "SHA-256 of the canonical mutating request content. Null on non-mutating operations."
+    },
+    "original_result_hash": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "SHA-256 of the original mutating result. Null on first-write requests and on non-mutating operations."
     },
     "expected_revision": {
       "type": [
@@ -63,6 +81,96 @@
   },
   "additionalProperties": false,
   "allOf": [
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "mission.create",
+              "mission.launch",
+              "mission.close",
+              "mission.cancel"
+            ]
+          }
+        },
+        "required": [
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "request_fingerprint": {
+            "type": "string"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "request_fingerprint": {
+            "type": "null"
+          },
+          "original_result_hash": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "result"
+          },
+          "operation": {
+            "enum": [
+              "mission.create",
+              "mission.launch",
+              "mission.close",
+              "mission.cancel"
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "original_result_hash": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "request"
+          },
+          "operation": {
+            "enum": [
+              "mission.create",
+              "mission.launch",
+              "mission.close",
+              "mission.cancel"
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "operation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "original_result_hash": {
+            "type": "null"
+          }
+        }
+      }
+    },
     {
       "if": {
         "properties": {

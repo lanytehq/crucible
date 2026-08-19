@@ -48,7 +48,7 @@ SCHEMA_NAMES = (
 SCHEMA_BASE_URI = "https://schemas.3leaps.dev/agentic/mission/v0.1/"
 
 SEMANTIC_LAYER_ID = "mission/v0.1-semantics"
-SEMANTIC_LAYER_VERSION = "0.2.6"
+SEMANTIC_LAYER_VERSION = "0.2.7"
 
 TERMINAL_MISSION_PHASES = {
     "completed",
@@ -504,6 +504,8 @@ def capability_entries(report: Any) -> dict[str, Mapping[str, Any]]:
             item_map = mapping(item)
             operation = field(item_map, "operation", "name", "kind")
             if isinstance(operation, str):
+                if operation in entries:
+                    continue
                 entries[operation] = item_map
     return entries
 
@@ -544,6 +546,7 @@ def semantic_violations(fixture: Any) -> list[str]:
         "before",
         "after",
         "required_capabilities",
+        "control_records",
     }
     if set(fixture) - allowed_fixture_fields:
         violations.add("SEM-FIXTURE")
@@ -554,6 +557,16 @@ def semantic_violations(fixture: Any) -> list[str]:
 
     reports = fixture.get("driver_capabilities")
     reports = reports if isinstance(reports, list) else []
+    for report in reports:
+        capabilities = mapping(report).get("capabilities")
+        if isinstance(capabilities, list):
+            names = [
+                mapping(item).get("name")
+                for item in capabilities
+                if isinstance(mapping(item).get("name"), str)
+            ]
+            if len(names) != len(set(names)):
+                violations.add("SEM-D01")
     mission_validator = validators.get("mission-record")
     event_validator = validators.get("lifecycle-event")
     capability_validator = validators.get("driver-capabilities")
@@ -612,6 +625,12 @@ def semantic_violations(fixture: Any) -> list[str]:
             "operator_command",
         } and not source.get("evidence_ref"):
             violations.add("SEM-A04")
+        if payload.get("type") == "cancel_requested":
+            authorized = mapping(mission.get("authorizer")).get("subject")
+            if not isinstance(authorized, str):
+                authorized = mapping(mission.get("initiator")).get("subject")
+            if source.get("subject") != authorized:
+                violations.add("SEM-A04")
         expected_assurance = {
             "kernel_observed": {"kernel_observed", "resource_attested"},
             "verified_attestation": {"resource_attested"},
@@ -652,22 +671,58 @@ def semantic_violations(fixture: Any) -> list[str]:
         ),
         None,
     )
-    authorization_index = next(
-        (
-            index
-            for index, event in enumerate(events)
-            if authorization_event(event)
-            and mapping(event.get("source")).get("kind")
-            in {"verified_attestation", "operator_command"}
-        ),
-        None,
-    )
+    authorization_index = None
+    for index, event in enumerate(events):
+        if not authorization_event(event):
+            continue
+        if mapping(event.get("source")).get("kind") not in {
+            "verified_attestation",
+            "operator_command",
+        }:
+            continue
+        payload = mapping(event.get("payload"))
+        authorizer = mapping(payload.get("authorizer"))
+        mission_authorizer = mapping(mission.get("authorizer"))
+        if (
+            authorizer.get("subject") != mission_authorizer.get("subject")
+            or payload.get("authorization_ref") != mission.get("authorization_ref")
+        ):
+            violations.add("SEM-A01")
+            continue
+        if authorization_index is None:
+            authorization_index = index
     if mission.get("authorizer") is not None and (
         not mission.get("authorization_ref")
         or authorization_index is None
         or (running_index is not None and authorization_index > running_index)
     ):
         violations.add("SEM-A01")
+
+    control_records = fixture.get("control_records")
+    control_records = control_records if isinstance(control_records, list) else []
+    fingerprints_by_key: dict[str, set[str]] = {}
+    for record in control_records:
+        record_map = mapping(record)
+        key = record_map.get("idempotency_key")
+        fingerprint = record_map.get("request_fingerprint")
+        result_hash = record_map.get("original_result_hash")
+        if (
+            not isinstance(key, str)
+            or not isinstance(fingerprint, str)
+            or not isinstance(result_hash, str)
+            or len(fingerprint) != 64
+            or len(result_hash) != 64
+            or any(ch not in "0123456789abcdef" for ch in fingerprint + result_hash)
+        ):
+            violations.add("SEM-A05")
+            continue
+        fingerprints_by_key.setdefault(key, set()).add(fingerprint)
+    if any(len(values) > 1 for values in fingerprints_by_key.values()):
+        violations.add("SEM-A05")
+    if any(
+        mapping(event.get("payload")).get("type") == "cancel_requested" for event in events
+    ) and not fingerprints_by_key:
+        violations.add("SEM-A05")
 
     # SEM-M03: a restore/relaunch preserves the durable mission identity and
     # operating role.  Fixtures may put the snapshots on the history, a
@@ -923,6 +978,11 @@ def semantic_violations(fixture: Any) -> list[str]:
         if kind == "protocol_cancel_attempted":
             if source.get("kind") not in protocol_sources:
                 violations.add("SEM-P01")
+            request_seq = cancel_requests.get(fence_key(payload))
+            if request_seq is None or (
+                isinstance(sequence, int) and sequence <= request_seq
+            ):
+                violations.add("SEM-C01")
             if payload.get("outcome") == "interrupted":
                 if protocol_matches(payload, attempt) and source.get("kind") in protocol_sources:
                     if isinstance(sequence, int):
@@ -932,6 +992,11 @@ def semantic_violations(fixture: Any) -> list[str]:
         if kind == "process_termination_attempted":
             if source.get("kind") != "kernel_observed":
                 violations.add("SEM-P01")
+            request_seq = cancel_requests.get(fence_key(payload))
+            if request_seq is None or (
+                isinstance(sequence, int) and sequence <= request_seq
+            ):
+                violations.add("SEM-C01")
             if (
                 payload.get("outcome") == "cleared"
                 and source.get("kind") == "kernel_observed"

@@ -10,5 +10,7 @@
     "policy_id": "policy.default",
     "deadline_at": null,
     "recovery_policy": "ask_operator"
-  }
+  },
+  "request_fingerprint": "e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0",
+  "original_result_hash": null
 }

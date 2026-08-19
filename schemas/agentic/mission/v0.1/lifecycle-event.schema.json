@@ -323,7 +323,8 @@
       "type": "object",
       "required": [
         "type",
-        "authorizer"
+        "authorizer",
+        "authorization_ref"
       ],
       "properties": {
         "type": {
@@ -331,6 +332,11 @@
         },
         "authorizer": {
           "$ref": "#/$defs/principal-ref"
+        },
+        "authorization_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
         }
       },
       "additionalProperties": false

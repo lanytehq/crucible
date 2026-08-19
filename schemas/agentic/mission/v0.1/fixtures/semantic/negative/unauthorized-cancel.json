@@ -106,5 +106,13 @@
       }
     }
   ],
-  "driver_capabilities": []
+  "driver_capabilities": [],
+  "control_records": [
+    {
+      "operation": "mission.cancel",
+      "idempotency_key": "mission-cancel-example-0001",
+      "request_fingerprint": "e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0",
+      "original_result_hash": "f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1"
+    }
+  ]
 }

@@ -8,5 +8,7 @@
   "body": {
     "records": [],
     "next_cursor": null
-  }
+  },
+  "request_fingerprint": null,
+  "original_result_hash": null
 }

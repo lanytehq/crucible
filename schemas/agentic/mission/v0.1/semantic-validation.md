@@ -2,7 +2,7 @@
 
 **Layer id:** `mission/v0.1-semantics`
 
-**Layer version:** `0.2.6`
+**Layer version:** `0.2.7`
 
 **Applies to:**
 
@@ -31,7 +31,10 @@ Semantic fixtures use this closed top-level form:
 
 `before` and `after` are optional recovery snapshots used only to test durable
 identity preservation. `required_capabilities` is an optional closed list used
-to test driver gating. No other top-level fixture fields are accepted.
+to test driver gating. `control_records` is an optional closed list of mutating
+control bindings (`idempotency_key`, `request_fingerprint`,
+`original_result_hash`) used to test SEM-A05. No other top-level fixture fields
+are accepted.
 
 The validator requires every fixture named in
 `fixtures/semantic/manifest.json`, rejects manifest drift, and requires every
@@ -50,13 +53,13 @@ negative fixture to produce its declared rule identifier.
 
 ## Authority and durable identity
 
-| Rule    | Invariant                                                                                                                                                                          |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SEM-A01 | A `created` mission has no authorizer. Authorization is bound only by a later verified event before an attempt becomes running.                                                    |
-| SEM-A02 | Mission initiator, supervisor, and operating role never change across recovery, resume, or relaunch.                                                                               |
-| SEM-A03 | No field name at any depth may carry raw token, passphrase, password, credential, secret, private key, or chain-of-thought material.                                               |
-| SEM-A04 | A verified-attestation or operator-command event has a non-null evidence reference; harness or driver claims never establish authority.                                            |
-| SEM-A05 | Every mutating control request has a caller-stable idempotency key. Replaying the same key and content returns the original result; reusing it with different content is rejected. |
+| Rule    | Invariant                                                                                                                                                                                                                                                                                                                                                     |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SEM-A01 | A `created` mission has no authorizer. Authorization is bound only by a later verified event before an attempt becomes running. That event's `authorizer.subject` and `authorization_ref` must equal the durable mission record. An unrelated attestation cannot authorize.                                                                                   |
+| SEM-A02 | Mission initiator, supervisor, and operating role never change across recovery, resume, or relaunch.                                                                                                                                                                                                                                                          |
+| SEM-A03 | No field name at any depth may carry raw token, passphrase, password, credential, secret, private key, or chain-of-thought material.                                                                                                                                                                                                                          |
+| SEM-A04 | A verified-attestation or operator-command event has a non-null evidence reference; harness or driver claims never establish authority. `cancel_requested.source.subject` must equal the authorized principal (`authorizer.subject`, or `initiator.subject` when still created).                                                                              |
+| SEM-A05 | Every mutating control request has a caller-stable idempotency key, a canonical `request_fingerprint`, and an `original_result_hash`. Replaying the same key and fingerprint returns the original result; reusing the key with a different fingerprint is rejected. Histories that include `cancel_requested` must carry those bindings in `control_records`. |
 
 ## Mission and attempt transitions
 
@@ -113,7 +116,7 @@ terminal -> no transition
 
 | Rule    | Invariant                                                                                                                                                                                                                                                                                                                       |
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SEM-C01 | `cancel_requested` is not terminal. An attempt may become `cancelled` only after protocol `interrupted` or process `cleared`.                                                                                                                                                                                                   |
+| SEM-C01 | `cancel_requested` is not terminal. Every `protocol_cancel_attempted` and `process_termination_attempted` requires an earlier same-fence attested `cancel_requested`, independent of outcome or mission phase. An attempt may become `cancelled` only after protocol `interrupted` or process `cleared`.                        |
 | SEM-C02 | Protocol-confirmed cancel is `turn/completed` `interrupted` bound to the exact attempt id, attempt generation, lease generation, harness thread, and harness turn. `request_accepted`, `unavailable`, `timeout`, and `unrelated_completion` cannot fold `cancelled`. Created-with-no-attempt may fold after `cancel_requested`. |
 | SEM-C03 | Process fallback folds `cancelled` only on membership-verified `cleared` with kernel provenance and the current attempt fence. `kill_dispatched`, `survivors`, and `unknown` are non-success.                                                                                                                                   |
 | SEM-C05 | Deadman silence is `unresponsive`. It is never inferred as `crashed`, `timed_out`, or `lost`.                                                                                                                                                                                                                                   |

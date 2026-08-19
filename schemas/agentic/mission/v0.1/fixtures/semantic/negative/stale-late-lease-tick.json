@@ -143,7 +143,8 @@
           "kind": "attested_session",
           "subject": "operator-1",
           "attestation_ref": "attestations/33333333-3333-4333-8333-333333333333"
-        }
+        },
+        "authorization_ref": "authz/1"
       }
     },
     {
@@ -399,5 +400,13 @@
       }
     }
   ],
-  "driver_capabilities": []
+  "driver_capabilities": [],
+  "control_records": [
+    {
+      "operation": "mission.cancel",
+      "idempotency_key": "mission-cancel-example-0001",
+      "request_fingerprint": "e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0",
+      "original_result_hash": "f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1"
+    }
+  ]
 }
