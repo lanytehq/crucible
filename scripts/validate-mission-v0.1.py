@@ -49,7 +49,7 @@ SCHEMA_NAMES = (
 SCHEMA_BASE_URI = "https://schemas.3leaps.dev/agentic/mission/v0.1/"
 
 SEMANTIC_LAYER_ID = "mission/v0.1-semantics"
-SEMANTIC_LAYER_VERSION = "0.2.11"
+SEMANTIC_LAYER_VERSION = "0.2.12"
 
 TERMINAL_MISSION_PHASES = {
     "completed",
@@ -436,13 +436,15 @@ CONTROL_RECORD_FIELDS = frozenset(
 )
 
 
-def control_mission_id(request: Mapping[str, Any], result: Mapping[str, Any]) -> Any:
-    if request.get("operation") == "mission.create":
-        return mapping(mapping(result.get("body")).get("record")).get("mission_id")
-    body_id = mapping(request.get("body")).get("mission_id")
-    if body_id is not None:
-        return body_id
-    return mapping(mapping(result.get("body")).get("record")).get("mission_id")
+def request_control_mission_id(request: Mapping[str, Any]) -> Any:
+    return mapping(request.get("body")).get("mission_id")
+
+
+def result_control_mission_id(result: Mapping[str, Any]) -> Any:
+    record_id = mapping(mapping(result.get("body")).get("record")).get("mission_id")
+    if record_id is not None:
+        return record_id
+    return mapping(result.get("body")).get("mission_id")
 
 
 def control_content_hash(value: Any) -> str | None:
@@ -790,7 +792,11 @@ def semantic_violations(fixture: Any) -> list[str]:
             or request.get("idempotency_key") != key
             or result.get("idempotency_key") != key
             or request.get("request_id") != result.get("request_id")
-            or control_mission_id(request, result) != mission.get("mission_id")
+            or result_control_mission_id(result) != mission.get("mission_id")
+            or (
+                record_map.get("operation") != "mission.create"
+                and request_control_mission_id(request) != mission.get("mission_id")
+            )
             or request.get("request_fingerprint") != fingerprint
             or result.get("request_fingerprint") != fingerprint
             or request.get("original_result_hash") is not None

@@ -1,7 +1,7 @@
 {
   "semantic_layer": {
     "id": "mission/v0.1-semantics",
-    "version": "0.2.11"
+    "version": "0.2.12"
   },
   "conforming": [
     "create-only-wave1.json",
@@ -82,6 +82,8 @@
     "control-embedded-invalid-payload.json": "SEM-A05",
     "control-request-id-mismatch.json": "SEM-A05",
     "control-cross-mission.json": "SEM-A05",
+    "control-cross-mission-result.json": "SEM-A05",
+    "control-cross-mission-request.json": "SEM-A05",
     "duplicate-capability-name.json": "SEM-D01",
     "protocol-request-accepted-without-cancel-request.json": "SEM-C01",
     "protocol-request-accepted-before-cancel-request.json": "SEM-C01",
