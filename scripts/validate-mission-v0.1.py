@@ -49,7 +49,7 @@ SCHEMA_NAMES = (
 SCHEMA_BASE_URI = "https://schemas.3leaps.dev/agentic/mission/v0.1/"
 
 SEMANTIC_LAYER_ID = "mission/v0.1-semantics"
-SEMANTIC_LAYER_VERSION = "0.2.12"
+SEMANTIC_LAYER_VERSION = "0.2.13"
 
 TERMINAL_MISSION_PHASES = {
     "completed",
