@@ -45,7 +45,7 @@
         "null"
       ],
       "pattern": "^[0-9a-f]{64}$",
-      "description": "SHA-256 of the canonical JSON request with request_fingerprint and original_result_hash omitted. Null on non-mutating operations."
+      "description": "SHA-256 of the canonical JSON request with request_id, request_fingerprint, and original_result_hash omitted. Null on non-mutating operations. Canonical bytes: UTF-8 JSON, object members sorted by Unicode code point of the key, no insignificant whitespace, RFC 8259 strings."
     },
     "original_result_hash": {
       "type": [
@@ -53,7 +53,7 @@
         "null"
       ],
       "pattern": "^[0-9a-f]{64}$",
-      "description": "SHA-256 of the original mutating result with original_result_hash omitted so the digest is not self-referential. Null on first-write requests and on non-mutating operations."
+      "description": "SHA-256 of the original mutating result with request_id, request_fingerprint, and original_result_hash omitted. Null on first-write requests and on non-mutating operations. Same canonical bytes as request_fingerprint."
     },
     "expected_revision": {
       "type": [

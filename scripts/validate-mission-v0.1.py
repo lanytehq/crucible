@@ -49,7 +49,7 @@ SCHEMA_NAMES = (
 SCHEMA_BASE_URI = "https://schemas.3leaps.dev/agentic/mission/v0.1/"
 
 SEMANTIC_LAYER_ID = "mission/v0.1-semantics"
-SEMANTIC_LAYER_VERSION = "0.2.9"
+SEMANTIC_LAYER_VERSION = "0.2.10"
 
 TERMINAL_MISSION_PHASES = {
     "completed",
@@ -417,7 +417,20 @@ def principal_fingerprint(value: Any) -> Any:
     )
 
 
-CONTROL_HASH_OMIT = frozenset({"request_fingerprint", "original_result_hash"})
+CONTROL_HASH_OMIT = frozenset(
+    {"request_id", "request_fingerprint", "original_result_hash"}
+)
+CONTROL_RECORD_FIELDS = frozenset(
+    {
+        "operation",
+        "idempotency_key",
+        "request_fingerprint",
+        "original_result_hash",
+        "evidence_ref",
+        "request",
+        "result",
+    }
+)
 
 
 def control_content_hash(value: Any) -> str | None:
@@ -733,6 +746,7 @@ def semantic_violations(fixture: Any) -> list[str]:
     fingerprints_by_key: dict[str, set[str]] = {}
     results_by_key_fp: dict[tuple[str, str], set[str]] = {}
     records_by_evidence: dict[str, list[Mapping[str, Any]]] = {}
+    control_validator = validators.get("mission-control")
     for record in control_records:
         record_map = mapping(record)
         request = mapping(record_map.get("request"))
@@ -743,8 +757,14 @@ def semantic_violations(fixture: Any) -> list[str]:
         evidence_ref = record_map.get("evidence_ref")
         request_hash = control_content_hash(request)
         result_content_hash = control_content_hash(result)
+        schema_ok = control_validator is not None and not (
+            list(control_validator.iter_errors(request))
+            or list(control_validator.iter_errors(result))
+        )
         if (
-            not isinstance(key, str)
+            set(record_map) - CONTROL_RECORD_FIELDS
+            or not schema_ok
+            or not isinstance(key, str)
             or not isinstance(fingerprint, str)
             or not isinstance(result_hash, str)
             or not isinstance(evidence_ref, str)
@@ -755,6 +775,7 @@ def semantic_violations(fixture: Any) -> list[str]:
             or result.get("operation") != "mission.cancel"
             or request.get("idempotency_key") != key
             or result.get("idempotency_key") != key
+            or request.get("request_id") != result.get("request_id")
             or request.get("request_fingerprint") != fingerprint
             or result.get("request_fingerprint") != fingerprint
             or request.get("original_result_hash") is not None
