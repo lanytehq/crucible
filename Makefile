@@ -94,10 +94,14 @@ check-mission-v0.1: ## Validate the agentic/mission v0.1 schema family (Wave 3 l
 	fi
 
 .PHONY: fmt
-fmt: ## Format all files (goneat: yaml, json, markdown); nonzero if goneat fails any file
+fmt: ## Format all files (goneat: yaml, json, markdown); skip apply when already clean
 	@if command -v goneat >/dev/null 2>&1; then \
-		goneat format --types yaml,json,markdown --folders . --finalize-eof --quiet && \
-		echo "[ok] fmt done"; \
+		if goneat format --types yaml,json,markdown --folders . --finalize-eof --check >/dev/null 2>&1; then \
+			echo "[ok] already formatted"; \
+		else \
+			goneat format --types yaml,json,markdown --folders . --finalize-eof --quiet && \
+			echo "[ok] fmt done"; \
+		fi; \
 	else \
 		echo "[--] goneat not found, skipping"; \
 	fi
@@ -121,7 +125,7 @@ quality: ## Run goneat lint checks (optional)
 	fi
 
 .PHONY: precommit
-precommit: check fmt quality ## Pre-commit checks: guards + fmt + lint
+precommit: check fmt quality ## Pre-commit checks: guards + fmt-check + lint
 	@echo "[ok] Pre-commit checks passed"
 
 .PHONY: prepush
