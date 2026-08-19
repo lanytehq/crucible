@@ -308,7 +308,8 @@
       "operation": "mission.cancel",
       "idempotency_key": "mission-cancel-example-0001",
       "request_fingerprint": "e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0",
-      "original_result_hash": "f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1"
+      "original_result_hash": "f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1",
+      "evidence_ref": "control/cancel/2"
     }
   ]
 }

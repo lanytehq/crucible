@@ -1,7 +1,7 @@
 {
   "semantic_layer": {
     "id": "mission/v0.1-semantics",
-    "version": "0.2.7"
+    "version": "0.2.8"
   },
   "conforming": [
     "create-only-wave1.json",
@@ -71,8 +71,11 @@
     "stale-projection-timestamps.json": "SEM-M06",
     "process-cleared-wrong-cause.json": "SEM-C10",
     "authorization-unrelated-principal.json": "SEM-A01",
+    "authorization-unrelated-attestation.json": "SEM-A01",
     "cancel-unrelated-subject.json": "SEM-A04",
     "control-key-fingerprint-conflict.json": "SEM-A05",
+    "control-key-result-hash-conflict.json": "SEM-A05",
+    "control-record-unlinked.json": "SEM-A05",
     "duplicate-capability-name.json": "SEM-D01",
     "protocol-request-accepted-without-cancel-request.json": "SEM-C01",
     "protocol-request-accepted-before-cancel-request.json": "SEM-C01",

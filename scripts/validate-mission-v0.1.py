@@ -48,7 +48,7 @@ SCHEMA_NAMES = (
 SCHEMA_BASE_URI = "https://schemas.3leaps.dev/agentic/mission/v0.1/"
 
 SEMANTIC_LAYER_ID = "mission/v0.1-semantics"
-SEMANTIC_LAYER_VERSION = "0.2.7"
+SEMANTIC_LAYER_VERSION = "0.2.8"
 
 TERMINAL_MISSION_PHASES = {
     "completed",
@@ -683,8 +683,11 @@ def semantic_violations(fixture: Any) -> list[str]:
         payload = mapping(event.get("payload"))
         authorizer = mapping(payload.get("authorizer"))
         mission_authorizer = mapping(mission.get("authorizer"))
+        durable_attestation = mapping(mission_authorizer.get("attestation"))
         if (
-            authorizer.get("subject") != mission_authorizer.get("subject")
+            authorizer.get("kind") != mission_authorizer.get("kind")
+            or authorizer.get("subject") != mission_authorizer.get("subject")
+            or authorizer.get("attestation_ref") != durable_attestation.get("trust_ref")
             or payload.get("authorization_ref") != mission.get("authorization_ref")
         ):
             violations.add("SEM-A01")
@@ -701,15 +704,20 @@ def semantic_violations(fixture: Any) -> list[str]:
     control_records = fixture.get("control_records")
     control_records = control_records if isinstance(control_records, list) else []
     fingerprints_by_key: dict[str, set[str]] = {}
+    results_by_key_fp: dict[tuple[str, str], set[str]] = {}
+    records_by_evidence: dict[str, list[Mapping[str, Any]]] = {}
     for record in control_records:
         record_map = mapping(record)
         key = record_map.get("idempotency_key")
         fingerprint = record_map.get("request_fingerprint")
         result_hash = record_map.get("original_result_hash")
+        evidence_ref = record_map.get("evidence_ref")
         if (
             not isinstance(key, str)
             or not isinstance(fingerprint, str)
             or not isinstance(result_hash, str)
+            or not isinstance(evidence_ref, str)
+            or record_map.get("operation") != "mission.cancel"
             or len(fingerprint) != 64
             or len(result_hash) != 64
             or any(ch not in "0123456789abcdef" for ch in fingerprint + result_hash)
@@ -717,12 +725,18 @@ def semantic_violations(fixture: Any) -> list[str]:
             violations.add("SEM-A05")
             continue
         fingerprints_by_key.setdefault(key, set()).add(fingerprint)
+        results_by_key_fp.setdefault((key, fingerprint), set()).add(result_hash)
+        records_by_evidence.setdefault(evidence_ref, []).append(record_map)
     if any(len(values) > 1 for values in fingerprints_by_key.values()):
         violations.add("SEM-A05")
-    if any(
-        mapping(event.get("payload")).get("type") == "cancel_requested" for event in events
-    ) and not fingerprints_by_key:
+    if any(len(values) > 1 for values in results_by_key_fp.values()):
         violations.add("SEM-A05")
+    for event in events:
+        if mapping(event.get("payload")).get("type") != "cancel_requested":
+            continue
+        evidence_ref = mapping(event.get("source")).get("evidence_ref")
+        if evidence_ref not in records_by_evidence:
+            violations.add("SEM-A05")
 
     # SEM-M03: a restore/relaunch preserves the durable mission identity and
     # operating role.  Fixtures may put the snapshots on the history, a

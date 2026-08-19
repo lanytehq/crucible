@@ -7,7 +7,7 @@
     "goal": "Supervise a Codex attempt.",
     "policy_id": "policy.default",
     "created_at": "2026-08-18T17:00:00Z",
-    "updated_at": "2026-08-18T17:02:10Z",
+    "updated_at": "2026-08-18T17:02:11Z",
     "initiator": {
       "kind": "attested_session",
       "subject": "operator-1",
@@ -79,7 +79,7 @@
         "driver_id": "driver.codex-app-server",
         "harness_session_id": "thread-1",
         "started_at": "2026-08-18T17:01:00Z",
-        "ended_at": "2026-08-18T17:02:10Z",
+        "ended_at": "2026-08-18T17:02:11Z",
         "terminal_reason": "protocol_cancelled",
         "evidence_ref": "evidence/attempt-1",
         "lease_expires_at": "2026-08-18T17:11:00Z",
@@ -245,7 +245,7 @@
       "payload": {
         "type": "protocol_cancel_attempted",
         "attempt_id": "88888888-8888-4888-8888-888888888888",
-        "generation": 9,
+        "generation": 1,
         "lease_generation": 1,
         "thread_id": "thread-1",
         "turn_id": "turn-1",
@@ -311,7 +311,7 @@
       "idempotency_key": "mission-cancel-example-0001",
       "request_fingerprint": "e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0",
       "original_result_hash": "f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1",
-      "evidence_ref": "control/cancel/2"
+      "evidence_ref": "control/unrelated"
     }
   ]
 }
