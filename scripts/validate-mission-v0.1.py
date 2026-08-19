@@ -15,6 +15,7 @@ or through the repository's ``make check-mission-v0.1`` target.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import pathlib
 import sys
@@ -48,7 +49,7 @@ SCHEMA_NAMES = (
 SCHEMA_BASE_URI = "https://schemas.3leaps.dev/agentic/mission/v0.1/"
 
 SEMANTIC_LAYER_ID = "mission/v0.1-semantics"
-SEMANTIC_LAYER_VERSION = "0.2.8"
+SEMANTIC_LAYER_VERSION = "0.2.9"
 
 TERMINAL_MISSION_PHASES = {
     "completed",
@@ -416,6 +417,30 @@ def principal_fingerprint(value: Any) -> Any:
     )
 
 
+CONTROL_HASH_OMIT = frozenset({"request_fingerprint", "original_result_hash"})
+
+
+def control_content_hash(value: Any) -> str | None:
+    if not isinstance(value, Mapping):
+        return None
+    payload = {key: item for key, item in value.items() if key not in CONTROL_HASH_OMIT}
+    blob = json.dumps(
+        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
+    return hashlib.sha256(blob).hexdigest()
+
+
+def principal_ref_matches(ref: Mapping[str, Any], principal: Mapping[str, Any]) -> bool:
+    attestation = mapping(principal.get("attestation"))
+    return (
+        ref.get("kind") == principal.get("kind")
+        and ref.get("subject") == principal.get("subject")
+        and ref.get("role") == principal.get("role")
+        and ref.get("scope") == principal.get("scope")
+        and ref.get("attestation_ref") == attestation.get("trust_ref")
+    )
+
+
 def operating_role_fingerprint(value: Any) -> Any:
     if not isinstance(value, Mapping):
         return value
@@ -626,10 +651,15 @@ def semantic_violations(fixture: Any) -> list[str]:
         } and not source.get("evidence_ref"):
             violations.add("SEM-A04")
         if payload.get("type") == "cancel_requested":
-            authorized = mapping(mission.get("authorizer")).get("subject")
-            if not isinstance(authorized, str):
-                authorized = mapping(mission.get("initiator")).get("subject")
-            if source.get("subject") != authorized:
+            durable = mapping(mission.get("authorizer"))
+            if durable.get("subject") is None:
+                durable = mapping(mission.get("initiator"))
+            cancel_authorizer = mapping(payload.get("authorizer"))
+            if (
+                source.get("subject") != durable.get("subject")
+                or payload.get("authorization_ref") != mission.get("authorization_ref")
+                or not principal_ref_matches(cancel_authorizer, durable)
+            ):
                 violations.add("SEM-A04")
         expected_assurance = {
             "kernel_observed": {"kernel_observed", "resource_attested"},
@@ -683,11 +713,8 @@ def semantic_violations(fixture: Any) -> list[str]:
         payload = mapping(event.get("payload"))
         authorizer = mapping(payload.get("authorizer"))
         mission_authorizer = mapping(mission.get("authorizer"))
-        durable_attestation = mapping(mission_authorizer.get("attestation"))
         if (
-            authorizer.get("kind") != mission_authorizer.get("kind")
-            or authorizer.get("subject") != mission_authorizer.get("subject")
-            or authorizer.get("attestation_ref") != durable_attestation.get("trust_ref")
+            not principal_ref_matches(authorizer, mission_authorizer)
             or payload.get("authorization_ref") != mission.get("authorization_ref")
         ):
             violations.add("SEM-A01")
@@ -708,16 +735,32 @@ def semantic_violations(fixture: Any) -> list[str]:
     records_by_evidence: dict[str, list[Mapping[str, Any]]] = {}
     for record in control_records:
         record_map = mapping(record)
+        request = mapping(record_map.get("request"))
+        result = mapping(record_map.get("result"))
         key = record_map.get("idempotency_key")
         fingerprint = record_map.get("request_fingerprint")
         result_hash = record_map.get("original_result_hash")
         evidence_ref = record_map.get("evidence_ref")
+        request_hash = control_content_hash(request)
+        result_content_hash = control_content_hash(result)
         if (
             not isinstance(key, str)
             or not isinstance(fingerprint, str)
             or not isinstance(result_hash, str)
             or not isinstance(evidence_ref, str)
             or record_map.get("operation") != "mission.cancel"
+            or request.get("kind") != "request"
+            or result.get("kind") != "result"
+            or request.get("operation") != "mission.cancel"
+            or result.get("operation") != "mission.cancel"
+            or request.get("idempotency_key") != key
+            or result.get("idempotency_key") != key
+            or request.get("request_fingerprint") != fingerprint
+            or result.get("request_fingerprint") != fingerprint
+            or request.get("original_result_hash") is not None
+            or result.get("original_result_hash") != result_hash
+            or request_hash != fingerprint
+            or result_content_hash != result_hash
             or len(fingerprint) != 64
             or len(result_hash) != 64
             or any(ch not in "0123456789abcdef" for ch in fingerprint + result_hash)

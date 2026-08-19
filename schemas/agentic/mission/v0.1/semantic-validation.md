@@ -2,7 +2,7 @@
 
 **Layer id:** `mission/v0.1-semantics`
 
-**Layer version:** `0.2.8`
+**Layer version:** `0.2.9`
 
 **Applies to:**
 
@@ -33,8 +33,8 @@ Semantic fixtures use this closed top-level form:
 identity preservation. `required_capabilities` is an optional closed list used
 to test driver gating. `control_records` is an optional closed list of mutating
 control bindings (`operation`, `idempotency_key`, `request_fingerprint`,
-`original_result_hash`, `evidence_ref`) used to test SEM-A05. No other
-top-level fixture fields are accepted.
+`original_result_hash`, `evidence_ref`, `request`, `result`) used to test
+SEM-A05. No other top-level fixture fields are accepted.
 
 The validator requires every fixture named in
 `fixtures/semantic/manifest.json`, rejects manifest drift, and requires every
@@ -53,13 +53,13 @@ negative fixture to produce its declared rule identifier.
 
 ## Authority and durable identity
 
-| Rule    | Invariant                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SEM-A01 | A `created` mission has no authorizer. Authorization is bound only by a later verified event before an attempt becomes running. That event's authorizer `kind`, `subject`, and `attestation_ref` plus `authorization_ref` must equal the durable attested principal (`kind`, `subject`, `attestation.trust_ref`) and decision. An unrelated attestation cannot authorize.                                                                                                                                              |
-| SEM-A02 | Mission initiator, supervisor, and operating role never change across recovery, resume, or relaunch.                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| SEM-A03 | No field name at any depth may carry raw token, passphrase, password, credential, secret, private key, or chain-of-thought material.                                                                                                                                                                                                                                                                                                                                                                                   |
-| SEM-A04 | A verified-attestation or operator-command event has a non-null evidence reference; harness or driver claims never establish authority. `cancel_requested.source.subject` must equal the authorized principal (`authorizer.subject`, or `initiator.subject` when still created).                                                                                                                                                                                                                                       |
-| SEM-A05 | Every mutating control request has a caller-stable idempotency key, a canonical `request_fingerprint`, and an `original_result_hash`. The fingerprint hashes the request with those two hash fields omitted; the result hash hashes the original result with `original_result_hash` omitted. One key maps to one fingerprint and one original result. Reuse of the key with a different fingerprint or result hash is rejected. Each `cancel_requested` evidence ref must name the matching `control_records` binding. |
+| Rule    | Invariant                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SEM-A01 | A `created` mission has no authorizer. Authorization is bound only by a later verified event before an attempt becomes running. That event's authorizer `kind`, `subject`, `role`, `scope`, and `attestation_ref` plus `authorization_ref` must equal the durable attested principal and decision. An unrelated attestation cannot authorize.                                                                                                                    |
+| SEM-A02 | Mission initiator, supervisor, and operating role never change across recovery, resume, or relaunch.                                                                                                                                                                                                                                                                                                                                                             |
+| SEM-A03 | No field name at any depth may carry raw token, passphrase, password, credential, secret, private key, or chain-of-thought material.                                                                                                                                                                                                                                                                                                                             |
+| SEM-A04 | A verified-attestation or operator-command event has a non-null evidence reference; harness or driver claims never establish authority. `cancel_requested` binds `source.subject`, payload `authorizer` (`kind`, `subject`, `role`, `scope`, `attestation_ref`), and `authorization_ref` to the durable attested principal and decision (initiator when still created).                                                                                          |
+| SEM-A05 | Every mutating control request has a caller-stable idempotency key, a canonical `request_fingerprint`, and an `original_result_hash`. Hashes are SHA-256 of canonical JSON with `request_fingerprint` and `original_result_hash` omitted. `control_records` must include the request and original result whose digests equal those hashes. One key maps to one fingerprint and one original result. Each `cancel_requested` evidence ref must name that binding. |
 
 ## Mission and attempt transitions
 

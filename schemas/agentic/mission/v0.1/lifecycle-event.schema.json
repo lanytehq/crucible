@@ -239,6 +239,8 @@
       "required": [
         "kind",
         "subject",
+        "role",
+        "scope",
         "attestation_ref"
       ],
       "properties": {
@@ -246,6 +248,16 @@
           "const": "attested_session"
         },
         "subject": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "scope": {
           "type": "string",
           "minLength": 1,
           "maxLength": 256
@@ -612,7 +624,9 @@
         "type",
         "attempt_id",
         "generation",
-        "lease_generation"
+        "lease_generation",
+        "authorizer",
+        "authorization_ref"
       ],
       "properties": {
         "type": {
@@ -634,10 +648,21 @@
             "null"
           ],
           "minimum": 1
+        },
+        "authorizer": {
+          "$ref": "#/$defs/principal-ref"
+        },
+        "authorization_ref": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 2048
         }
       },
       "additionalProperties": false,
-      "description": "Operator cancel accepted. Not a terminal observation."
+      "description": "Operator cancel accepted. Not a terminal observation. Authorizer and authorization_ref bind the command to the durable attested principal and decision."
     },
     "protocol-cancel-attempted": {
       "type": "object",
