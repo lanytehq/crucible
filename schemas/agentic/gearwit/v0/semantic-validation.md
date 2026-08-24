@@ -59,7 +59,7 @@ receipt.
 2. `request_id` is the idempotency key. Reuse with a different body is a hard
    conflict. Exact replay of a recorded `handled_cursor_accepted` for that
    `request_id` and body is returned even after a successor generation exists.
-   Only an *unseen* request that names a replaced generation is
+   Only an _unseen_ request that names a replaced generation is
    `stale_generation`.
 3. The request authenticates the live `arm_id`, `generation`, and `seat_id`
    except for the exact-replay case in rule 2. Reject `unknown_arm`,
@@ -72,26 +72,28 @@ receipt.
 6. `cursor` is classified against two ordered snapshots for that signal: the
    delivered batch and, when retained, the provider drain that produced it.
    An unknown `event_ref` is `cursor_not_member`. A ref that appears in the
-   retained drain *after* the delivered bound (`newest_event_ref`) is
+   retained drain _after_ the delivered bound (`newest_event_ref`) is
    `cursor_beyond_delivered`. A ref in the delivered sequence is a prefix
    endpoint: the seat attests every delivered event through that index
    inclusive.
-7. Prefix ACK *closes* the old signal at that cursor. Coverage may re-arm
-   with exclusive baseline equal to the accepted cursor. The unhandled
-   suffix (delivered events after the cursor, if any) is no longer pending
-   under the old `signal_id`; it remains eligible only as part of a
-   successor drain under a new signal. Newest-cursor ACK is the zero-suffix
-   case (old signal fully closed). After generation replacement, no later
-   non-replay ACK may extend the closed signal.
-8. Within a still-open signal, handled cursors are monotonic. The same cursor
-   may be ACKed again only as exact `request_id` replay (rule 2) or as a new
-   request that names that same cursor (idempotent). An earlier member after
-   a later accepted cursor is `stale_cursor`. Rejecting these cases must not
-   advance coverage.
-9. A valid ACK may record `handled_cursor_recorded` (control-plane or seat
-   source) and permit coverage to re-arm from that cursor. It must not claim
-   `turn_started`, `model_observed`, or `seat_acted`, and must not manufacture
-   unknown predecessor phases.
+7. **Recording** an accepted ACK may leave coverage paused and the signal
+   open. Progressive ACKs may then name the same cursor or a later member of
+   the still-open delivered sequence. An earlier member after a later
+   accepted cursor is `stale_cursor`. These rejects must not advance
+   coverage. Exact `request_id` replay remains idempotent (rule 2).
+8. **Using an accepted cursor to re-arm** is a distinct step. It closes the
+   signal at that cursor, advances the exclusive coverage baseline to that
+   cursor, transfers only the unhandled suffix to successor-drain
+   eligibility under a new signal, and replaces generation. Newest-cursor
+   re-arm is the zero-suffix case. After close/re-arm, exact recorded
+   `request_id` replay still returns its recorded acceptance; any unseen
+   old-generation request—including the same cursor under a new
+   `request_id`—is `stale_generation`. A CLI that re-arms on its first ACK
+   is an implementation choice, not a wire requirement.
+9. A valid recorded ACK may emit `handled_cursor_recorded` (control-plane or
+   seat source). Neither recording nor re-arm claims `turn_started`,
+   `model_observed`, or `seat_acted`, or manufactures unknown predecessor
+   phases.
 
 ## Receipt rules
 
