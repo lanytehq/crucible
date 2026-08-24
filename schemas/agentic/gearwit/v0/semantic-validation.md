@@ -57,24 +57,37 @@ receipt.
    acknowledgement must not be encoded as `deliver_events` or
    `delivery_result`.
 2. `request_id` is the idempotency key. Reuse with a different body is a hard
-   conflict. Exact replay of a prior accepted ACK is idempotent.
-3. The request authenticates the live `arm_id`, `generation`, and `seat_id`.
-   Reject `unknown_arm`, `stale_generation`, and `seat_mismatch`.
+   conflict. Exact replay of a recorded `handled_cursor_accepted` for that
+   `request_id` and body is returned even after a successor generation exists.
+   Only an *unseen* request that names a replaced generation is
+   `stale_generation`.
+3. The request authenticates the live `arm_id`, `generation`, and `seat_id`
+   except for the exact-replay case in rule 2. Reject `unknown_arm`,
+   `stale_generation`, and `seat_mismatch` for unseen requests.
 4. `signal_id` is the stable signal identity for the claimed batch. It is not
-   `delivery_id`. Redelivery on a successor link keeps the same `signal_id`.
-   Reject `unknown_signal`.
+   `delivery_id`. Redelivery on a successor link keeps the same `signal_id`
+   until that signal is closed by ACK. Reject `unknown_signal`.
 5. ACK is illegal before a batch for that signal has been delivered
    (`ack_before_delivery`). `return_completed` is not itself an ACK.
-6. `cursor` must be a member of the exact delivered ordered `event_ref`
-   sequence. That member is a prefix endpoint: the seat attests every event
-   through that index inclusive. Reject `cursor_not_member`.
-7. `cursor` must not be beyond `newest_event_ref` of that delivered batch
-   (`cursor_beyond_delivered`). Drain `newest_observed` is not sufficient if
-   that ref was never in the delivered set.
-8. Handled cursors are monotonic per `(arm_id, generation, signal_id)`. A
-   later ACK may name the same cursor (idempotent) or a later member of the
-   same delivered sequence. An earlier member after a later ACK is
-   `stale_cursor`. Rejecting these cases must not advance coverage.
+6. `cursor` is classified against two ordered snapshots for that signal: the
+   delivered batch and, when retained, the provider drain that produced it.
+   An unknown `event_ref` is `cursor_not_member`. A ref that appears in the
+   retained drain *after* the delivered bound (`newest_event_ref`) is
+   `cursor_beyond_delivered`. A ref in the delivered sequence is a prefix
+   endpoint: the seat attests every delivered event through that index
+   inclusive.
+7. Prefix ACK *closes* the old signal at that cursor. Coverage may re-arm
+   with exclusive baseline equal to the accepted cursor. The unhandled
+   suffix (delivered events after the cursor, if any) is no longer pending
+   under the old `signal_id`; it remains eligible only as part of a
+   successor drain under a new signal. Newest-cursor ACK is the zero-suffix
+   case (old signal fully closed). After generation replacement, no later
+   non-replay ACK may extend the closed signal.
+8. Within a still-open signal, handled cursors are monotonic. The same cursor
+   may be ACKed again only as exact `request_id` replay (rule 2) or as a new
+   request that names that same cursor (idempotent). An earlier member after
+   a later accepted cursor is `stale_cursor`. Rejecting these cases must not
+   advance coverage.
 9. A valid ACK may record `handled_cursor_recorded` (control-plane or seat
    source) and permit coverage to re-arm from that cursor. It must not claim
    `turn_started`, `model_observed`, or `seat_acted`, and must not manufacture
