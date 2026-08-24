@@ -1,0 +1,11 @@
+{
+  "schema": "gearwit.interrupt.lifecycle-receipt.v0",
+  "receipt_id": "01J00000000000000000000030",
+  "arm_id": "01J00000000000000000000010",
+  "sequence": 1,
+  "fact": {
+    "phase": "wait_armed"
+  },
+  "source": "control_plane",
+  "observed_at": "2026-01-15T12:00:00Z"
+}

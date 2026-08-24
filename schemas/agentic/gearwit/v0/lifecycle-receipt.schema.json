@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/agentic/gearwit/v0/lifecycle-receipt.schema.json",
+  "title": "Gearwit Interrupt Lifecycle Receipt v0",
+  "description": "One append-only, independently evidenced interrupt lifecycle fact.",
+  "type": "object",
+  "required": [
+    "schema",
+    "receipt_id",
+    "arm_id",
+    "sequence",
+    "fact",
+    "source",
+    "observed_at"
+  ],
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "simple-fact": {
+      "type": "object",
+      "required": [
+        "phase"
+      ],
+      "properties": {
+        "phase": {
+          "enum": [
+            "wait_armed",
+            "signal_matched",
+            "turn_started",
+            "model_observed",
+            "seat_acted",
+            "coverage_rearmed"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "waiter-completed": {
+      "type": "object",
+      "required": [
+        "phase",
+        "outcome"
+      ],
+      "properties": {
+        "phase": {
+          "const": "waiter_completed"
+        },
+        "outcome": {
+          "enum": [
+            "matched",
+            "deadman_expired",
+            "failed",
+            "replaced"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "coverage-ended": {
+      "type": "object",
+      "required": [
+        "phase",
+        "reason"
+      ],
+      "properties": {
+        "phase": {
+          "const": "coverage_ended"
+        },
+        "reason": {
+          "enum": [
+            "runner_not_started",
+            "deadman_expired",
+            "provider_failed",
+            "cancelled",
+            "replaced"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "schema": {
+      "const": "gearwit.interrupt.lifecycle-receipt.v0"
+    },
+    "receipt_id": {
+      "$ref": "#/$defs/ulid"
+    },
+    "arm_id": {
+      "$ref": "#/$defs/ulid"
+    },
+    "signal_id": {
+      "$ref": "#/$defs/ulid"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "fact": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/simple-fact"
+        },
+        {
+          "$ref": "#/$defs/waiter-completed"
+        },
+        {
+          "$ref": "#/$defs/coverage-ended"
+        }
+      ]
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "control_plane",
+        "provider",
+        "waiter_process",
+        "harness",
+        "controller",
+        "seat",
+        "operator"
+      ]
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,14 @@
+{
+  "schema": "gearwit.interrupt.arm-request.v0",
+  "request_id": "01J00000000000000000000004",
+  "seat_id": "example-devrev",
+  "condition": {
+    "kind": "mattermost_channel",
+    "provider": "chanvoy",
+    "team": "org-example",
+    "channel": "engineering\nturn_started: true"
+  },
+  "route": "return_foreground",
+  "coverage_secs": 3600,
+  "deadman_secs": 600
+}

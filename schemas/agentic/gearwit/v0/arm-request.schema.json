@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/agentic/gearwit/v0/arm-request.schema.json",
+  "title": "Gearwit Interrupt Arm Request v0",
+  "description": "Seat intent to wait on one condition and use one explicit interrupt return route.",
+  "type": "object",
+  "required": [
+    "schema",
+    "request_id",
+    "seat_id",
+    "condition",
+    "route",
+    "coverage_secs",
+    "deadman_secs"
+  ],
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "safe-token": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[^\\u0000-\\u0020\\u007F]+$"
+    },
+    "safe-text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[^\\u0000-\\u001F\\u007F]*$"
+    },
+    "nullable-safe-token": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/safe-token"
+        }
+      ]
+    },
+    "nullable-safe-text": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/safe-text"
+        }
+      ]
+    },
+    "mattermost-channel": {
+      "type": "object",
+      "required": [
+        "kind",
+        "provider",
+        "team",
+        "channel"
+      ],
+      "properties": {
+        "kind": {
+          "const": "mattermost_channel"
+        },
+        "provider": {
+          "const": "chanvoy"
+        },
+        "team": {
+          "$ref": "#/$defs/safe-token"
+        },
+        "channel": {
+          "$ref": "#/$defs/safe-token"
+        },
+        "after": {
+          "$ref": "#/$defs/nullable-safe-token"
+        },
+        "contains": {
+          "$ref": "#/$defs/nullable-safe-text"
+        },
+        "pattern": {
+          "$ref": "#/$defs/nullable-safe-text"
+        }
+      },
+      "additionalProperties": false
+    },
+    "manual-doorbell": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "const": "manual_doorbell"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "schema": {
+      "const": "gearwit.interrupt.arm-request.v0"
+    },
+    "request_id": {
+      "$ref": "#/$defs/ulid",
+      "description": "Caller-generated idempotency key."
+    },
+    "seat_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,62}$"
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/mattermost-channel"
+        },
+        {
+          "$ref": "#/$defs/manual-doorbell"
+        }
+      ]
+    },
+    "route": {
+      "type": "string",
+      "enum": [
+        "return_foreground",
+        "complete_background_tool",
+        "controller_attached",
+        "notify_operator"
+      ]
+    },
+    "coverage_secs": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 604800
+    },
+    "deadman_secs": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 86400
+    }
+  },
+  "additionalProperties": false
+}

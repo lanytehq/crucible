@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/agentic/gearwit/v0/ring-request.schema.json",
+  "title": "Gearwit Interrupt Ring Request v0",
+  "description": "Bounded external signal targeting one admitted interrupt arm.",
+  "type": "object",
+  "required": [
+    "schema",
+    "request_id",
+    "signal_id",
+    "arm_id",
+    "source",
+    "observed_at"
+  ],
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "safe-text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[^\\u0000-\\u001F\\u007F]*$"
+    },
+    "provider-event": {
+      "type": "object",
+      "required": [
+        "kind",
+        "provider",
+        "event_ref"
+      ],
+      "properties": {
+        "kind": {
+          "const": "provider_event"
+        },
+        "provider": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,62}$"
+        },
+        "event_ref": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[^\\u0000-\\u0020\\u007F]+$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "manual-doorbell": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "const": "manual_doorbell"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "schema": {
+      "const": "gearwit.interrupt.ring-request.v0"
+    },
+    "request_id": {
+      "$ref": "#/$defs/ulid",
+      "description": "Caller-generated idempotency key."
+    },
+    "signal_id": {
+      "$ref": "#/$defs/ulid"
+    },
+    "arm_id": {
+      "$ref": "#/$defs/ulid"
+    },
+    "source": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/provider-event"
+        },
+        {
+          "$ref": "#/$defs/manual-doorbell"
+        }
+      ]
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reason": {
+      "$ref": "#/$defs/safe-text",
+      "description": "Optional diagnostic label. Never prompt text."
+    }
+  },
+  "additionalProperties": false
+}

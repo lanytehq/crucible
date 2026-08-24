@@ -1,0 +1,11 @@
+{
+  "schema": "gearwit.interrupt.arm-request.v0",
+  "request_id": "01J00000000000000000000003",
+  "seat_id": "example-devlead",
+  "condition": {
+    "kind": "manual_doorbell"
+  },
+  "route": "complete_background_tool",
+  "coverage_secs": 300,
+  "deadman_secs": 600
+}
