@@ -17,6 +17,11 @@ Schemas are SSOT artifacts intended for **machine consumption**. The canonical f
 - `schemas/common/chanvoy-daemon-rpc/v0/` — Chanvoy local daemon JSON-RPC
   method contracts, including the bounded multi-channel wait capability.
 
+## Agentic protocol schemas
+
+- `schemas/agentic/gearwit/v0/` — Gearwit interrupt lifecycle and local
+  daemon-to-waiter delivery contracts.
+
 ## Policy
 
 Default stance for IPC and config schemas:

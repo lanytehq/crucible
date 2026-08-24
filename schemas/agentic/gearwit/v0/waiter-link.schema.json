@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/agentic/gearwit/v0/waiter-link.schema.json",
+  "title": "Gearwit Waiter Link v0",
+  "description": "Provider-neutral local protocol between gearwitd and one attached harness waiter.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/attach-waiter"
+    },
+    {
+      "$ref": "#/$defs/attach-accepted"
+    },
+    {
+      "$ref": "#/$defs/attach-rejected"
+    },
+    {
+      "$ref": "#/$defs/deliver-events"
+    },
+    {
+      "$ref": "#/$defs/delivery-result"
+    }
+  ],
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    },
+    "safe-token": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[^\\u0000-\\u0020\\u007F]+$"
+    },
+    "safe-body": {
+      "type": "string",
+      "maxLength": 4096,
+      "pattern": "^[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F]*$"
+    },
+    "seat-id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,62}$"
+    },
+    "attached-route": {
+      "type": "string",
+      "enum": [
+        "return_foreground",
+        "complete_background_tool"
+      ]
+    },
+    "provider-event": {
+      "type": "object",
+      "required": [
+        "provider",
+        "event_ref",
+        "observed_at",
+        "body"
+      ],
+      "properties": {
+        "provider": {
+          "$ref": "#/$defs/safe-token"
+        },
+        "event_ref": {
+          "$ref": "#/$defs/safe-token"
+        },
+        "actor": {
+          "$ref": "#/$defs/safe-token"
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "body": {
+          "$ref": "#/$defs/safe-body"
+        }
+      },
+      "additionalProperties": false
+    },
+    "attach-waiter": {
+      "type": "object",
+      "required": [
+        "schema",
+        "type",
+        "request_id",
+        "waiter_id",
+        "arm_id",
+        "generation",
+        "seat_id",
+        "route",
+        "observed_at"
+      ],
+      "properties": {
+        "schema": {
+          "const": "gearwit.interrupt.waiter-link.v0"
+        },
+        "type": {
+          "const": "attach_waiter"
+        },
+        "request_id": {
+          "$ref": "#/$defs/ulid"
+        },
+        "waiter_id": {
+          "$ref": "#/$defs/ulid"
+        },
+        "arm_id": {
+          "$ref": "#/$defs/ulid"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "seat_id": {
+          "$ref": "#/$defs/seat-id"
+        },
+        "route": {
+          "$ref": "#/$defs/attached-route"
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "attach-accepted": {
+      "type": "object",
+      "required": [
+        "schema",
+        "type",
+        "request_id",
+        "link_id",
+        "arm_id",
+        "generation",
+        "route",
+        "accepted_at",
+        "lease_until"
+      ],
+      "properties": {
+        "schema": {
+          "const": "gearwit.interrupt.waiter-link.v0"
+        },
+        "type": {
+          "const": "attach_accepted"
+        },
+        "request_id": {
+          "$ref": "#/$defs/ulid"
+        },
+        "link_id": {
+          "$ref": "#/$defs/ulid"
+        },
+        "arm_id": {
+          "$ref": "#/$defs/ulid"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "route": {
+          "$ref": "#/$defs/attached-route"
+        },
+        "accepted_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lease_until": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "attach-rejected": {
+      "type": "object",
+      "required": [
+        "schema",
+        "type",
+        "request_id",
+        "code",
+        "observed_at"
+      ],
+      "properties": {
+        "schema": {
+          "const": "gearwit.interrupt.waiter-link.v0"
+        },
+        "type": {
+          "const": "attach_rejected"
+        },
+        "request_id": {
+          "$ref": "#/$defs/ulid"
+        },
+        "code": {
+          "type": "string",
+          "enum": [
+            "unknown_arm",
+            "stale_generation",
+            "route_mismatch",
+            "already_attached",
+            "coverage_ended"
+          ]
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "deliver-events": {
+      "type": "object",
+      "required": [
+        "schema",
+        "type",
+        "delivery_id",
+        "link_id",
+        "arm_id",
+        "generation",
+        "signal_id",
+        "route",
+        "events",
+        "newest_event_ref",
+        "attempted_at"
+      ],
+      "properties": {
+        "schema": {
+          "const": "gearwit.interrupt.waiter-link.v0"
+        },
+        "type": {
+          "const": "deliver_events"
+        },
+        "delivery_id": {
+          "$ref": "#/$defs/ulid"
+        },
+        "link_id": {
+          "$ref": "#/$defs/ulid"
+        },
+        "arm_id": {
+          "$ref": "#/$defs/ulid"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "signal_id": {
+          "$ref": "#/$defs/ulid"
+        },
+        "route": {
+          "$ref": "#/$defs/attached-route"
+        },
+        "events": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/provider-event"
+          }
+        },
+        "newest_event_ref": {
+          "$ref": "#/$defs/safe-token"
+        },
+        "attempted_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "delivery-result": {
+      "type": "object",
+      "required": [
+        "schema",
+        "type",
+        "delivery_id",
+        "link_id",
+        "signal_id",
+        "outcome",
+        "observed_at"
+      ],
+      "properties": {
+        "schema": {
+          "const": "gearwit.interrupt.waiter-link.v0"
+        },
+        "type": {
+          "const": "delivery_result"
+        },
+        "delivery_id": {
+          "$ref": "#/$defs/ulid"
+        },
+        "link_id": {
+          "$ref": "#/$defs/ulid"
+        },
+        "signal_id": {
+          "$ref": "#/$defs/ulid"
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "return_completed",
+            "return_failed",
+            "link_lost"
+          ]
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

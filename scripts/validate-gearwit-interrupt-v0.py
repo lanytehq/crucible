@@ -25,6 +25,7 @@ ARTIFACTS = {
     "arm-request": FAMILY / "arm-request.schema.json",
     "arm-record": FAMILY / "arm-record.schema.json",
     "ring-request": FAMILY / "ring-request.schema.json",
+    "waiter-link": FAMILY / "waiter-link.schema.json",
     "lifecycle-receipt": FAMILY / "lifecycle-receipt.schema.json",
 }
 
@@ -34,6 +35,7 @@ SOURCE_PHASES = {
         "signal_matched",
         "waiter_completed",
         "events_drained",
+        "delivery_attempted",
         "handled_cursor_recorded",
         "coverage_rearmed",
         "coverage_ended",
@@ -101,6 +103,7 @@ def semantic_violations(artifact: str, instance: dict) -> list[str]:
         signal_present = "signal_id" in instance
         signal_required = phase in {
             "signal_matched",
+            "delivery_attempted",
             "turn_started",
             "model_observed",
             "seat_acted",
@@ -113,6 +116,35 @@ def semantic_violations(artifact: str, instance: dict) -> list[str]:
             violations.append(f"{phase} requires signal_id")
         if not signal_required and signal_present:
             violations.append(f"{phase} must omit signal_id")
+    elif artifact == "waiter-link":
+        message_type = instance.get("type")
+        if message_type == "attach_accepted":
+            try:
+                accepted_at = parse_datetime(instance["accepted_at"])
+                lease_until = parse_datetime(instance["lease_until"])
+                if lease_until <= accepted_at:
+                    violations.append("lease_until must be later than accepted_at")
+            except (KeyError, TypeError, ValueError):
+                pass
+        elif message_type == "deliver_events":
+            events = instance.get("events")
+            if isinstance(events, list) and events:
+                event_refs = [
+                    event.get("event_ref")
+                    for event in events
+                    if isinstance(event, dict)
+                ]
+                if len(event_refs) == len(events) and all(
+                    isinstance(event_ref, str) for event_ref in event_refs
+                ):
+                    if len(event_refs) != len(set(event_refs)):
+                        violations.append(
+                            "delivery event_ref values must be unique"
+                        )
+                    if event_refs[-1] != instance.get("newest_event_ref"):
+                        violations.append(
+                            "newest_event_ref must match the final delivery event"
+                        )
     return violations
 
 

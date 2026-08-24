@@ -43,6 +43,32 @@
       },
       "additionalProperties": false
     },
+    "delivery-attempted": {
+      "type": "object",
+      "required": [
+        "phase",
+        "delivery_id",
+        "route"
+      ],
+      "properties": {
+        "phase": {
+          "const": "delivery_attempted"
+        },
+        "delivery_id": {
+          "$ref": "#/$defs/ulid"
+        },
+        "route": {
+          "type": "string",
+          "enum": [
+            "return_foreground",
+            "complete_background_tool",
+            "controller_attached",
+            "notify_operator"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "events-drained": {
       "type": "object",
       "required": [
@@ -146,6 +172,9 @@
       "oneOf": [
         {
           "$ref": "#/$defs/simple-fact"
+        },
+        {
+          "$ref": "#/$defs/delivery-attempted"
         },
         {
           "$ref": "#/$defs/events-drained"

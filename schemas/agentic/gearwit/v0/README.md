@@ -12,6 +12,7 @@ waiter.
 | `arm-request.schema.json`       | Seat intent, trigger condition, and route   |
 | `arm-record.schema.json`        | Control-plane admission and coverage window |
 | `ring-request.schema.json`      | Bounded external signal for an admitted arm |
+| `waiter-link.schema.json`       | Local daemon-to-attached-waiter protocol    |
 | `lifecycle-receipt.schema.json` | One independently evidenced lifecycle fact  |
 | `semantic-validation.md`        | Cross-value and evidence-source invariants  |
 | `fixtures/`                     | Conforming and negative contract examples   |
@@ -30,6 +31,12 @@ behavior.
 A ring is an external signal reference, not a prompt. It never carries raw
 provider bodies, terminal content, controller credentials, or an executable
 command.
+
+A waiter link is a local, provider-neutral delivery seam. It admits only
+harness-owned foreground or background-tool return routes. A delivery carries
+the bounded event set drained by the provider adapter; it is untrusted event
+data, not prompt or command text. Operator notification does not require a
+waiter link.
 
 A lifecycle receipt proves exactly one fact. Neighboring phases remain
 unknown until they receive their own evidence. In particular,
