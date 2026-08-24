@@ -36,12 +36,12 @@ The following policies are **required defaults with narrow override room**. A ba
 
 This ADR governs:
 
-| Path class            | Examples                                       | Transport                     |
-| --------------------- | ---------------------------------------------- | ----------------------------- |
-| LLM provider backends | Claude, Grok, OpenAI adapters                  | HTTPS to external API         |
-| Peer bridges          | mlvoy (IMAP/SMTP), chanvoy (Mattermost/Slack)  | HTTP/TCP to external provider |
-| Inter-service IPC     | gateway ↔ orchestrator, orchestrator ↔ state | UDS or local TCP              |
-| Control plane calls   | lanyte-attest daemon, health checks            | UDS or local HTTP             |
+| Path class            | Examples                                      | Transport                     |
+| --------------------- | --------------------------------------------- | ----------------------------- |
+| LLM provider backends | Claude, Grok, OpenAI adapters                 | HTTPS to external API         |
+| Peer bridges          | mlvoy (IMAP/SMTP), chanvoy (Mattermost/Slack) | HTTP/TCP to external provider |
+| Inter-service IPC     | gateway ↔ orchestrator, orchestrator ↔ state  | UDS or local TCP              |
+| Control plane calls   | lanyte-attest daemon, health checks           | UDS or local HTTP             |
 
 Excluded:
 
