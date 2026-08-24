@@ -1,0 +1,11 @@
+{
+  "schema": "gearwit.interrupt.arm-record.v0",
+  "arm_id": "01J00000000000000000000010",
+  "request_id": "01J00000000000000000000001",
+  "seat_id": "example-devrev",
+  "generation": 1,
+  "route": "return_foreground",
+  "armed_at": "2026-01-15T12:00:00Z",
+  "coverage_until": "2026-01-15T13:00:00Z",
+  "deadman_secs": 600
+}

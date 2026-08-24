@@ -1,0 +1,12 @@
+{
+  "schema": "gearwit.interrupt.arm-request.v0",
+  "request_id": "01J00000000000000000000005",
+  "seat_id": "example-devrev",
+  "condition": {
+    "kind": "manual_doorbell"
+  },
+  "route": "notify_operator",
+  "coverage_secs": 3600,
+  "deadman_secs": 600,
+  "command": "start a model turn"
+}

@@ -1,0 +1,14 @@
+{
+  "schema": "gearwit.interrupt.lifecycle-receipt.v0",
+  "receipt_id": "01J00000000000000000000040",
+  "arm_id": "01J00000000000000000000010",
+  "signal_id": "01J00000000000000000000021",
+  "sequence": 4,
+  "fact": {
+    "phase": "events_drained",
+    "event_count": 2,
+    "newest_event_ref": "post03"
+  },
+  "source": "waiter_process",
+  "observed_at": "2026-01-15T12:05:01Z"
+}

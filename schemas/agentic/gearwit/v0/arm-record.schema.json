@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/agentic/gearwit/v0/arm-record.schema.json",
+  "title": "Gearwit Interrupt Arm Record v0",
+  "description": "Control-plane admission record for one interrupt arm generation.",
+  "type": "object",
+  "required": [
+    "schema",
+    "arm_id",
+    "request_id",
+    "seat_id",
+    "generation",
+    "route",
+    "armed_at",
+    "coverage_until",
+    "deadman_secs"
+  ],
+  "$defs": {
+    "ulid": {
+      "type": "string",
+      "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+    }
+  },
+  "properties": {
+    "schema": {
+      "const": "gearwit.interrupt.arm-record.v0"
+    },
+    "arm_id": {
+      "$ref": "#/$defs/ulid"
+    },
+    "request_id": {
+      "$ref": "#/$defs/ulid"
+    },
+    "seat_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,62}$"
+    },
+    "generation": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "route": {
+      "type": "string",
+      "enum": [
+        "return_foreground",
+        "complete_background_tool",
+        "controller_attached",
+        "notify_operator"
+      ]
+    },
+    "armed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "coverage_until": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "deadman_secs": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 86400
+    }
+  },
+  "additionalProperties": false
+}

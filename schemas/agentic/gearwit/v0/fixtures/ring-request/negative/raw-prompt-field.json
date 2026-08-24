@@ -1,0 +1,11 @@
+{
+  "schema": "gearwit.interrupt.ring-request.v0",
+  "request_id": "01J00000000000000000000026",
+  "signal_id": "01J00000000000000000000027",
+  "arm_id": "01J00000000000000000000010",
+  "source": {
+    "kind": "manual_doorbell"
+  },
+  "observed_at": "2026-01-15T12:08:00Z",
+  "prompt": "Perform the next task"
+}
