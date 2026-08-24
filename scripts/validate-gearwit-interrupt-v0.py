@@ -33,10 +33,12 @@ SOURCE_PHASES = {
         "wait_armed",
         "signal_matched",
         "waiter_completed",
+        "events_drained",
+        "handled_cursor_recorded",
         "coverage_rearmed",
         "coverage_ended",
     },
-    "provider": {"signal_matched"},
+    "provider": {"signal_matched", "events_drained"},
     "waiter_process": {
         "wait_armed",
         "waiter_completed",
@@ -45,7 +47,12 @@ SOURCE_PHASES = {
     },
     "harness": {"turn_started", "model_observed"},
     "controller": {"turn_started", "model_observed"},
-    "seat": {"model_observed", "seat_acted", "coverage_rearmed"},
+    "seat": {
+        "model_observed",
+        "seat_acted",
+        "handled_cursor_recorded",
+        "coverage_rearmed",
+    },
     "operator": {"seat_acted"},
 }
 
@@ -97,6 +104,8 @@ def semantic_violations(artifact: str, instance: dict) -> list[str]:
             "turn_started",
             "model_observed",
             "seat_acted",
+            "events_drained",
+            "handled_cursor_recorded",
         } or (
             phase == "waiter_completed" and fact.get("outcome") == "matched"
         )

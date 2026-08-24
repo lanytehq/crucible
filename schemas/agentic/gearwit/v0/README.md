@@ -33,4 +33,5 @@ command.
 
 A lifecycle receipt proves exactly one fact. Neighboring phases remain
 unknown until they receive their own evidence. In particular,
-`waiter_completed` never proves `turn_started`.
+`waiter_completed` never proves `turn_started`, and a first match never proves
+that later events were drained or handled.

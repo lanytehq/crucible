@@ -18,6 +18,12 @@
       "type": "string",
       "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
     },
+    "safe-token": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[^\\u0000-\\u0020\\u007F]+$"
+    },
     "simple-fact": {
       "type": "object",
       "required": [
@@ -33,6 +39,44 @@
             "seat_acted",
             "coverage_rearmed"
           ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "events-drained": {
+      "type": "object",
+      "required": [
+        "phase",
+        "event_count",
+        "newest_event_ref"
+      ],
+      "properties": {
+        "phase": {
+          "const": "events_drained"
+        },
+        "event_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "newest_event_ref": {
+          "$ref": "#/$defs/safe-token"
+        }
+      },
+      "additionalProperties": false
+    },
+    "handled-cursor-recorded": {
+      "type": "object",
+      "required": [
+        "phase",
+        "cursor"
+      ],
+      "properties": {
+        "phase": {
+          "const": "handled_cursor_recorded"
+        },
+        "cursor": {
+          "$ref": "#/$defs/safe-token"
         }
       },
       "additionalProperties": false
@@ -102,6 +146,12 @@
       "oneOf": [
         {
           "$ref": "#/$defs/simple-fact"
+        },
+        {
+          "$ref": "#/$defs/events-drained"
+        },
+        {
+          "$ref": "#/$defs/handled-cursor-recorded"
         },
         {
           "$ref": "#/$defs/waiter-completed"
