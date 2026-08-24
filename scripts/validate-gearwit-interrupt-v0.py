@@ -26,6 +26,7 @@ ARTIFACTS = {
     "arm-record": FAMILY / "arm-record.schema.json",
     "ring-request": FAMILY / "ring-request.schema.json",
     "waiter-link": FAMILY / "waiter-link.schema.json",
+    "handled-cursor": FAMILY / "handled-cursor.schema.json",
     "lifecycle-receipt": FAMILY / "lifecycle-receipt.schema.json",
 }
 

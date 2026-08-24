@@ -51,6 +51,35 @@ receipt.
 9. Local transport authentication and endpoint permissions are required
    implementation controls and are not replaced by knowledge of a link id.
 
+## Handled-cursor rules
+
+1. This contract is not part of the waiter-link union. A handled
+   acknowledgement must not be encoded as `deliver_events` or
+   `delivery_result`.
+2. `request_id` is the idempotency key. Reuse with a different body is a hard
+   conflict. Exact replay of a prior accepted ACK is idempotent.
+3. The request authenticates the live `arm_id`, `generation`, and `seat_id`.
+   Reject `unknown_arm`, `stale_generation`, and `seat_mismatch`.
+4. `signal_id` is the stable signal identity for the claimed batch. It is not
+   `delivery_id`. Redelivery on a successor link keeps the same `signal_id`.
+   Reject `unknown_signal`.
+5. ACK is illegal before a batch for that signal has been delivered
+   (`ack_before_delivery`). `return_completed` is not itself an ACK.
+6. `cursor` must be a member of the exact delivered ordered `event_ref`
+   sequence. That member is a prefix endpoint: the seat attests every event
+   through that index inclusive. Reject `cursor_not_member`.
+7. `cursor` must not be beyond `newest_event_ref` of that delivered batch
+   (`cursor_beyond_delivered`). Drain `newest_observed` is not sufficient if
+   that ref was never in the delivered set.
+8. Handled cursors are monotonic per `(arm_id, generation, signal_id)`. A
+   later ACK may name the same cursor (idempotent) or a later member of the
+   same delivered sequence. An earlier member after a later ACK is
+   `stale_cursor`. Rejecting these cases must not advance coverage.
+9. A valid ACK may record `handled_cursor_recorded` (control-plane or seat
+   source) and permit coverage to re-arm from that cursor. It must not claim
+   `turn_started`, `model_observed`, or `seat_acted`, and must not manufacture
+   unknown predecessor phases.
+
 ## Receipt rules
 
 1. Sequence starts at one and is contiguous within one arm lifecycle.

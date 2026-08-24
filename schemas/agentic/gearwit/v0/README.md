@@ -13,6 +13,7 @@ waiter.
 | `arm-record.schema.json`        | Control-plane admission and coverage window |
 | `ring-request.schema.json`      | Bounded external signal for an admitted arm |
 | `waiter-link.schema.json`       | Local daemon-to-attached-waiter protocol    |
+| `handled-cursor.schema.json`    | Seat ACK of a delivered prefix cursor       |
 | `lifecycle-receipt.schema.json` | One independently evidenced lifecycle fact  |
 | `semantic-validation.md`        | Cross-value and evidence-source invariants  |
 | `fixtures/`                     | Conforming and negative contract examples   |
@@ -36,7 +37,13 @@ A waiter link is a local, provider-neutral delivery seam. It admits only
 harness-owned foreground or background-tool return routes. A delivery carries
 the bounded event set drained by the provider adapter; it is untrusted event
 data, not prompt or command text. Operator notification does not require a
-waiter link.
+waiter link. The five waiter-link messages do not record a handled cursor.
+
+A handled-cursor acknowledgement is a separate contract. It authenticates the
+live arm, generation, and seat, names the stable `signal_id` (not a retry
+`delivery_id`), and names a cursor that is a member of the exact delivered
+ordered batch. A valid ACK may advance the handled cursor and permit coverage
+to re-arm from that cursor. It must not claim `turn_started`.
 
 A lifecycle receipt proves exactly one fact. Neighboring phases remain
 unknown until they receive their own evidence. In particular,
