@@ -3,12 +3,28 @@
 [![lifecycle](https://img.shields.io/badge/lifecycle-alpha-orange)](LIFECYCLE_PHASE)
 [![version](https://img.shields.io/badge/version-0.0.1-blue)](VERSION)
 
-Single source of truth (SSOT) for all contracts in the Lanyte platform.
+**Lanyte platform contracts:** IPC channel schemas, mission and dispatch
+families, agent role copies, ADRs, and policies. Message types live here
+before they are implemented in `lanyte` or any peer. Display name **Lanyte
+Crucible**; GitHub slug [`lanytehq/crucible`](https://github.com/lanytehq/crucible).
 
-Message types, agent role definitions, peer service specifications, and
-architectural decisions live here before they are implemented anywhere else.
-All other repos in the lanytehq ecosystem are downstream consumers of this
-repository.
+## Three crucibles
+
+Every org in this estate keeps a `crucible`. They are **siblings**, not a
+stack. Look up `github.com/<org>/crucible` first.
+
+| Org        | Repo                                                      | Job                                                                                          |
+| ---------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `3leaps`   | [3leaps/crucible](https://github.com/3leaps/crucible)     | Foundation: coding/commit/SOP, logging, portable `v0` contracts, role-prompt **meta-schema** |
+| `lanytehq` | [lanytehq/crucible](https://github.com/lanytehq/crucible) | **This repo.** Lanyte product contracts (IPC, ABI-adjacent specs, platform ADRs)             |
+| `fulmenhq` | [fulmenhq/crucible](https://github.com/fulmenhq/crucible) | DX SDK forge (sibling; not a parent of this tree)                                            |
+
+**Lookup:** Lanyte contracts → this repository. Generic coding, commit style,
+and portable `v0` standards → `3leaps/crucible`. Do not copy those docs into
+this tree.
+
+**Not this repo:** a crates.io crate, a Go module, a second TCB, or Fulmen
+Layer 0.
 
 ## Contents
 

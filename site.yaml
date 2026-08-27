@@ -1,4 +1,4 @@
-# Lanyte Crucible - Site Configuration (Seed)
+# Lanyte Crucible - Site Configuration
 docroot: "docs"
 title: "Lanyte Crucible"
 brand:
