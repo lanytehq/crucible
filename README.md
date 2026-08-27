@@ -1,5 +1,8 @@
 # Lanyte Crucible
 
+[![lifecycle](https://img.shields.io/badge/lifecycle-alpha-orange)](LIFECYCLE_PHASE)
+[![version](https://img.shields.io/badge/version-0.0.1-blue)](VERSION)
+
 Single source of truth (SSOT) for all contracts in the Lanyte platform.
 
 Message types, agent role definitions, peer service specifications, and
@@ -59,9 +62,10 @@ Shared type definitions referenced across schemas:
 
 ### `config/agentic/roles/`
 
-Role definitions for AI agent sessions on the Lanyte platform. Each role
-defines scope, responsibilities, mindset, and escalation paths. See the
-[role catalog](config/agentic/roles/README.md) for the full index.
+Lanyte product copies of agent role definitions, including Lanyte-only seats.
+The **operating** catalog for estate seats is
+[3leaps/crucible](https://github.com/3leaps/crucible). See the
+[role catalog](config/agentic/roles/README.md) for the files in this tree.
 
 ### `docs/specs/`
 
@@ -110,30 +114,10 @@ make dev
 
 ## Contributing
 
-### Schema changes
-
-Schema changes are breaking by default — all peers on that channel must be
-updated simultaneously. Before changing an existing schema:
-
-1. Check which peers use the channel.
-2. If the channel is in active use, open an ADR first.
-3. Add new message types via `oneOf` — never remove or rename existing types
-   without an ADR and a migration plan.
-4. All schema objects must have `"additionalProperties": false`.
-5. Validate before committing: `ipcprims echo /tmp/test.sock --validate schemas/ipc/`
-
-### ADR process
-
-Copy `docs/decisions/adr-template.md`, number sequentially, add to
-`docs/decisions/index.md`. Status lifecycle: `Proposed` → `Accepted` →
-`Deprecated` or `Superseded by ADR-XXXX`. ADRs move from Proposed to Accepted
-only with explicit approval from @3leapsdave.
-
-### Role files
-
-Role files validate against `schemas/agentic/v0/role-prompt.schema.json`. Do
-not modify roles without discussion — they govern how all AI agents behave on
-this platform.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Schema-bump rules live in
+[docs/policies/schema-bump-policy.md](docs/policies/schema-bump-policy.md).
+Generic coding and commit style: [3leaps/crucible](https://github.com/3leaps/crucible).
+Governance: [3leaps/oss-policies](https://github.com/3leaps/oss-policies).
 
 ## Agent sessions
 
