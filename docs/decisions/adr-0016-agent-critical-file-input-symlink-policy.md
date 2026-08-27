@@ -268,7 +268,7 @@ dated path first, then read the real path.
   attestation material reads.
 - Agent bootstrap: track a separate hardening item for sourced identity profiles,
   AGENTS/chat reads, and predictable `/tmp` checkpoint staging writes.
-- `lanyte-crucible/docs/guides/refbolt-workspace.md`: replace agent-critical
+- `docs/guides/refbolt-workspace.md`: replace agent-critical
   `latest` symlink read guidance with concrete dated-path resolution.
 - 3 Leaps galaxy tools: carry the same posture to Fulmen, Galaxy, and other
   agent-facing repos that accept context, finding, checkpoint, validator, or
@@ -280,5 +280,5 @@ dated path first, then read the real path.
 - `chanvoy` PR #38: reference baseline implementation
 - `stashvoy` checkpoint `--file` and `schema validate <file>` call sites
 - `AGENTS.local.md`: shared filesystem warning for concurrent agent sessions
-- `lanyte-crucible/docs/guides/refbolt-workspace.md`: current `latest` symlink
+- `docs/guides/refbolt-workspace.md`: current `latest` symlink
   guidance that should be updated for agent-critical reads

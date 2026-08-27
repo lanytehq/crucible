@@ -19,7 +19,7 @@ Agent coordination requires exactly three cross-repo functions:
 | ------------- | ----------------------------------- | --------------------------------------- | ------------------------ |
 | **Messaging** | Inter-role communication            | `~/dev/lanytehq/chat/`                  | Append-only, per-channel |
 | **Context**   | Per-role persistent state           | `~/dev/lanytehq/context/<role>/`        | Read-write, per-role     |
-| **Roles**     | Identity and capability definitions | `lanyte-crucible/config/agentic/roles/` | Git-versioned, canonical |
+| **Roles**     | Identity and capability definitions | `config/agentic/roles/` | Git-versioned, canonical |
 
 All three are local-machine-only (not committed to any repo) except Roles, which are the canonical source of truth in crucible.
 
@@ -151,7 +151,7 @@ When lanyte-state (SQLite + INSERT-only, per ADR-0009) is operational:
 
 ## 3. Roles (canonical catalog)
 
-Role definitions live in `lanyte-crucible/config/agentic/roles/`. This is the single source of truth for what roles exist, what they do, and when to use them.
+Role definitions live in `config/agentic/roles/`. This is the single source of truth for what roles exist, what they do, and when to use them.
 
 ### Quick reference
 
@@ -171,7 +171,7 @@ Role definitions live in `lanyte-crucible/config/agentic/roles/`. This is the si
 | `prodmktg`     | agentic    | Quarter        | Branding, messaging             |
 
 Full catalog with escalation paths and decision matrices:
-`~/dev/lanytehq/lanyte-crucible/config/agentic/roles/README.md`
+`~/dev/lanytehq/crucible/config/agentic/roles/README.md`
 
 ### Agent invocation preamble
 
@@ -179,7 +179,7 @@ When starting a new agent session, use this standard preamble:
 
 ```
 You are <role> on the Lanyte platform.
-Read ~/dev/lanytehq/lanyte-crucible/docs/guides/dev-warmup.md before starting.
+Read ~/dev/lanytehq/crucible/docs/guides/dev-warmup.md before starting.
 Read ~/dev/lanytehq/context/<role>/STATE.md for current state.
 Working repo: ~/dev/lanytehq/<repo>/.
 Task: <description>

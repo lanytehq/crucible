@@ -84,7 +84,7 @@ An MSRV bump lands as one of:
 
 This policy supersedes the inline MSRV statement that previously lived at `~/dev/lanytehq/AGENTS.md` §Key Invariants. The galaxy-root AGENTS.md will be updated separately (it is a local-only file pending the org-root canonical-location queue item; dispatch carries that thread). The cite-pointer in galaxy-root AGENTS.md will read:
 
-> - **MSRV**: governed by [MSRV Invariant Policy](https://github.com/lanytehq/lanyte-crucible/blob/main/docs/policies/msrv-invariant-policy.md). Current: Rust 1.85.0.
+> - **MSRV**: governed by [MSRV Invariant Policy](https://github.com/lanytehq/crucible/blob/main/docs/policies/msrv-invariant-policy.md). Current: Rust 1.85.0.
 
 This is the "dual-edge" update dispatch flagged during PR 1 review: the policy lands here, the galaxy-root inline statement gets thinned to a cite. Implementation timing of the galaxy-root edge is separate from this PR.
 

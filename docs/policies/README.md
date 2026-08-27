@@ -6,7 +6,7 @@ version: 0.1.0
 
 # Platform Policies
 
-`lanyte-crucible/docs/policies/` is the **platform-policy SSOT** for the Lanyte ecosystem. Policies here apply across **lanytehq, 3leaps, fulmenhq, enacthq, namelens, and any future galaxy-organization repositories** — schema rules, contributor conventions, release discipline, attribution invariants. Per-repo `AGENTS.md` files cite these policies; they do not duplicate the policy text.
+`docs/policies/` in this repository is the **platform-policy SSOT** for the Lanyte ecosystem. Policies here apply across **lanytehq, 3leaps, fulmenhq, enacthq, namelens, and any future galaxy-organization repositories** — schema rules, contributor conventions, release discipline, attribution invariants. Per-repo `AGENTS.md` files cite these policies; they do not duplicate the policy text.
 
 This directory is the companion to `docs/specs/` (normative interface contracts) and `docs/decisions/` (ADRs). Policies describe **what rules apply when changing the surface**; specs describe **what the surface is**; ADRs describe **why a specific decision was made**.
 
@@ -40,9 +40,9 @@ The minimum-thin treatment is a cite + one-sentence default:
 
 > ### {Topic}
 >
-> Governed by the [{Topic} Policy](https://github.com/lanytehq/lanyte-crucible/blob/main/docs/policies/{topic}-policy.md). Default: {one-sentence default}.
+> Governed by the [{Topic} Policy](https://github.com/lanytehq/crucible/blob/main/docs/policies/{topic}-policy.md). Default: {one-sentence default}.
 
-Expand the citation only when the policy is invoked frequently inside the citing repo (e.g., schema changes inside crucible itself warrant the topic-list expansion in `lanyte-crucible/AGENTS.md` §Schema changes). The high-water mark is "expand the thin-out only when the policy is invoked frequently inside the citing repo."
+Expand the citation only when the policy is invoked frequently inside the citing repo (e.g., schema changes inside crucible itself warrant the topic-list expansion in `AGENTS.md` §Schema changes). The high-water mark is "expand the thin-out only when the policy is invoked frequently inside the citing repo."
 
 ## History
 

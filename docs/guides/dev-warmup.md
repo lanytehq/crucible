@@ -28,7 +28,7 @@ Lanyte is a **secure, self-hosted autonomous AI agent platform**. The architectu
 
 ```
 ~/dev/lanytehq/
-  lanyte-crucible/          ← SSOT: schemas, ADRs, roles (you are here or close)
+  crucible/                 ← SSOT: schemas, ADRs, roles (you are here or close)
   lanyte/                   ← Rust workspace (TCB) — created (CRT-001 merged)
   lanyte-productbook-internal/ ← Sprint boards, gate status
   lanyte-*/                 ← other platform repos
@@ -64,7 +64,7 @@ messaging, context, and role conventions. At minimum:
 | 258     | `channel_258.schema.json` | lanyte-admin                   |
 | 259     | `channel_259.schema.json` | skill executor I/O             |
 
-Schema files live in: `~/dev/lanytehq/lanyte-crucible/schemas/ipc/`
+Schema files live in: `~/dev/lanytehq/crucible/schemas/ipc/`
 
 ---
 
@@ -97,7 +97,7 @@ These are never bent. If in doubt, escalate to @3leapsdave.
 
 **Schemas before code.**
 Do not implement a new IPC message type without its schema in
-`lanyte-crucible/schemas/ipc/` first. This is not a suggestion.
+`schemas/ipc/` first (this repository). This is not a suggestion.
 
 **Gateway is a router. Not a business logic host.**
 `lanyte-gateway` wraps ipcprims. It validates, routes, and hands off.
@@ -160,7 +160,7 @@ cargo install --path ~/dev/3leaps/ipcprims
 
 # Validate IPC schemas (takes ~2s, catches JSON errors before commit)
 ipcprims echo /tmp/lanyte-test.sock \
-  --validate ~/dev/lanytehq/lanyte-crucible/schemas/ipc/
+  --validate ~/dev/lanytehq/crucible/schemas/ipc/
 # Expect: "INFO listening on unix domain socket" with no errors, then Ctrl-C
 
 # In lanyte/ workspace:

@@ -153,11 +153,11 @@ but will be addressed in the near term.
 
 These are relative to a lanytehq dev machine. Access may require org membership.
 
-- **Agent state schema**: `lanyte-crucible/schemas/agentic/v0/agent-state.schema.json`
-- **ADR-0009** (memory store): `lanyte-crucible/docs/decisions/adr-0009-*.md`
-- **ADR-0010** (LLM backend trait): `lanyte-crucible/docs/decisions/adr-0010-*.md`
+- **Agent state schema**: `schemas/agentic/v0/agent-state.schema.json`
+- **ADR-0009** (memory store): `docs/decisions/adr-0009-*.md`
+- **ADR-0010** (LLM backend trait): `docs/decisions/adr-0010-*.md`
 - **CRT-011 brief** (stashvoy): `lanyte-productbook-internal/content/projmgmt/core-runtime/CRT-011-lanyte-ctx.md`
-- **Agent coordination spec**: `lanyte-crucible/docs/specs/agent-coordination-bootstrap.md`
+- **Agent coordination spec**: `docs/specs/agent-coordination-bootstrap.md`
 - **seclusor** (secrets manager): `~/dev/3leaps/seclusor/` — age-encrypted secrets, env var injection
 - **Lanyte premise**: Agents operate with freedom proportional to earned trust and assessed
   capability + intent. The platform provides assurance to increase this trust. See

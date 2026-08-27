@@ -1,4 +1,4 @@
-# AI Agent Guide — lanyte-crucible
+# AI Agent Guide — Lanyte Crucible
 
 **Start here first**: `docs/guides/dev-warmup.md` — the platform-wide warm-up for all core development agents.
 
@@ -8,7 +8,7 @@
 
 ## What This Repo Is
 
-`lanyte-crucible` is the **single source of truth (SSOT)** for all Lanyte platform contracts. Nothing is implemented before its contract exists here. All other repos are downstream consumers.
+This repository (`lanytehq/crucible`) is the **single source of truth (SSOT)** for all Lanyte platform contracts. Nothing is implemented before its contract exists here. All other repos are downstream consumers.
 
 Contents:
 
@@ -56,7 +56,7 @@ If you are a core maintainer on a dev machine, check for `AGENTS.local.md` in th
 Typical sibling repos on a dev machine:
 
 ```
-~/dev/lanytehq/lanyte-crucible/   ← you are here (or a repo-seed)
+~/dev/lanytehq/crucible/          ← you are here (or a repo-seed)
 ~/dev/lanytehq/lanyte/             ← Rust workspace (main core)
 ~/dev/3leaps/ipcprims/             ← IPC library (v0.1.3)
 ~/dev/fulmenhq/mlvoy/              ← email bridge peer
