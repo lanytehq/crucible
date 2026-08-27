@@ -59,7 +59,7 @@ These rules apply to any bump that clears the bar above. They are not optional.
 3. **Schema validation before committing**:
 
    ```bash
-   ~/dev/3leaps/ipcprims/target/debug/ipcprims echo /tmp/test.sock \
+   ipcprims echo /tmp/test.sock \
      --validate schemas/ipc/
    ```
 
@@ -72,7 +72,7 @@ These rules apply to any bump that clears the bar above. They are not optional.
 
 6. **Cross-consumer coordination**:
 
-   - Identify every consumer that embeds the schema (`grep` the relevant schema filename across `~/dev/lanytehq/` + `~/dev/3leaps/` + `~/dev/fulmenhq/` worktrees).
+   - Identify every consumer that embeds the schema (search consuming public repos for the schema filename).
    - File a tracking issue or wave-coordination thread in the relevant project board.
    - Land the bump only after each consumer has a regen PR queued and reviewed.
 

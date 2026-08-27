@@ -22,12 +22,10 @@ operate under fine-grained permission control. Two patterns that we
 accidentally favor today make this harder than it should be:
 
 1. **Compound shell expressions.** An agent that runs
-   `for d in chanvoy zolkraf lanyte; do cd ~/dev/lanytehq/$d && gh pr
-list; done` presents the harness with a single opaque shell string.
+   a loop that `cd`s into several clones and runs `gh pr list` presents the harness with a single opaque shell string.
    The harness cannot permit "run `gh pr list` in three known repos"
    granularly; the agent either gets **total shell release** (risky) or
-   a prompt (slow). The 2026-04-18 cxotech warm-up flagged a concrete
-   case of this.
+   a prompt (slow). Field use flagged a concrete case of this.
 
 2. **File-intermediate writes.** Our checkpoint flow today is
    "heredoc-emit a JSON file, then run `stashvoy checkpoint --file`."

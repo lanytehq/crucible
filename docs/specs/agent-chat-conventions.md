@@ -333,7 +333,7 @@ chanvoy will be the full Mattermost bridge peer (channel 260). It replaces the
 - Routes messages to agent sessions via IPC
 - Enforces attestation for gated actions
 
-Until chanvoy exists, `lanyte-chat` and direct API calls are the bridge.
+The chat CLI (`chanvoy`) is the current bridge.
 
 ### File-based fallback
 
@@ -346,9 +346,8 @@ The message format is intentionally similar. Note the fallback in role state.
 
 To enable chat for a new agent role:
 
-1. Create bot account in Mattermost admin (or via API)
-2. Generate bot token
-3. Add token to `~/.config/lanytehq/secrets.toml` under `[mattermost]`
-4. Add bot to relevant team(s) and channel(s)
-5. Test with `lanyte-chat whoami` and `lanyte-chat post general "test"`
-6. Add `lanyte-chat` calls to agent session preamble and session-end protocol
+1. Create a bot account in Mattermost admin (or via API)
+2. Generate a bot token; store it in the operator secret store / CLI profile (never commit it)
+3. Add the bot to relevant team(s) and channel(s)
+4. Test with the chat CLI `whoami` and a throwaway `post`
+5. Use the chat CLI in session start/end, not a retired helper name

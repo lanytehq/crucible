@@ -139,13 +139,13 @@ Every role directory has a `STATE.md` that is the quick-read entry point. Format
 
 ### What goes here vs. elsewhere
 
-| Content                              | Location                         |
-| ------------------------------------ | -------------------------------- |
-| Working notes, drafts, decision logs | `context/<role>/`                |
-| Inter-role messages                  | `chat/`                          |
-| Code, schemas, specs                 | The appropriate repo             |
-| Task status, sprint boards           | GitHub issues / PRs (this org)   |
-| Agent tool memory (Claude Code)      | `~/.claude/projects/.../memory/` |
+| Content                              | Location                            |
+| ------------------------------------ | ----------------------------------- |
+| Working notes, drafts, decision logs | `context/<role>/`                   |
+| Inter-role messages                  | `chat/`                             |
+| Code, schemas, specs                 | The appropriate repo                |
+| Task status, sprint boards           | GitHub issues / PRs (this org)      |
+| Agent tool memory                    | Harness-local (not this repository) |
 
 ### Transition to Lanyte memory
 

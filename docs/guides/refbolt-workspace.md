@@ -16,18 +16,13 @@ Install and configure from the public
 fetch credentials (if any) are documented there — do not put API keys in this
 repository.
 
-### Refresh (weekly or before a sprint)
+### Refresh
 
-```bash
-cd ~/dev/fulmenhq/refbolt && REFBOLT_ARCHIVE_ROOT=~/docs/refbolt ./bin/refbolt sync --all
-```
-
-## Workspace Convention
-
-Every machine uses the same archive root: **`~/docs/refbolt/`**
+Follow the public refbolt README for `sync`. Archive root is an operator
+choice; this repository does not pin a home-directory path.
 
 ```
-~/docs/refbolt/
+<archive-root>/
 ├── llm-api/
 │   ├── xai/
 │   │   ├── 2026-03-23/          # Date-versioned snapshot
@@ -72,9 +67,9 @@ When a brief references a provider API, point to the refbolt archive:
 ```markdown
 ## References
 
-- xAI Responses API: `~/docs/refbolt/llm-api/xai/latest/developers/rest-api-reference/`
-- Anthropic Messages API: `~/docs/refbolt/llm-api/anthropic/latest/en/api-reference/`
-- OpenAI API Reference: `~/docs/refbolt/llm-api/openai/latest/docs/api-reference/`
+- xAI Responses API: `<archive-root>/llm-api/xai/latest/developers/rest-api-reference/`
+- Anthropic Messages API: `<archive-root>/llm-api/anthropic/latest/en/api-reference/`
+- OpenAI API Reference: `<archive-root>/llm-api/openai/latest/docs/api-reference/`
 ```
 
 ### For agent sessions
@@ -82,7 +77,7 @@ When a brief references a provider API, point to the refbolt archive:
 Agents should read from the `latest` symlink path. Example — before implementing an LLM adapter:
 
 ```
-Read ~/docs/refbolt/llm-api/openai/latest/docs/api-reference/responses.md
+Read <archive-root>/llm-api/openai/latest/docs/api-reference/responses.md
 ```
 
 This replaces ad-hoc web fetches that may return stale or incomplete content.
