@@ -6,7 +6,7 @@ version: 0.1.0
 
 # Schema Bump Policy
 
-This policy governs changes to versioned schemas across the Lanyte platform — JSON Schema files in `lanyte-crucible/schemas/`, embedded schema copies in `stashvoy`, `lanyte-attest`, and any future consumer that ships an embedded schema copy.
+This policy governs changes to versioned schemas across the Lanyte platform — JSON Schema files in `schemas/` (this repository), embedded schema copies in `stashvoy`, `lanyte-attest`, and any future consumer that ships an embedded schema copy.
 
 It answers two distinct questions:
 
@@ -29,8 +29,8 @@ This matches the convention many established Rust/protocol projects follow: hold
 
 Any brief, PR, or change proposal that touches:
 
-- `lanyte-crucible/schemas/ipc/*.schema.json` (channel schemas)
-- `lanyte-crucible/schemas/agentic/v0/*.schema.json` (agent state, role prompt, capability)
+- `schemas/ipc/*.schema.json` (channel schemas)
+- `schemas/agentic/v0/*.schema.json` (agent state, role prompt, capability)
 - Any embedded schema copy in a consuming binary (e.g., `stashvoy/schemas/v0/`, `lanyte-attest` embedded schema)
 - The `version` field of any of the above
 
@@ -80,7 +80,7 @@ These rules apply to any bump that clears the bar above. They are not optional.
 
 ## Cross-References
 
-- **Repo conventions**: `lanyte-crucible/AGENTS.md` §Schema changes points to this policy.
+- **Repo conventions**: `AGENTS.md` §Schema changes points to this policy.
 - **Public-doc redaction**: `docs/policies/public-docs-redaction.md` — companion policy on what goes in public-visible schemas vs. internal-only.
 - **ADR process**: `docs/decisions/adr-template.md` — required for non-additive bumps.
 

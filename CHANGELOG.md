@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to lanyte-crucible are documented in this file.
+All notable changes to Lanyte Crucible are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -8,9 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Content policy**: This file carries the most recent ~10 releases. Older
 entries are archived in `docs/releases/vX.Y.Z.md`.
 
-## [0.0.1] - 2026-07-NN
+## [0.0.1] - 2026-07-15
 
-First tagged release of lanyte-crucible, the contract repository for the
+First tagged release of Lanyte Crucible, the contract repository for the
 Lanyte platform: JSON schemas, agent role definitions, platform policies,
 and architecture decision records. The tag is signed manually per the
 release-signing manual baseline policy
@@ -69,4 +69,4 @@ tag time.)
   supervisor per the release-signing manual baseline policy; CI never
   signs.
 
-[0.0.1]: https://github.com/lanytehq/lanyte-crucible/releases/tag/v0.0.1
+[0.0.1]: https://github.com/lanytehq/crucible/releases/tag/v0.0.1

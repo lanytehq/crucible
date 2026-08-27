@@ -2,7 +2,7 @@
 
 **Content policy**: This file contains the most recent 3 releases (reverse chronological). Older releases are archived in `docs/releases/vX.Y.Z.md`.
 
-## lanyte-crucible v0.0.1
+## Lanyte Crucible v0.0.1
 
 First tagged release of the platform schema repository. The tag is
 signed manually by the supervisor per the release-signing manual

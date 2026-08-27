@@ -1,6 +1,6 @@
-# Release Checklist (lanytehq/lanyte-crucible)
+# Release Checklist (lanytehq/crucible)
 
-lanyte-crucible is the contract repository for the Lanyte platform: releases are
+Lanyte Crucible is the contract repository for the Lanyte platform: releases are
 **signed git tags** (`vX.Y.Z`) that mark stable snapshots of schemas, role
 definitions, specifications, policies, and decision records. No binaries are shipped.
 
@@ -118,14 +118,14 @@ git push origin v$(cat VERSION)
 
 ## Post-Release
 
-- [ ] Verify tag appears on GitHub: https://github.com/lanytehq/lanyte-crucible/tags
+- [ ] Verify tag appears on GitHub: https://github.com/lanytehq/crucible/tags
 - [ ] Verify the `release` workflow (`.github/workflows/release.yml`) runs on the tag
       push: it re-checks tag/VERSION consistency, release notes, CHANGELOG entry, and
       quality gates, then creates a **draft** GitHub Release from
       `docs/releases/vX.Y.Z.md`
 - [ ] Review the draft release, then publish it:
   ```bash
-  gh release edit v$(cat VERSION) --repo lanytehq/lanyte-crucible --draft=false
+  gh release edit v$(cat VERSION) --repo lanytehq/crucible --draft=false
   ```
 - [ ] Spot-check release notes render correctly
 
@@ -141,8 +141,8 @@ git tag -v v$(cat VERSION)
 **GitHub API** (CI-friendly):
 
 ```bash
-TAG_SHA=$(gh api repos/lanytehq/lanyte-crucible/git/ref/tags/v$(cat VERSION) --jq .object.sha)
-gh api repos/lanytehq/lanyte-crucible/git/tags/$TAG_SHA --jq .verification
+TAG_SHA=$(gh api repos/lanytehq/crucible/git/ref/tags/v$(cat VERSION) --jq .object.sha)
+gh api repos/lanytehq/crucible/git/tags/$TAG_SHA --jq .verification
 ```
 
 **GitHub Web UI note**: A green "Verified" badge only appears if:
@@ -158,7 +158,7 @@ If issues are discovered after release:
 
 ```bash
 # Delete the draft/published GitHub release (if created)
-gh release delete v<VERSION> --repo lanytehq/lanyte-crucible
+gh release delete v<VERSION> --repo lanytehq/crucible
 
 # Delete remote tag
 git push origin --delete v<VERSION>

@@ -21,7 +21,7 @@ Status: Proposed
 
 - Keeps governance and access control simple (public vs private is repo-level, aligns with `*-internal` naming).
 - Minimizes accidental leakage by avoiding public/private content adjacency.
-- Keeps Kitfly usage flexible (a repo like `lanyte-crucible` can expose docs via `docs/` with `docroot`, without being “a kitsite repo” structurally).
+- Keeps Kitfly usage flexible (a repo like this one can expose docs via `docs/` with `docroot`, without being “a kitsite repo” structurally).
 
 ## Consequences
 

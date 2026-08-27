@@ -1,4 +1,4 @@
-# lanyte-crucible
+# Lanyte Crucible
 
 Single source of truth (SSOT) for all contracts in the Lanyte platform.
 
