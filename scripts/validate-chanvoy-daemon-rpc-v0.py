@@ -30,7 +30,7 @@ METHODS = (
     "wait_channels_v1",
     "wait_channel_v3",
 )
-FOLLOW_EVENT = "wait_follow_v1.event"
+FOLLOW_METHOD = "wait_follow_v1"
 
 
 def schema_paths(method: str) -> dict[str, pathlib.Path]:
@@ -140,54 +140,58 @@ for method in METHODS:
             else:
                 fail(f"{label} negative {fixture.name}: expected rejection, got pass")
 
-follow_schema_path = FAMILY / f"{FOLLOW_EVENT}.schema.json"
-follow_schema = load(follow_schema_path)
-try:
-    Draft202012Validator.check_schema(follow_schema)
-except Exception as error:  # noqa: BLE001
-    fail(f"lint {follow_schema_path.name}: {error}")
-else:
-    if follow_schema.get("$id", "").rsplit("/", 1)[-1] != follow_schema_path.name:
-        fail(f"lint {follow_schema_path.name}: $id basename mismatch")
+for follow_kind in ("params", "event", "result", "error"):
+    follow_label = f"{FOLLOW_METHOD}.{follow_kind}"
+    follow_schema_path = FAMILY / f"{follow_label}.schema.json"
+    follow_schema = load(follow_schema_path)
+    try:
+        Draft202012Validator.check_schema(follow_schema)
+    except Exception as error:  # noqa: BLE001
+        fail(f"lint {follow_schema_path.name}: {error}")
     else:
+        if follow_schema.get("$id", "").rsplit("/", 1)[-1] != follow_schema_path.name:
+            fail(f"lint {follow_schema_path.name}: $id basename mismatch")
+            continue
         ok(f"lint {follow_schema_path.name}")
         follow_validator = Draft202012Validator(follow_schema)
-        follow_root = FIXTURES / "wait_follow_v1" / "event"
+        follow_root = FIXTURES / FOLLOW_METHOD / follow_kind
         conforming = sorted((follow_root / "conforming").glob("*.json"))
         negative = sorted((follow_root / "negative").glob("*.json"))
         if not conforming or not negative:
-            fail(f"{FOLLOW_EVENT}: fixture set is empty")
+            fail(f"{follow_label}: fixture set is empty")
         for fixture in conforming:
             instance = load(fixture)
             errors = list(follow_validator.iter_errors(instance))
             tip_mismatch = (
-                instance.get("mode") in {"backlog", "live"}
+                follow_kind == "event"
+                and instance.get("mode") in {"backlog", "live"}
                 and instance.get("messages")
                 and instance.get("tip") != instance["messages"][-1].get("id")
             )
             if errors:
-                fail(f"{FOLLOW_EVENT} conforming {fixture.name}: {errors[0].message}")
+                fail(f"{follow_label} conforming {fixture.name}: {errors[0].message}")
             elif tip_mismatch:
                 fail(
-                    f"{FOLLOW_EVENT} conforming {fixture.name}: "
+                    f"{follow_label} conforming {fixture.name}: "
                     "tip must equal final message id"
                 )
             else:
-                ok(f"{FOLLOW_EVENT} conforming {fixture.name}")
+                ok(f"{follow_label} conforming {fixture.name}")
 
         for fixture in negative:
             instance = load(fixture)
             errors = list(follow_validator.iter_errors(instance))
             tip_mismatch = (
-                instance.get("mode") in {"backlog", "live"}
+                follow_kind == "event"
+                and instance.get("mode") in {"backlog", "live"}
                 and instance.get("messages")
                 and instance.get("tip") != instance["messages"][-1].get("id")
             )
             if errors or tip_mismatch:
-                ok(f"{FOLLOW_EVENT} negative {fixture.name}")
+                ok(f"{follow_label} negative {fixture.name}")
             else:
                 fail(
-                    f"{FOLLOW_EVENT} negative {fixture.name}: "
+                    f"{follow_label} negative {fixture.name}: "
                     "expected rejection, got pass"
                 )
 

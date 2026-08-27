@@ -1,0 +1,6 @@
+{
+  "schema": "wait_follow_v1.event",
+  "wait_id": "wait_fedcba9876543210fedcba9876543210",
+  "mode": "armed",
+  "replaced_wait_id": "wait_0123456789abcdef0123456789abcdef"
+}

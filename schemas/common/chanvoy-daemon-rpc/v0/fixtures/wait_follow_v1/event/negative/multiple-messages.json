@@ -2,8 +2,8 @@
   "schema": "wait_follow_v1.event",
   "wait_id": "wait_0123456789abcdef0123456789abcdef",
   "mode": "backlog",
-  "tip": "postid00000000000000000001",
-  "truncated": true,
+  "tip": "postid00000000000000000002",
+  "truncated": false,
   "messages": [
     {
       "id": "postid00000000000000000001",
@@ -12,7 +12,14 @@
       "message": "first",
       "create_at": 1786480000000,
       "root_id": "postid00000000000000000001"
+    },
+    {
+      "id": "postid00000000000000000002",
+      "user_id": "userid00000000000000000002",
+      "username": "agent-peer",
+      "message": "second",
+      "create_at": 1786480000001,
+      "root_id": "postid00000000000000000002"
     }
-  ],
-  "matched_channel": "org-example/release-floor"
+  ]
 }

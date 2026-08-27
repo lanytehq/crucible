@@ -1,7 +1,7 @@
 {
   "schema": "wait_follow_v1.event",
   "wait_id": "wait_0123456789abcdef0123456789abcdef",
-  "mode": "backlog",
+  "mode": "live",
   "tip": "postid00000000000000000001",
   "truncated": true,
   "messages": [
@@ -9,10 +9,9 @@
       "id": "postid00000000000000000001",
       "user_id": "userid00000000000000000001",
       "username": "agent-example",
-      "message": "first",
+      "message": "live",
       "create_at": 1786480000000,
       "root_id": "postid00000000000000000001"
     }
-  ],
-  "matched_channel": "org-example/release-floor"
+  ]
 }

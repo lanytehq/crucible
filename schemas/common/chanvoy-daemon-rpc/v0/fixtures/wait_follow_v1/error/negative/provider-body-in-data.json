@@ -1,0 +1,7 @@
+{
+  "code": -32008,
+  "message": "provider degraded",
+  "data": {
+    "body": "raw provider response"
+  }
+}

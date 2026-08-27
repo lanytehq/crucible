@@ -234,6 +234,17 @@ streams records conforming to `wait_follow_v1.event.schema.json` over one
 long-lived local daemon connection. It is a new capability and does not alter
 the one-shot `wait_channel_v3` method.
 
+| Surface         | Contract                            |
+| --------------- | ----------------------------------- |
+| JSON-RPC method | `wait_follow_v1`                    |
+| Parameters      | `wait_follow_v1.params.schema.json` |
+| Stream record   | `wait_follow_v1.event.schema.json`  |
+| Terminal result | `wait_follow_v1.result.schema.json` |
+| Error detail    | `wait_follow_v1.error.schema.json`  |
+
+Method presence is the capability gate. Method-not-found is exit 2; a client
+must not emulate follow with legacy one-shot calls.
+
 ### Scope and transport
 
 Version 1 accepts exactly one explicit channel. A client must reject fan-in
@@ -267,11 +278,18 @@ The `armed` receipt is the first record. An eligible event observed in the same
 turn as a terminal posture is emitted before the terminal record. No record
 follows a terminal record.
 
-Each backlog/live record contains one through thirty messages from the single
-armed channel. Messages retain their runner order. `tip` equals the id of the
-last message in that record and is the exclusive `--after` baseline for a
-later new follow. When `truncated` is true, additional eligible messages remain
-for a later record in the same held follow; truncation never means discard.
+An empty channel at arm has no provider post id. The armed record therefore has
+no `tip`, and an internal empty-at-arm sentinel must never be projected as a
+resumable `--after` value. When compare-and-replace admits the new waiter, its
+armed record carries `replaced_wait_id`. The displaced waiter's terminal record
+and terminal result carry `replaced_by_wait_id`.
+
+Each backlog/live record contains exactly one message from the single armed
+channel. Two quick posts therefore produce two ordered records on unchanged
+binds; the adapter does not coalesce them. `tip` equals that message id and is
+the exclusive `--after` baseline for a later new follow. Only backlog may set
+`truncated` true. In that case, additional eligible messages remain for later
+records in the same held follow; truncation never means discard.
 The optional singular `matched_channel` may echo the requested selector but
 does not introduce fan-in.
 
@@ -290,6 +308,12 @@ Only `deadman` is a timeout. A hard failure must never be projected as a
 timeout. `failed.reason_code` is a bounded local class and must not carry raw
 provider detail. When the selected sink itself fails, a terminal record cannot
 be guaranteed; connection closure is the fail-loud cancellation signal.
+
+Pre-admission ownership errors retain the `wait_channel_v3` compare-and-replace
+codes and bounded payloads: `-32009` already active, `-32010` conflict changed,
+and `-32012` replacement cleanup unconfirmed. Capability, input, provider, and
+other hard errors carry no free-form `data`. Confirmed displacement is a
+`replaced` terminal record and terminal result, which the CLI maps to exit 2.
 
 The CLI requires exactly one explicit sink: `--out PATH` or
 `--follow-stdout`. It opens and validates `--out` before daemon admission:

@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/common/chanvoy-daemon-rpc/v0/wait_follow_v1.error.schema.json",
+  "title": "Chanvoy wait_follow_v1 JSON-RPC Error Detail",
+  "description": "Hard failure for wait_follow_v1. Ownership admission preserves the bounded wait_channel_v3 compare-and-replace classes. Deadman and confirmed replacement use terminal results instead.",
+  "type": "object",
+  "required": [
+    "code",
+    "message"
+  ],
+  "$defs": {
+    "already-active": {
+      "type": "object",
+      "required": [
+        "class",
+        "team",
+        "channel",
+        "existing_wait_id",
+        "started_at_ms"
+      ],
+      "properties": {
+        "class": {
+          "const": "wait_already_active"
+        },
+        "team": {
+          "type": "string",
+          "minLength": 1
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "existing_wait_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "started_at_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "conflict-changed": {
+      "type": "object",
+      "required": [
+        "class"
+      ],
+      "properties": {
+        "class": {
+          "const": "wait_conflict_changed"
+        },
+        "team": {
+          "type": "string",
+          "minLength": 1
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "replace-unconfirmed": {
+      "type": "object",
+      "required": [
+        "class",
+        "existing_wait_id"
+      ],
+      "properties": {
+        "class": {
+          "const": "wait_replace_unconfirmed"
+        },
+        "team": {
+          "type": "string",
+          "minLength": 1
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "existing_wait_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "code": {
+      "type": "integer",
+      "enum": [
+        -32601,
+        -32012,
+        -32010,
+        -32009,
+        -32008,
+        -32007,
+        -32000
+      ]
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "description": "Locally constructed, redacted diagnostic."
+    },
+    "data": {
+      "description": "Required structured payload for ownership codes -32009, -32010, and -32012. Omitted for capability, input, provider, and other hard failures."
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": -32009
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/already-active"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": -32010
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/conflict-changed"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "code": {
+            "const": -32012
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
+      "then": {
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/$defs/replace-unconfirmed"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "not": {
+          "properties": {
+            "code": {
+              "enum": [
+                -32012,
+                -32010,
+                -32009
+              ]
+            }
+          },
+          "required": [
+            "code"
+          ]
+        }
+      },
+      "then": {
+        "properties": {
+          "data": false
+        }
+      }
+    }
+  ]
+}
