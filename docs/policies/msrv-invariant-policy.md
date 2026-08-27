@@ -22,7 +22,7 @@ It answers two questions:
 All Rust crates in the Lanyte ecosystem:
 
 - `lanyte` workspace crates (`lanyte-common`, `lanyte-telemetry`, `lanyte-gateway`, `lanyte-state`, `lanyte-llm`, `lanyte-executor`, `lanyte-orchestrator`, main binary)
-- `stashvoy` (formerly `lanyte-ctx` pre-CRT-011F rename) — the agent-state CLI
+- `stashvoy` — the agent-state CLI
 - `lanyte-attest` — session attestation CLI
 - `lanyte-verify` — tool verification library
 - `ipcprims` (3leaps org) — IPC primitives library (transitively required by lanyte)
@@ -48,7 +48,7 @@ Every workspace carries:
 2. **CI MSRV job** in `.github/workflows/check.yml` (or equivalent) that runs `make msrv` on every PR.
 3. **Workspace `Cargo.toml` `rust-version`** as the single source of truth; per-crate manifests inherit via `rust-version.workspace = true` where appropriate.
 
-Reference implementation: `lanyte` workspace per CRT-010.
+Reference implementation: `lanyte` workspace MSRV job.
 
 ### Bump-forward discipline
 
@@ -71,13 +71,13 @@ When a transitive dependency requires a newer MSRV than the current declared ver
 An MSRV bump lands as one of:
 
 - **Routine bump** (workspace deps require it; no operator visibility needed): single PR updating `rust-version` + this policy's current-MSRV line; small commit; passes through normal review.
-- **Coordinated bump** (multiple repos at once, or platform-significant version transition): briefly drafted as a CRT (or equivalent) brief; coordinates lockstep across repos. Reference [CRT-010](https://github.com/lanytehq/lanyte-productbook-internal/blob/main/content/projmgmt/core-runtime/index.md) for the original enforcement-introduction pattern.
+- **Coordinated bump** (multiple repos at once, or platform-significant version transition): draft a public brief; coordinate lockstep across repos. The `lanyte` workspace `make msrv` + CI job is the reference pattern.
 
 ## Cross-References
 
-- **CRT-010** — original MSRV enforcement task in the `lanyte` workspace; established the `make msrv` + CI MSRV job pattern this policy carries forward.
+- **lanyte workspace** — original `make msrv` + CI MSRV job pattern this policy carries forward.
 - **`schema-bump-policy.md`** — sibling policy on "default-no" stability discipline for the schema surface. Similar shape: bump deliberately, not casually.
-- **`release-signing-manual-baseline-policy.md`** — release builds use `cargo build --release --locked` per chanvoy PER-031 specialist findings; locked builds + workspace MSRV invariant together ensure released binaries match what was tested.
+- **`release-signing-manual-baseline-policy.md`** — release builds use `cargo build --release --locked`; locked builds + workspace MSRV invariant together ensure released binaries match what was tested.
 - **Galaxy-root `~/dev/lanytehq/AGENTS.md`** — previously carried the MSRV statement inline; now cites this policy (see Note below).
 
 ## Note on the galaxy-root AGENTS.md move

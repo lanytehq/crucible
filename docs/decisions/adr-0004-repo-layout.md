@@ -10,7 +10,7 @@ Status: Proposed
 ## Decision
 
 1. A "kitsite" is a **documentation site built with Kitfly** (a repo containing `site.yaml`), not a special monorepo category.
-2. Default model: **one kitsite per repo** (example: `lanyte-runbook`, `lanyte-productbook-internal`).
+2. Default model: **one kitsite per repo** (example: `lanyte-runbook`, `lanyte-productbook`).
 3. Local development convention (recommended, not enforced):
    - clone related repos as siblings under a single parent folder (example: `~/dev/lanytehq/<repo>`).
 4. We do **not** require repos to live under a `kitsites/` subfolder in GitHub (that pattern is a local workbench convenience only).

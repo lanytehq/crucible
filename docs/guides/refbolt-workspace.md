@@ -11,32 +11,10 @@ fetches, and with version-pinned consistency.
 
 ### Install
 
-```bash
-# From source (fulmenhq/refbolt repo)
-cd ~/dev/fulmenhq/refbolt
-make build
-# Binary: ./bin/refbolt
-```
-
-### Create the workspace
-
-```bash
-mkdir -p ~/docs/refbolt
-```
-
-### Configure Jina API key (for HTML-only providers like OpenAI)
-
-```bash
-# If you have a Jina Reader API key, set it before syncing:
-export JINA_API_KEY="your-key-here"
-```
-
-### Run initial sync
-
-```bash
-cd ~/dev/fulmenhq/refbolt
-REFBOLT_ARCHIVE_ROOT=~/docs/refbolt ./bin/refbolt sync --all --verbose
-```
+Install and configure from the public
+[fulmenhq/refbolt](https://github.com/fulmenhq/refbolt) README. Optional HTML
+fetch credentials (if any) are documented there — do not put API keys in this
+repository.
 
 ### Refresh (weekly or before a sprint)
 

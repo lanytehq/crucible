@@ -66,7 +66,7 @@ Status: Accepted (cxotech + entarch review)
 ### Context
 
 The original ADR-0010 decision anticipated multiple adapters but shipped a single Claude adapter
-(CRT-008) with a skeletal trait surface: `CompletionRequest { prompt, max_tokens }`,
+with a skeletal trait surface: `CompletionRequest { prompt, max_tokens }`,
 `StreamChunk { text_delta }`, and an opaque `LlmError::Upstream { status, message }`.
 
 Adding OpenAI and xAI/Grok backends (AGI-009, AGI-010) requires expanding the trait contract
@@ -158,7 +158,7 @@ This signature is binding. Rationale for each constraint:
 
 ### C. CompletionRequest Expansion
 
-The CRT-008 skeleton (`prompt: String, max_tokens: u32`) is replaced by a provider-agnostic
+The earlier skeleton (`prompt: String, max_tokens: u32`) is replaced by a provider-agnostic
 request that supports multi-turn conversation, tool use, and model parameters:
 
 ```rust
@@ -210,7 +210,7 @@ translation layer — the orchestrator constructs provider-agnostic requests.
 
 ### D. Error Taxonomy
 
-The CRT-008 error type (`LlmError::Upstream { status, message }`) is replaced by typed variants
+The earlier error type (`LlmError::Upstream { status, message }`) is replaced by typed variants
 that the orchestrator can match without string parsing:
 
 ```rust
@@ -334,7 +334,7 @@ The original section G content is preserved below for historical reference only:
 - Positive: `Annotation` escape hatch means new provider features ship without enum changes or
   cross-adapter coordination.
 - Negative: The expanded `CompletionRequest` and `StreamEvent` are a breaking change to the
-  CRT-008 skeleton. AGI-012 (Claude adapter conformance upgrade) absorbs this cost.
+  the earlier skeleton. A later Claude adapter conformance upgrade absorbs this cost.
 - Negative: Three adapters means three sets of fixture recordings to maintain. Fixture staleness
   (provider API changes) requires periodic live-mode regeneration.
 - Note: Azure OpenAI is explicitly deferred. It requires deployment-name-in-path and
@@ -345,4 +345,4 @@ The original section G content is preserved below for historical reference only:
 - AGI-009: OpenAI-compatible backend MVP
 - AGI-010: xAI/Grok native backend MVP
 - AGI-011: Provider conformance harness (StreamEvent + CT-1..CT-6)
-- AGI-012: Claude adapter conformance upgrade
+- Claude adapter conformance upgrade

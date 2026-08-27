@@ -86,4 +86,4 @@ These rules apply to any bump that clears the bar above. They are not optional.
 
 ## History
 
-- **0.1.0 (2026-05-12)** — initial draft. Triggered by CRT-011D drafting cycle and platform-wide "literally everyone hits this" signal on `stashvoy` checkpoint friction. Policy direction set by @3leapsdave 2026-05-12: "too early in dev and too noisy — leaving unless there is a really good reason." Dispatch concurred on three-tier docs split and pattern-setter review for the first policy file.
+- **0.1.0 (2026-05-12)** — initial draft. Triggered by stashvoy checkpoint-friction drafting and platform-wide "literally everyone hits this" signal. Policy direction set by @3leapsdave 2026-05-12: "too early in dev and too noisy — leaving unless there is a really good reason." Dispatch concurred on three-tier docs split and pattern-setter review for the first policy file.

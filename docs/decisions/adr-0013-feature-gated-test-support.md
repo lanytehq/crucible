@@ -15,7 +15,7 @@ The naive fix — making `test_support` an unconditional `pub mod` — compiles 
 
 A subtler problem: Cargo's `required-features` on `[[test]]` and `[[bin]]` targets causes those targets to be **silently skipped** when the feature is not enabled. There is no warning. `cargo test --workspace` reports green even though gated tests never ran. This makes the failure mode invisible without explicit CI/Makefile discipline.
 
-This ADR was motivated by CRT-005 (PR lanytehq/lanyte#11), where `lanyte-gateway`'s test harness and mock peer binary were initially exposed as unconditional public modules.
+This ADR was motivated by [lanyte PR #11](https://github.com/lanytehq/lanyte/pull/11), where `lanyte-gateway`'s test harness and mock peer binary were initially exposed as unconditional public modules.
 
 ## Options Considered
 

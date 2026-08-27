@@ -84,7 +84,7 @@ Do not use `println!` for confirmations, diagnostics, or status messages. If a m
 
 This policy applies to:
 
-- `stashvoy` (implemented in CRT-011A)
+- `stashvoy`
 - `lanyte-attest` (apply at initial implementation)
 - All future Lanyte CLI tools
 

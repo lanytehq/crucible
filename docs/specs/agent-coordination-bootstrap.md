@@ -15,13 +15,14 @@ This is the bootstrap pattern. When Lanyte's own agent infrastructure (memory st
 
 Agent coordination requires exactly three cross-repo functions:
 
-| Function      | Purpose                             | Location                         | Scope                    |
-| ------------- | ----------------------------------- | -------------------------------- | ------------------------ |
-| **Messaging** | Inter-role communication            | `~/dev/lanytehq/chat/`           | Append-only, per-channel |
-| **Context**   | Per-role persistent state           | `~/dev/lanytehq/context/<role>/` | Read-write, per-role     |
-| **Roles**     | Identity and capability definitions | `config/agentic/roles/`          | Git-versioned, canonical |
+| Function      | Purpose                             | Location                            | Scope                    |
+| ------------- | ----------------------------------- | ----------------------------------- | ------------------------ |
+| **Messaging** | Inter-role communication            | Operator-local files or chat bridge | Append-only, per-channel |
+| **Context**   | Per-role persistent state           | Operator-local role directories     | Read-write, per-role     |
+| **Roles**     | Identity and capability definitions | `config/agentic/roles/`             | Git-versioned, canonical |
 
-All three are local-machine-only (not committed to any repo) except Roles, which are the canonical source of truth in crucible.
+Messaging and context directories are **not** in this repository. Roles in this
+tree are Lanyte product copies; the operating catalog is `3leaps/crucible`.
 
 ---
 
@@ -32,10 +33,9 @@ File-based append-only messaging. One markdown file per channel.
 ### Channel structure
 
 ```
-~/dev/lanytehq/chat/
+<operator-local-chat>/
 ├── README.md          ← conventions
 ├── general.md         ← cross-task discussion
-├── crt-001.md         ← task-specific coordination
 ├── reviews.md         ← PR review requests and handoffs
 └── <topic>.md         ← as needed
 ```
@@ -81,13 +81,21 @@ Persistent per-role working state that survives across sessions.
 ### Directory structure
 
 ```
-~/dev/lanytehq/context/
+<operator-local-context>/
 ├── README.md
-├── cxotech/
+├── <role>/
 │   ├── STATE.md                   ← current state (overwritten each session)
-│   ├── handoff-2026-02-23.md      ← session handoff notes (dated)
+│   ├── handoff-YYYY-MM-DD.md      ← session handoff notes (dated)
 │   ├── brief-<slug>.md            ← briefs for other roles
 │   └── <topic>.md                 ← persistent notes
+```
+
+Example layout (names only):
+
+```
+<operator-local-context>/
+├── cxotech/
+│   └── STATE.md
 ├── devlead/
 │   ├── STATE.md
 │   └── ...
@@ -131,13 +139,13 @@ Every role directory has a `STATE.md` that is the quick-read entry point. Format
 
 ### What goes here vs. elsewhere
 
-| Content                              | Location                                        |
-| ------------------------------------ | ----------------------------------------------- |
-| Working notes, drafts, decision logs | `context/<role>/`                               |
-| Inter-role messages                  | `chat/`                                         |
-| Code, schemas, specs                 | The appropriate repo                            |
-| Task status, sprint boards           | `lanyte-productbook-internal/content/projmgmt/` |
-| Agent tool memory (Claude Code)      | `~/.claude/projects/.../memory/`                |
+| Content                              | Location                         |
+| ------------------------------------ | -------------------------------- |
+| Working notes, drafts, decision logs | `context/<role>/`                |
+| Inter-role messages                  | `chat/`                          |
+| Code, schemas, specs                 | The appropriate repo             |
+| Task status, sprint boards           | GitHub issues / PRs (this org)   |
+| Agent tool memory (Claude Code)      | `~/.claude/projects/.../memory/` |
 
 ### Transition to Lanyte memory
 
@@ -171,7 +179,7 @@ Role definitions live in `config/agentic/roles/`. This is the single source of t
 | `prodmktg`     | agentic    | Quarter        | Branding, messaging             |
 
 Full catalog with escalation paths and decision matrices:
-`~/dev/lanytehq/crucible/config/agentic/roles/README.md`
+`config/agentic/roles/README.md` in this repository.
 
 ### Agent invocation preamble
 
@@ -179,9 +187,9 @@ When starting a new agent session, use this standard preamble:
 
 ```
 You are <role> on the Lanyte platform.
-Read ~/dev/lanytehq/crucible/docs/guides/dev-warmup.md before starting.
-Read ~/dev/lanytehq/context/<role>/STATE.md for current state.
-Working repo: ~/dev/lanytehq/<repo>/.
+Read docs/guides/dev-warmup.md in this repository before starting.
+Read operator-local role STATE.md for current state.
+Working repo: the git clone for this task.
 Task: <description>
 ```
 
@@ -231,13 +239,13 @@ Substitute your model name, agentic tool, and role slug. The email domain `norep
 
 ## Bootstrap vs. Platform
 
-| Function       | Bootstrap (now)                          | Platform (future)                         |
-| -------------- | ---------------------------------------- | ----------------------------------------- |
-| Messaging      | `chat/*.md` files                        | Mattermost channels via MCP proxy         |
-| Context        | `context/<role>/STATE.md`                | lanyte-state memory store (ADR-0009)      |
-| Roles          | `crucible/config/agentic/roles/`         | Same (git-versioned, canonical)           |
-| Task boards    | `productbook-internal/content/projmgmt/` | Same or GitHub Issues                     |
-| Agent identity | Role slug in preamble                    | Platform-issued identity with credentials |
-| Notifications  | Poll files                               | Mattermost push / webhook                 |
+| Function       | Bootstrap (now)                  | Platform (future)                         |
+| -------------- | -------------------------------- | ----------------------------------------- |
+| Messaging      | `chat/*.md` files                | Mattermost channels via MCP proxy         |
+| Context        | `context/<role>/STATE.md`        | lanyte-state memory store (ADR-0009)      |
+| Roles          | `crucible/config/agentic/roles/` | Same (git-versioned, canonical)           |
+| Task boards    | GitHub issues / PRs              | GitHub Issues                             |
+| Agent identity | Role slug in preamble            | Platform-issued identity with credentials |
+| Notifications  | Poll files                       | Mattermost push / webhook                 |
 
 The conventions (message format, STATE.md structure, role slugs, attribution) stay the same. Only the transport changes.

@@ -24,30 +24,21 @@ Lanyte is a **secure, self-hosted autonomous AI agent platform**. The architectu
 
 ---
 
-## 2. Key Paths (on this machine)
+## 2. Where things live (public)
 
-```
-~/dev/lanytehq/
-  crucible/                 ← SSOT: schemas, ADRs, roles (you are here or close)
-  lanyte/                   ← Rust workspace (TCB) — created (CRT-001 merged)
-  lanyte-productbook-internal/ ← Sprint boards, gate status
-  lanyte-*/                 ← other platform repos
-  chat/                     ← file-based inter-role messaging (not a git repo)
-  context/<role>/           ← per-role working artifacts and briefs (not a git repo)
+| Piece                 | Public home                                           |
+| --------------------- | ----------------------------------------------------- |
+| This contracts SSOT   | this repository (`lanytehq/crucible`)                 |
+| IPC library           | [3leaps/ipcprims](https://github.com/3leaps/ipcprims) |
+| Kernel                | [lanytehq/lanyte](https://github.com/lanytehq/lanyte) |
+| Foundation coding/SOP | [3leaps/crucible](https://github.com/3leaps/crucible) |
 
-~/dev/3leaps/ipcprims/      ← IPC library v0.1.2 (MSRV 1.85.0)
-~/dev/fulmenhq/mlvoy/       ← email bridge peer (channel 256)
-~/dev/fulmenhq/fulminar/    ← HTTP proxy peer (channel 257)
-```
+Machine-local clone layout belongs in gitignored `AGENTS.local.md`, not here.
 
-Check `AGENTS.local.md` in your working repo for any machine-specific path overrides.
-
-**Agent coordination**: Read `docs/specs/agent-coordination-bootstrap.md` for the full
-messaging, context, and role conventions. At minimum:
-
-- Resume context: `stashvoy resume --role "$LANYTE_AGENT_ROLE" --scope "$LANYTE_AGENT_SCOPE"`
-- Check `~/dev/lanytehq/chat/` for pending messages addressed to your role
-- Checkpoint at session end: `stashvoy checkpoint --role "$LANYTE_AGENT_ROLE" --scope "$LANYTE_AGENT_SCOPE" --file /tmp/checkpoint-<role>-<scope>.json`
+**Agent coordination**: Read `docs/specs/agent-coordination-bootstrap.md`. Role
+state checkpoints use [stashvoy](https://github.com/lanytehq/stashvoy) when that
+tool is in the session. Chat is a local operator concern, not a path in this
+repository.
 
 ---
 
@@ -64,30 +55,14 @@ messaging, context, and role conventions. At minimum:
 | 258     | `channel_258.schema.json` | lanyte-admin                   |
 | 259     | `channel_259.schema.json` | skill executor I/O             |
 
-Schema files live in: `~/dev/lanytehq/crucible/schemas/ipc/`
+Schema files live in `schemas/ipc/` in this repository.
 
 ---
 
-## 4. Current Sprint State
+## 4. Current work
 
-Check before touching any task:
-
-```
-~/dev/lanytehq/lanyte-productbook-internal/content/projmgmt/projmgmt/index.md
-  → Gate status (which gates are cleared)
-
-~/dev/lanytehq/lanyte-productbook-internal/content/projmgmt/core-runtime/index.md
-  → CRT task board (active for Gate 3)
-
-~/dev/lanytehq/lanyte-productbook-internal/content/projmgmt/standards/index.md
-  → STD task board (STD-001/002/003 done; STD-004/005/006 ready)
-```
-
-**Current gate status** — check the live board, not a snapshot:
-
-```
-~/dev/lanytehq/lanyte-productbook-internal/content/projmgmt/projmgmt/index.md
-```
+Sprint boards are operator-internal. Public contributors use GitHub issues and
+PRs on this repository. Do not treat unpublished planning trees as SSOT.
 
 ---
 
@@ -105,7 +80,7 @@ No decisions, no state, no side effects in the gateway.
 
 **PR scheme.**
 No direct pushes to main in any `lanytehq` repo.
-Create a branch, push, open a PR. Use rebase-merge for multi-commit branches.
+Create a branch, push, open a PR. Default merge is **squash-merge**.
 
 **TCB boundary.**
 Only `lanyte` (core) is trusted. Peers are not trusted.
@@ -155,12 +130,9 @@ ipcprims --version           # expect 0.1.2 (latest released tag)
 cargo install ipcprims                            # from crates.io if published
 # Or from git tag (always works):
 cargo install --git https://github.com/3leaps/ipcprims --tag v0.1.2 ipcprims
-# Or from local source if cloned:
-cargo install --path ~/dev/3leaps/ipcprims
-
 # Validate IPC schemas (takes ~2s, catches JSON errors before commit)
 ipcprims echo /tmp/lanyte-test.sock \
-  --validate ~/dev/lanytehq/crucible/schemas/ipc/
+  --validate schemas/ipc/
 # Expect: "INFO listening on unix domain socket" with no errors, then Ctrl-C
 
 # In lanyte/ workspace:
