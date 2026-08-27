@@ -49,19 +49,11 @@ Lanyte is a **secure, self-hosted autonomous AI agent platform**. Key architectu
 
 ---
 
-## Local Machine Context
+## Local machine context
 
-If you are a core maintainer on a dev machine, check for `AGENTS.local.md` in this directory (gitignored). It contains local paths and private repo references.
-
-Typical sibling repos on a dev machine:
-
-```
-~/dev/lanytehq/crucible/          ← you are here (or a repo-seed)
-~/dev/lanytehq/lanyte/             ← Rust workspace (main core)
-~/dev/3leaps/ipcprims/             ← IPC library (v0.1.3)
-~/dev/fulmenhq/mlvoy/              ← email bridge peer
-~/dev/fulmenhq/fulminar/           ← HTTP proxy peer
-```
+Core maintainers may keep a gitignored `AGENTS.local.md` for machine paths.
+Public readers do not need it. Sibling clones are named in each consuming
+repository; this tree is `lanytehq/crucible`.
 
 ---
 

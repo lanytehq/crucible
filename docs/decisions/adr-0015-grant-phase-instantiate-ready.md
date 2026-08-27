@@ -127,5 +127,5 @@ Corollaries:
 - ADR-0007 — autonomy gate architecture (establishes the broader
   "gate, not deferred check" pattern this ADR extends to the executor
   boundary)
-- `lanyte-productbook-internal/content/projmgmt/skills-infra/SKL-004-grant-phase.md`
+- Skills grant-phase work in the public `lanyte` / skills-infra tree (not a path in this repository)
   — the SKL-004 brief

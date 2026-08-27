@@ -34,7 +34,7 @@ Following a symlink is asymmetric risk. Refusing a symlinked path costs an
 operator a small correction: pass the real path. Following a planted redirect can
 irreversibly disclose or propagate unintended content.
 
-This issue surfaced during PER-036 review for `chanvoy` PR #38. Dave set the
+This issue surfaced during `chanvoy` PR #38. The maintainer set the
 posture: for agent-critical file inputs, fail closed rather than follow and warn.
 
 ## Options Considered
@@ -245,7 +245,7 @@ dated path first, then read the real path.
 - Positive: Prevents a shared-filesystem redirect from silently turning a named
   context file into a different readable file.
 - Positive: Gives tool authors one portable baseline for safe context-file reads.
-- Positive: Makes the chanvoy PER-036 hardening reusable across stashvoy, kanvoy,
+- Positive: Makes the chanvoy chanvoy PR #38 hardening reusable across stashvoy, kanvoy,
   and future agent tools.
 - Positive: Keeps the operator remediation simple and explicit: pass the real
   path.
@@ -259,7 +259,7 @@ dated path first, then read the real path.
 
 ## Initial Follow-Up Targets
 
-- `chanvoy`: PER-036 / PR #38 is the reference implementation for baseline
+- `chanvoy`: chanvoy PR #38 / PR #38 is the reference implementation for baseline
   `--message-file` hardening.
 - `stashvoy`: harden checkpoint `--file` and `schema validate <file>` reads.
 - `kanvoy`: require the safe read helper before adding import/apply, message,
@@ -276,7 +276,7 @@ dated path first, then read the real path.
 
 ## References
 
-- PER-036: `chanvoy` message-writing verbs with `--message-file` and stdin
+- chanvoy PR #38: `chanvoy` message-writing verbs with `--message-file` and stdin
 - `chanvoy` PR #38: reference baseline implementation
 - `stashvoy` checkpoint `--file` and `schema validate <file>` call sites
 - `AGENTS.local.md`: shared filesystem warning for concurrent agent sessions

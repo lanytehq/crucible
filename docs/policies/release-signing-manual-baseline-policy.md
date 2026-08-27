@@ -76,8 +76,8 @@ The `fulmenhq/fulmen-toolbox` cosign exception exists as prior art — read its 
 ## Cross-References
 
 - **`schema-bump-policy.md`** — companion policy on a related "default-no" platform stance (schema bumps require really-good-reason justification; same shape as "GHA signing requires really-good-reason justification").
-- **Per-repo `RELEASE_CHECKLIST.md`** files (e.g., chanvoy's per PER-030) — the operator-facing procedure that implements this policy. Each release-shipping repo carries its own checklist; this policy carries the platform-baseline contract.
+- **Per-repo `RELEASE_CHECKLIST.md`** files (e.g., chanvoy's) — the operator-facing procedure that implements this policy. Each release-shipping repo carries its own checklist; this policy carries the platform-baseline contract.
 
 ## History
 
-- **0.1.0 (2026-05-16)** — initial draft. Consolidates the prior session-memory reference on the manual-signing baseline into a platform-public policy. Triggered by the PR 1 cross-repo SSOT framing from dispatch 2026-05-14. Chanvoy v0.2.2 release infrastructure (PER-030 + PER-031) is the immediate consumer.
+- **0.1.0 (2026-05-16)** — initial draft. Consolidates the prior session-memory reference on the manual-signing baseline into a platform-public policy. Triggered by the PR 1 cross-repo SSOT framing from dispatch 2026-05-14. Chanvoy v0.2.2 release infrastructure is the immediate consumer.

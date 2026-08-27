@@ -22,12 +22,10 @@ operate under fine-grained permission control. Two patterns that we
 accidentally favor today make this harder than it should be:
 
 1. **Compound shell expressions.** An agent that runs
-   `for d in chanvoy zolkraf lanyte; do cd ~/dev/lanytehq/$d && gh pr
-list; done` presents the harness with a single opaque shell string.
+   a loop that `cd`s into several clones and runs `gh pr list` presents the harness with a single opaque shell string.
    The harness cannot permit "run `gh pr list` in three known repos"
    granularly; the agent either gets **total shell release** (risky) or
-   a prompt (slow). The 2026-04-18 cxotech warm-up flagged a concrete
-   case of this.
+   a prompt (slow). Field use flagged a concrete case of this.
 
 2. **File-intermediate writes.** Our checkpoint flow today is
    "heredoc-emit a JSON file, then run `stashvoy checkpoint --file`."
@@ -89,7 +87,7 @@ these values."
 `<tool> <subcommand> --flag value --flag value …` invocation, the
 command's surface is wrong. Fix the CLI, not the agent's behavior.
 
-CRT-011C (stashvoy option-oriented checkpoint) is the template.
+The stashvoy option-oriented checkpoint CLI is the template.
 
 ### C3 — No file intermediates for the common write path
 
@@ -104,7 +102,7 @@ The file-intermediate antipattern hurts because:
 - compound "heredoc && run" expressions hit C1's shell-release problem
 
 Tools that today require a file intermediate (stashvoy checkpoint
-before CRT-011C) are explicitly in scope for migration.
+before that checkpoint shape) are explicitly in scope for migration.
 
 ### C4 — Structured output via flag, not pipe
 
@@ -213,14 +211,14 @@ stderr:
 - `3`+ — system / transient errors
 
 Callers should not need to grep stderr to tell "no results" from
-"broken." PER-008's `chanvoy check` exit-code contract is the
+"broken." Chanvoy `check` exit-code contract is the
 reference.
 
 ### C7 — stdout purity
 
 Programmatic output (JSON, structured data) goes to **stdout**;
 diagnostics, confirmations, and human-facing logs go to **stderr**.
-CRT-011A established this for stashvoy; it is now the platform rule.
+stashvoy established this; it is now the platform rule.
 
 Violation test: `<tool> <subcommand> --format json > out.json` must
 produce a clean parseable file, with zero stray text.
@@ -289,9 +287,9 @@ allowlist model.
 
 In-scope tools (today):
 
-- **stashvoy** — CRT-011B (schema introspection) and CRT-011C
+- **stashvoy** — schema introspection and option-oriented checkpoint
   (option-oriented checkpoint) bring it into compliance.
-- **chanvoy** — PER-008 brief already follows these patterns (exit
+- **chanvoy** — `check` / wait already follow these patterns (exit
   codes, JSON output, cursor flags). Audit at review.
 - **lanyte-chat** — being retired in favor of chanvoy; no work.
 - **lanyte-verify, lanyte-attest** — audit during next touch.

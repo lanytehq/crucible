@@ -59,7 +59,7 @@ These rules apply to any bump that clears the bar above. They are not optional.
 3. **Schema validation before committing**:
 
    ```bash
-   ~/dev/3leaps/ipcprims/target/debug/ipcprims echo /tmp/test.sock \
+   ipcprims echo /tmp/test.sock \
      --validate schemas/ipc/
    ```
 
@@ -72,7 +72,7 @@ These rules apply to any bump that clears the bar above. They are not optional.
 
 6. **Cross-consumer coordination**:
 
-   - Identify every consumer that embeds the schema (`grep` the relevant schema filename across `~/dev/lanytehq/` + `~/dev/3leaps/` + `~/dev/fulmenhq/` worktrees).
+   - Identify every consumer that embeds the schema (search consuming public repos for the schema filename).
    - File a tracking issue or wave-coordination thread in the relevant project board.
    - Land the bump only after each consumer has a regen PR queued and reviewed.
 
@@ -86,4 +86,4 @@ These rules apply to any bump that clears the bar above. They are not optional.
 
 ## History
 
-- **0.1.0 (2026-05-12)** — initial draft. Triggered by CRT-011D drafting cycle and platform-wide "literally everyone hits this" signal on `stashvoy` checkpoint friction. Policy direction set by @3leapsdave 2026-05-12: "too early in dev and too noisy — leaving unless there is a really good reason." Dispatch concurred on three-tier docs split and pattern-setter review for the first policy file.
+- **0.1.0 (2026-05-12)** — initial draft. Triggered by stashvoy checkpoint-friction drafting and platform-wide "literally everyone hits this" signal. Policy direction set by @3leapsdave 2026-05-12: "too early in dev and too noisy — leaving unless there is a really good reason." Dispatch concurred on three-tier docs split and pattern-setter review for the first policy file.

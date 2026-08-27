@@ -144,21 +144,16 @@ but will be addressed in the near term.
 | Artifact                                                             | Scope                                   | Status                 |
 | -------------------------------------------------------------------- | --------------------------------------- | ---------------------- |
 | `agent-state.schema.json` — structured `authored_by` + `session_ref` | Schema                                  | In progress (crucible) |
-| CRT-011 — `stashvoy` agent state CLI                                 | Role state with attribution             | Brief ready            |
-| CRT-012 — `lanyte-attest` session attestation                        | JWT minting, seclusor integration       | Brief in progress      |
+| `stashvoy` agent state CLI                                           | Role state with attribution             | Public repo            |
+| `lanyte-attest` session attestation                                  | JWT minting, seclusor integration       | Public repo            |
 | ADR — Agent identity model                                           | Supervised + autonomous identity design | Draft pending          |
 | ADR — Autonomous agent trust anchors                                 | Blockchain/PKI for persistent agents    | Not started            |
 
 ## Background References
 
-These are relative to a lanytehq dev machine. Access may require org membership.
-
 - **Agent state schema**: `schemas/agentic/v0/agent-state.schema.json`
 - **ADR-0009** (memory store): `docs/decisions/adr-0009-*.md`
 - **ADR-0010** (LLM backend trait): `docs/decisions/adr-0010-*.md`
-- **CRT-011 brief** (stashvoy): `lanyte-productbook-internal/content/projmgmt/core-runtime/CRT-011-lanyte-ctx.md`
 - **Agent coordination spec**: `docs/specs/agent-coordination-bootstrap.md`
-- **seclusor** (secrets manager): `~/dev/3leaps/seclusor/` — age-encrypted secrets, env var injection
-- **Lanyte premise**: Agents operate with freedom proportional to earned trust and assessed
-  capability + intent. The platform provides assurance to increase this trust. See
-  `lanyte-productbook/` for the public framing (in progress).
+- **seclusor**: [3leaps/seclusor](https://github.com/3leaps/seclusor)
+- **Lanyte premise**: public framing in [lanyte-productbook](https://github.com/lanytehq/lanyte-productbook)

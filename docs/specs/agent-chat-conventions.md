@@ -9,29 +9,18 @@ This spec defines the conventions for AI agent communication via Mattermost. It 
 platform-native successor to the file-based messaging bootstrap in
 [agent-coordination-bootstrap.md](./agent-coordination-bootstrap.md).
 
-The file-based `~/dev/lanytehq/chat/` system remains available as a fallback when the
-Mattermost server is unreachable. The message format conventions are intentionally similar
-across both systems to preserve continuity.
+An operator-local file fallback remains available when the chat server is
+unreachable. Message format conventions are intentionally similar across both
+systems.
 
 ---
 
-## Server and Team Structure
+## Server and team structure
 
-One Mattermost instance serves the entire 3leaps galaxy. Teams map to repo orgs.
-
-**Constraint:** Mattermost team slugs cannot start with a number, so all team slugs
-use the `org-` prefix:
-
-```
-mm.3leaps.dev
-├── Team: org-lanytehq    (Lanyte platform repos)
-├── Team: org-3leaps      (Core libraries: ipcprims, seclusor, kitfly)
-├── Team: org-fulmenhq    (Tooling: rsfulmen, refbolt, goneat, etc.)
-└── Team: org-enacthq     (IaC tooling, Mattermost deployment)
-```
-
-Humans and bots join whichever teams they need. Cross-team channels handle
-cross-org concerns (e.g., a release that touches seclusor + lanyte-attest).
+A self-hosted Mattermost instance may serve multiple GitHub orgs. Team slugs
+map to orgs. Mattermost team slugs cannot start with a number, so a prefix such
+as `org-` is used. Exact hostnames and team lists are operator configuration,
+not this contract.
 
 ---
 
@@ -52,24 +41,18 @@ agent-{role}              # ecosystem-wide role (currently only dispatch)
 The `agent-` prefix satisfies this. Human usernames follow the same rule
 (e.g., `dave-3leaps` rather than `3leapsdave`).
 
-### Examples
+### Examples (patterns only)
 
-| Bot username            | Display name    | Purpose                      |
-| ----------------------- | --------------- | ---------------------------- |
-| `agent-charlie-devlead` | Charlie devlead | Charlie team lead developer  |
-| `agent-charlie-devrev`  | Charlie devrev  | Charlie team code reviewer   |
-| `agent-delta-devlead`   | Delta devlead   | Delta team lead developer    |
-| `agent-delta-devrev`    | Delta devrev    | Delta team code reviewer     |
-| `agent-echo-devlead`    | Echo devlead    | Echo team lead developer     |
-| `agent-cxotech-3leaps`  | cxotech-3leaps  | Org-scoped strategic role    |
-| `agent-secrev-lanytehq` | secrev-lanytehq | Org-scoped security reviewer |
-| `agent-dispatch`        | dispatch        | Task routing and scheduling  |
+| Bot username pattern  | Kind        |
+| --------------------- | ----------- |
+| `agent-<team>-<role>` | Team-scoped |
+| `agent-<role>-<org>`  | Org-scoped  |
+| `agent-<role>`        | Estate-wide |
 
 ### Display name updates
 
-The display name may include the model backing the current session for visibility:
-`Charlie devlead (Claude Sonnet 4.6)`. This is informational — the bot username is the
-stable identity.
+The display name may include the model backing the current session. That is
+informational — the bot username is the stable identity.
 
 ---
 
@@ -216,7 +199,7 @@ Reading channel backlog...
 ```markdown
 **PR opened** | repo: lanytehq/lanyte | PR #17
 AGI-013: add Claude live validation tests
-Ready for review. CC @agent-charlie-devrev
+Ready for review. CC @agent-<team>-devrev
 ```
 
 ```markdown
@@ -229,12 +212,12 @@ Conformance harness passes. Live tests pass with key set.
 **Session ended** | role: devlead | team: charlie | task: AGI-013
 Completed: claude_live.rs with 4 test cases. PR #17 open.
 Next: devrev review, then merge.
-State: ~/dev/lanytehq/context/devlead/STATE.json updated.
+State: role STATE.json updated.
 ```
 
 ### @mentions
 
-- `@agent-charlie-devrev` — direct address to a specific bot
+- `@agent-<team>-devrev` — direct address to a specific bot
 - `@dave-3leaps` — direct address to human supervisor
 - `@channel` — notify all channel members (use sparingly)
 
@@ -278,7 +261,7 @@ routing or authorization in the bootstrap phase.
 ### Session end
 
 1. Post session summary to team channel (what was done, what's next)
-2. Update `~/dev/lanytehq/context/<role>/STATE.json`
+2. Update role `STATE.json` (operator-local; not this repository)
 3. If handing off to another role, post handoff message with @mention
 
 ---
@@ -289,24 +272,20 @@ routing or authorization in the bootstrap phase.
 
 ```toml
 [mattermost]
-server_url = "https://mm.3leaps.dev"
-team = "org-lanytehq"
+server_url = "https://chat.example.invalid"
+team = "org-example"
 ```
 
 ### secrets.toml
 
-```toml
-[mattermost]
-bot_token = "xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-```
+Store the bot token in a secrets file or secret store. Never commit it.
+Do not put tokens in `config.toml`.
 
-### Environment variable overrides (Layer 3)
+### Environment variable overrides
 
-| Env var           | Config path             | Notes                                  |
-| ----------------- | ----------------------- | -------------------------------------- |
-| `LANYTE_MM_URL`   | `mattermost.server_url` | Full base URL (https)                  |
-| `LANYTE_MM_TOKEN` | `mattermost.bot_token`  | Bot access token                       |
-| `LANYTE_MM_TEAM`  | `mattermost.team`       | Default team (default: `org-lanytehq`) |
+The chat CLI binds server URL, bot token, and default team from operator
+environment or a local profile. Variable names are a local profile concern,
+not this contract.
 
 ### Security
 
@@ -342,7 +321,7 @@ The trust model evolves in phases:
 | ------------------- | --------------------------------------------------------------- | ---------------------- |
 | **Bootstrap** (now) | Bot token only. Token proves process identity.                  | Before orchestrator    |
 | **Correlation**     | Attested sessions carry `session_id` in message props.          | After orchestrator MVP |
-| **Gated actions**   | Actions requested via chat (merge, deploy) require attestation. | After CRT-013          |
+| **Gated actions**   | Actions requested via chat (merge, deploy) require attestation. | After session attest   |
 
 ### chanvoy (future)
 
@@ -354,14 +333,12 @@ chanvoy will be the full Mattermost bridge peer (channel 260). It replaces the
 - Routes messages to agent sessions via IPC
 - Enforces attestation for gated actions
 
-Until chanvoy exists, `lanyte-chat` and direct API calls are the bridge.
+The chat CLI (`chanvoy`) is the current bridge.
 
 ### File-based fallback
 
-The `~/dev/lanytehq/chat/` file-based system remains available when Mattermost
-is unreachable. The message format is intentionally similar. If an agent cannot
-reach the Mattermost server, it should fall back to file-based messaging and
-note the fallback in its STATE.json.
+An operator-local file inbox remains available when Mattermost is unreachable.
+The message format is intentionally similar. Note the fallback in role state.
 
 ---
 
@@ -369,9 +346,8 @@ note the fallback in its STATE.json.
 
 To enable chat for a new agent role:
 
-1. Create bot account in Mattermost admin (or via API)
-2. Generate bot token
-3. Add token to `~/.config/lanytehq/secrets.toml` under `[mattermost]`
-4. Add bot to relevant team(s) and channel(s)
-5. Test with `lanyte-chat whoami` and `lanyte-chat post general "test"`
-6. Add `lanyte-chat` calls to agent session preamble and session-end protocol
+1. Create a bot account in Mattermost admin (or via API)
+2. Generate a bot token; store it in the operator secret store / CLI profile (never commit it)
+3. Add the bot to relevant team(s) and channel(s)
+4. Test with the chat CLI `whoami` and a throwaway `post`
+5. Use the chat CLI in session start/end, not a retired helper name
