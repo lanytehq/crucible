@@ -8,6 +8,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **Content policy**: This file carries the most recent ~10 releases. Older
 entries are archived in `docs/releases/vX.Y.Z.md`.
 
+## [Unreleased]
+
+## [0.1.0] - 2026-08-27
+
+First public-track release of Lanyte Crucible. GitHub slug is
+[`lanytehq/crucible`](https://github.com/lanytehq/crucible). Display name
+remains **Lanyte Crucible**. No schema family bumps in this release.
+Full notes: [`docs/releases/v0.1.0.md`](docs/releases/v0.1.0.md).
+
+### Changed
+
+- Repository identity: GitHub slug and in-repo clone/path strings now
+  use `lanytehq/crucible` (display name unchanged).
+- Public-facing docs scrubbed of operator layout, chat-host, and
+  internal planning identifiers.
+- README states the three-org crucible map and the role-catalog split
+  (operating catalog is `3leaps/crucible`; this tree keeps Lanyte
+  product copies and Lanyte-only seats).
+- ADR index and IPC schema index aligned with files on disk; channel
+  260 (chanvoy) listed with the other bootstrap channels.
+- Community health files and `LIFECYCLE_PHASE=alpha` added. Split
+  license kept (code MIT OR Apache-2.0; docs/schemas CC0).
+
+### Added
+
+- `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`,
+  `MAINTAINERS.md`, and `LIFECYCLE_PHASE`.
+
 ## [0.0.1] - 2026-07-15
 
 First tagged release of Lanyte Crucible, the contract repository for the
@@ -69,4 +97,6 @@ tag time.)
   supervisor per the release-signing manual baseline policy; CI never
   signs.
 
+[Unreleased]: https://github.com/lanytehq/crucible/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/lanytehq/crucible/releases/tag/v0.1.0
 [0.0.1]: https://github.com/lanytehq/crucible/releases/tag/v0.0.1

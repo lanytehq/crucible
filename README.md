@@ -1,7 +1,7 @@
 # Lanyte Crucible
 
 [![lifecycle](https://img.shields.io/badge/lifecycle-alpha-orange)](LIFECYCLE_PHASE)
-[![version](https://img.shields.io/badge/version-0.0.1-blue)](VERSION)
+[![version](https://img.shields.io/badge/version-0.1.0-blue)](VERSION)
 
 **Lanyte platform contracts:** IPC channel schemas, mission and dispatch
 families, agent role copies, ADRs, and policies. Message types live here
