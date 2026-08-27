@@ -56,12 +56,6 @@
       "type": "string",
       "pattern": "^[a-z0-9]{26}$",
       "description": "Mattermost post id. Internal anchor sentinels are not resumable stream tips."
-    },
-    "matched-channel": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 513,
-      "description": "Optional requested single-channel selector. Arrays and per-arm selectors are not valid in v1."
     }
   },
   "oneOf": [
@@ -86,9 +80,6 @@
         "replaced_wait_id": {
           "$ref": "#/$defs/wait-id",
           "description": "Present when this waiter was admitted by compare-and-replace."
-        },
-        "matched_channel": {
-          "$ref": "#/$defs/matched-channel"
         }
       },
       "additionalProperties": false
@@ -129,9 +120,6 @@
           "items": {
             "$ref": "#/$defs/message"
           }
-        },
-        "matched_channel": {
-          "$ref": "#/$defs/matched-channel"
         }
       },
       "additionalProperties": false
@@ -173,9 +161,6 @@
           "items": {
             "$ref": "#/$defs/message"
           }
-        },
-        "matched_channel": {
-          "$ref": "#/$defs/matched-channel"
         }
       },
       "additionalProperties": false

@@ -290,8 +290,8 @@ binds; the adapter does not coalesce them. `tip` equals that message id and is
 the exclusive `--after` baseline for a later new follow. Only backlog may set
 `truncated` true. In that case, additional eligible messages remain for later
 records in the same held follow; truncation never means discard.
-The optional singular `matched_channel` may echo the requested selector but
-does not introduce fan-in.
+The stream has no `matched_channel` field; the single selector is fixed by the
+method parameters. Fan-in and per-arm projection are not v1.
 
 ### Terminal and CLI outcome mapping
 

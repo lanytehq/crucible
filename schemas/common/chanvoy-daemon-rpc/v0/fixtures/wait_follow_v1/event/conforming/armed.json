@@ -1,6 +1,5 @@
 {
   "schema": "wait_follow_v1.event",
   "wait_id": "wait_0123456789abcdef0123456789abcdef",
-  "mode": "armed",
-  "matched_channel": "org-example/release-floor"
+  "mode": "armed"
 }
