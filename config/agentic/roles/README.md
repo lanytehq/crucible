@@ -2,6 +2,11 @@
 
 Baseline role prompts for AI agent sessions.
 
+The **operating** catalog for estate seats is
+[3leaps/crucible](https://github.com/3leaps/crucible). This directory holds
+Lanyte product copies and Lanyte-only seats. `entarch` is defined in the
+3leaps catalog and is not duplicated here.
+
 **Schema**: [`role-prompt.schema.json`](../../../schemas/agentic/v0/role-prompt.schema.json)
 
 ## Quick Reference by Timeline

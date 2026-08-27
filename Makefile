@@ -23,8 +23,13 @@ clean: ## Remove build artifacts (placeholder)
 	@echo "[ok] nothing to clean"
 
 .PHONY: check
-check: guard-no-submodules guard-version-file check-dispatch-v0 check-mission-v0 check-mission-v0.1 check-chanvoy-daemon-rpc-v0 check-gearwit-interrupt-v0 test-epilogue fmt-check ## Repo guards + schema family gates + format honesty
+check: guard-no-submodules guard-version-file check-ipc-schemas check-dispatch-v0 check-mission-v0 check-mission-v0.1 check-chanvoy-daemon-rpc-v0 check-gearwit-interrupt-v0 test-epilogue fmt-check ## Repo guards + schema family gates + format honesty
 	@echo "OK"
+
+.PHONY: check-ipc-schemas
+check-ipc-schemas: ## Parse schemas/ipc/*.schema.json (ipcprims echo listens; run that interactively)
+	@set -e; for f in schemas/ipc/*.schema.json; do python3 -m json.tool "$$f" >/dev/null; done
+	@echo "[ok] IPC schema JSON parses"
 
 .PHONY: test-epilogue
 test-epilogue: ## Fail-secure post-merge epilogue negative controls (no mutations)

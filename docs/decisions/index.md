@@ -11,9 +11,6 @@ Decisions are recorded as ADRs when they are hard to reverse or when multiple vi
 
 | ID       | Decision                                                                   | Status              |
 | -------- | -------------------------------------------------------------------------- | ------------------- |
-| ADR-0001 | Secrets placement (LLM keys in core vs peer service)                       | Proposed            |
-| ADR-0002 | Default proxy (squid vs fulminar)                                          | Proposed            |
-| ADR-0003 | Forge language (Go) and bindings strategy                                  | Proposed            |
 | ADR-0004 | Repo layout for kitsites                                                   | Proposed            |
 | ADR-0005 | GitHub governance and templates                                            | Proposed            |
 | ADR-0006 | IPC schema design patterns (naming, bidirectional union, strict mode)      | Accepted            |
@@ -24,5 +21,7 @@ Decisions are recorded as ADRs when they are hard to reverse or when multiple vi
 | ADR-0011 | Provenance and blockchain strategy (Sigstore v1, blockchain Sprint 5+)     | Accepted            |
 | ADR-0012 | CLI stdout purity policy (stdout for data, stderr for diagnostics)         | Accepted            |
 | ADR-0013 | Feature-gated test support in workspace crates                             | Accepted            |
+| ADR-0014 | Transport reliability policy                                               | Accepted            |
 | ADR-0015 | Grant phase must produce instantiate-ready artifacts                       | Accepted            |
 | ADR-0016 | Agent-critical file input symlink policy                                   | Accepted            |
+| ADR-0017 | Out-of-band planning root                                                  | Proposed            |
