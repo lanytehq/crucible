@@ -226,3 +226,103 @@ message bodies, provider URLs, credentials, command lines, or pids.
 
 The operation is cursor- and attention-neutral. Replacement and refusal
 do not acknowledge, post, mark read, or advance persistent state.
+
+## `wait_follow_v1`
+
+`wait_follow_v1` is a process-held, single-channel wait. It binds once and
+streams records conforming to `wait_follow_v1.event.schema.json` over one
+long-lived local daemon connection. It is a new capability and does not alter
+the one-shot `wait_channel_v3` method.
+
+| Surface         | Contract                            |
+| --------------- | ----------------------------------- |
+| JSON-RPC method | `wait_follow_v1`                    |
+| Parameters      | `wait_follow_v1.params.schema.json` |
+| Stream record   | `wait_follow_v1.event.schema.json`  |
+| Terminal result | `wait_follow_v1.result.schema.json` |
+| Error detail    | `wait_follow_v1.error.schema.json`  |
+
+Method presence is the capability gate. Method-not-found is exit 2; a client
+must not emulate follow with legacy one-shot calls.
+
+### Scope and transport
+
+Version 1 accepts exactly one explicit channel. A client must reject fan-in
+before daemon admission; it must not collapse per-arm anchors into the
+document's scalar `tip`. Multi-channel follow requires a later document with
+per-arm cursor semantics.
+
+The daemon invokes the held-follow runner once. It must not implement follow
+by repeatedly calling a first-match runner. One runner retains the same bind
+across backlog and live bursts until deadline, cancellation, replacement, or a
+terminal arm posture. The existing Chanvoy observer and event bus remain the
+only provider observation path; this capability does not add a provider
+socket, polling acknowledgement, or agent-wait wire kind.
+
+Each burst is written before the runner asks for another burst. The write is
+the backpressure boundary. Buffering all bursts until terminal, acknowledging
+between bursts, or silently discarding same-instant events violates the
+contract. Closing the client connection cancels the same runner and releases
+its registry lease.
+
+### Record order and cursor semantics
+
+Every record carries `schema: "wait_follow_v1.event"` and the same opaque
+`wait_id`. A valid stream contains:
+
+1. exactly one `armed` receipt, written only after admission succeeds;
+2. zero or more `backlog` or `live` records in observation order; and
+3. at most one terminal `deadman`, `canceled`, `replaced`, or `failed` record.
+
+The `armed` receipt is the first record. An eligible event observed in the same
+turn as a terminal posture is emitted before the terminal record. No record
+follows a terminal record.
+
+An empty channel at arm has no provider post id. The armed record therefore has
+no `tip`, and an internal empty-at-arm sentinel must never be projected as a
+resumable `--after` value. When compare-and-replace admits the new waiter, its
+armed record carries `replaced_wait_id`. The displaced waiter's terminal record
+and terminal result carry `replaced_by_wait_id`.
+
+Each backlog/live record contains exactly one message from the single armed
+channel. Two quick posts therefore produce two ordered records on unchanged
+binds; the adapter does not coalesce them. `tip` equals that message id and is
+the exclusive `--after` baseline for a later new follow. Only backlog may set
+`truncated` true. In that case, additional eligible messages remain for later
+records in the same held follow; truncation never means discard.
+The stream has no `matched_channel` field; the single selector is fixed by the
+method parameters. Fan-in and per-arm projection are not v1.
+
+### Terminal and CLI outcome mapping
+
+| Record or condition            | CLI outcome                                     |
+| ------------------------------ | ----------------------------------------------- |
+| `deadman`                      | clean deadline, exit 1                          |
+| `canceled` after local SIGINT  | interrupted, exit 130                           |
+| `replaced`                     | displaced waiter, exit 2                        |
+| `failed`                       | hard provider/ownership/daemon failure, exit 2  |
+| capability/input/open failure  | no armed receipt; hard failure, exit 2          |
+| later sink write/flush failure | close the daemon connection immediately, exit 2 |
+
+Only `deadman` is a timeout. A hard failure must never be projected as a
+timeout. `failed.reason_code` is a bounded local class and must not carry raw
+provider detail. When the selected sink itself fails, a terminal record cannot
+be guaranteed; connection closure is the fail-loud cancellation signal.
+
+Pre-admission ownership errors retain the `wait_channel_v3` compare-and-replace
+codes and bounded payloads: `-32009` already active, `-32010` conflict changed,
+and `-32012` replacement cleanup unconfirmed. Capability, input, provider, and
+other hard errors carry no free-form `data`. Confirmed displacement is a
+`replaced` terminal record and terminal result, which the CLI maps to exit 2.
+
+The CLI requires exactly one explicit sink: `--out PATH` or
+`--follow-stdout`. It opens and validates `--out` before daemon admission:
+append mode, regular file, no symlink following, and mode 0600. A sink-open
+failure cannot acquire a wait lease. Later write or flush failure closes the
+connection immediately so the daemon cancels the held runner and releases the
+lease.
+
+Filters, exclusive `--after`, self-post ignore, websocket-degraded admission,
+single-waiter ownership, and compare-and-replace retain the `wait_channel_v3`
+semantics. Follow is cursor- and attention-neutral: it does not acknowledge,
+post, mark read, or advance persistent state.

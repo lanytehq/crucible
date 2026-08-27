@@ -1,0 +1,10 @@
+{
+  "code": -32012,
+  "message": "wait replacement cleanup unconfirmed",
+  "data": {
+    "class": "wait_replace_unconfirmed",
+    "team": "org-example",
+    "channel": "release-floor",
+    "existing_wait_id": "wait_0123456789abcdef0123456789abcdef"
+  }
+}

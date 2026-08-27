@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/common/chanvoy-daemon-rpc/v0/wait_follow_v1.result.schema.json",
+  "title": "Chanvoy wait_follow_v1 Terminal Result",
+  "description": "Terminal response after the matching deadman or replaced stream record. A real final post id may be included as tip; empty-at-arm has no synthetic resumable tip.",
+  "$defs": {
+    "post-id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]{26}$",
+      "description": "Mattermost post id. Internal anchor sentinels are not resumable terminal tips."
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "wait_id",
+        "mode"
+      ],
+      "properties": {
+        "wait_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "mode": {
+          "type": "string",
+          "const": "deadman"
+        },
+        "tip": {
+          "$ref": "#/$defs/post-id"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "wait_id",
+        "mode",
+        "replaced_by_wait_id"
+      ],
+      "properties": {
+        "wait_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "mode": {
+          "type": "string",
+          "const": "replaced"
+        },
+        "replaced_by_wait_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "tip": {
+          "$ref": "#/$defs/post-id"
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

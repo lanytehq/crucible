@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/common/chanvoy-daemon-rpc/v0/wait_follow_v1.event.schema.json",
+  "title": "Chanvoy wait_follow_v1 Stream Event",
+  "description": "One JSONL record from a process-held, single-channel Chanvoy wait. Records are ordered: one armed receipt, zero or more backlog/live bursts, then at most one terminal record.",
+  "$defs": {
+    "message": {
+      "type": "object",
+      "required": [
+        "id",
+        "user_id",
+        "username",
+        "message",
+        "create_at",
+        "root_id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "user_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "username": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string"
+        },
+        "create_at": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "root_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Top-level posts carry their own id; replies carry the thread root id."
+        }
+      },
+      "additionalProperties": false
+    },
+    "schema-name": {
+      "type": "string",
+      "const": "wait_follow_v1.event"
+    },
+    "wait-id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "description": "Opaque id of the held waiter. Every record in one stream carries the same value."
+    },
+    "post-id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]{26}$",
+      "description": "Mattermost post id. Internal anchor sentinels are not resumable stream tips."
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "schema",
+        "wait_id",
+        "mode"
+      ],
+      "properties": {
+        "schema": {
+          "$ref": "#/$defs/schema-name"
+        },
+        "wait_id": {
+          "$ref": "#/$defs/wait-id"
+        },
+        "mode": {
+          "type": "string",
+          "const": "armed"
+        },
+        "replaced_wait_id": {
+          "$ref": "#/$defs/wait-id",
+          "description": "Present when this waiter was admitted by compare-and-replace."
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "schema",
+        "wait_id",
+        "mode",
+        "tip",
+        "truncated",
+        "messages"
+      ],
+      "properties": {
+        "schema": {
+          "$ref": "#/$defs/schema-name"
+        },
+        "wait_id": {
+          "$ref": "#/$defs/wait-id"
+        },
+        "mode": {
+          "type": "string",
+          "const": "backlog"
+        },
+        "tip": {
+          "$ref": "#/$defs/post-id",
+          "description": "Exclusive baseline for a later follow. It equals the id of the final message in this record."
+        },
+        "truncated": {
+          "type": "boolean",
+          "description": "True when additional eligible messages remain for a later record in this same held follow; messages are not discarded."
+        },
+        "messages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {
+            "$ref": "#/$defs/message"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "schema",
+        "wait_id",
+        "mode",
+        "tip",
+        "truncated",
+        "messages"
+      ],
+      "properties": {
+        "schema": {
+          "$ref": "#/$defs/schema-name"
+        },
+        "wait_id": {
+          "$ref": "#/$defs/wait-id"
+        },
+        "mode": {
+          "type": "string",
+          "const": "live"
+        },
+        "tip": {
+          "$ref": "#/$defs/post-id",
+          "description": "Exclusive baseline for a later follow. It equals the id of the message in this record."
+        },
+        "truncated": {
+          "type": "boolean",
+          "const": false,
+          "description": "Live delivery is never truncated."
+        },
+        "messages": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {
+            "$ref": "#/$defs/message"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "schema",
+        "wait_id",
+        "mode"
+      ],
+      "properties": {
+        "schema": {
+          "$ref": "#/$defs/schema-name"
+        },
+        "wait_id": {
+          "$ref": "#/$defs/wait-id"
+        },
+        "mode": {
+          "type": "string",
+          "const": "deadman"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "schema",
+        "wait_id",
+        "mode"
+      ],
+      "properties": {
+        "schema": {
+          "$ref": "#/$defs/schema-name"
+        },
+        "wait_id": {
+          "$ref": "#/$defs/wait-id"
+        },
+        "mode": {
+          "type": "string",
+          "const": "canceled"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "schema",
+        "wait_id",
+        "mode",
+        "replaced_by_wait_id"
+      ],
+      "properties": {
+        "schema": {
+          "$ref": "#/$defs/schema-name"
+        },
+        "wait_id": {
+          "$ref": "#/$defs/wait-id"
+        },
+        "mode": {
+          "type": "string",
+          "const": "replaced"
+        },
+        "replaced_by_wait_id": {
+          "$ref": "#/$defs/wait-id"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "schema",
+        "wait_id",
+        "mode",
+        "reason_code"
+      ],
+      "properties": {
+        "schema": {
+          "$ref": "#/$defs/schema-name"
+        },
+        "wait_id": {
+          "$ref": "#/$defs/wait-id"
+        },
+        "mode": {
+          "type": "string",
+          "const": "failed"
+        },
+        "reason_code": {
+          "type": "string",
+          "enum": [
+            "provider_failed",
+            "provider_overflow",
+            "provider_outage",
+            "cursor_uncertain",
+            "provider_degraded",
+            "ownership_lost",
+            "daemon_shutdown"
+          ],
+          "description": "Stable, locally constructed terminal class. Raw provider details are never stream data."
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

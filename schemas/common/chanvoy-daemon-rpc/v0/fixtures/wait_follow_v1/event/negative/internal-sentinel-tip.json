@@ -1,0 +1,17 @@
+{
+  "schema": "wait_follow_v1.event",
+  "wait_id": "wait_0123456789abcdef0123456789abcdef",
+  "mode": "backlog",
+  "tip": "anc:empty-at-arm",
+  "truncated": false,
+  "messages": [
+    {
+      "id": "postid00000000000000000001",
+      "user_id": "userid00000000000000000001",
+      "username": "agent-example",
+      "message": "backlog",
+      "create_at": 1786480000000,
+      "root_id": "postid00000000000000000001"
+    }
+  ]
+}

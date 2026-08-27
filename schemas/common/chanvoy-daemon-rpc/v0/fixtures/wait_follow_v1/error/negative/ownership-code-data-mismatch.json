@@ -1,0 +1,9 @@
+{
+  "code": -32009,
+  "message": "wait already active",
+  "data": {
+    "class": "wait_conflict_changed",
+    "team": "org-example",
+    "channel": "release-floor"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "channel": "org-example/release-floor",
+  "timeout_secs": 3600,
+  "contains": "ASSENT",
+  "after": "postid00000000000000000001",
+  "replace_wait_id": null
+}

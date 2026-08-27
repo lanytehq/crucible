@@ -1,0 +1,17 @@
+{
+  "schema": "wait_follow_v1.event",
+  "wait_id": "wait_0123456789abcdef0123456789abcdef",
+  "mode": "live",
+  "tip": "postid00000000000000000003",
+  "truncated": false,
+  "messages": [
+    {
+      "id": "postid00000000000000000003",
+      "user_id": "userid00000000000000000003",
+      "username": "agent-example",
+      "message": "live",
+      "create_at": 1786480000002,
+      "root_id": "postid00000000000000000003"
+    }
+  ]
+}
