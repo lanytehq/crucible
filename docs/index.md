@@ -5,7 +5,16 @@ description: Lanyte Crucible SSOT for specs, schemas, policies, and decision rec
 
 # Lanyte Crucible
 
-Single source of truth (SSOT) for the Lanyte ecosystem:
+Lanyte platform contracts (IPC, mission, dispatch, roles, ADRs, policies).
+GitHub: [lanytehq/crucible](https://github.com/lanytehq/crucible).
+
+| Org        | Crucible                                                  | Job                  |
+| ---------- | --------------------------------------------------------- | -------------------- |
+| `3leaps`   | [3leaps/crucible](https://github.com/3leaps/crucible)     | Foundation standards |
+| `lanytehq` | this repo                                                 | Lanyte product SSOT  |
+| `fulmenhq` | [fulmenhq/crucible](https://github.com/fulmenhq/crucible) | DX SDK forge         |
+
+Single source of truth for the Lanyte ecosystem:
 
 - Specs (contracts, protocols, invariants)
 - Schemas (machine-consumable validation)
