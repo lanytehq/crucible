@@ -1,8 +1,32 @@
 # Release Notes
 
-**Content policy**: This file contains the most recent 3 releases (reverse chronological). Older releases are archived in `docs/releases/vX.Y.Z.md`.
+Current release notes for Lanyte Crucible. For complete history, see
+[CHANGELOG.md](CHANGELOG.md). Per-release archives live in
+[docs/releases/](docs/releases/).
 
-## Lanyte Crucible v0.0.1
+**Content policy**: keep the most recent 3 releases in this file
+(reverse chronological). Older entries remain only under `docs/releases/`.
+
+---
+
+## v0.1.0 (2026-08-27)
+
+**First public-track release of Lanyte Crucible.** GitHub slug
+[`lanytehq/crucible`](https://github.com/lanytehq/crucible). Display name
+unchanged.
+
+- **Vessel identity** — clone and docs paths use `lanytehq/crucible`.
+- **Public surface** — community health files, `LIFECYCLE_PHASE=alpha`,
+  three-org crucible map, role-catalog split vs `3leaps/crucible`.
+- **Indexes** — ADR index matches disk; IPC bootstrap list includes
+  channel 260.
+- **No schema bumps** — contract families are unchanged from `v0.0.1`.
+
+See [docs/releases/v0.1.0.md](docs/releases/v0.1.0.md).
+
+---
+
+## v0.0.1 (2026-07-15)
 
 First tagged release of the platform schema repository. The tag is
 signed manually by the supervisor per the release-signing manual
