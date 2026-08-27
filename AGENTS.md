@@ -13,9 +13,9 @@ This repository (`lanytehq/crucible`) is the **single source of truth (SSOT)** f
 Contents:
 
 - `schemas/ipc/` — JSON Schema 2020-12 files for all IPC channels (loaded by ipcprims at runtime)
-- `schemas/agentic/` — Role prompt schema and capability taxonomy schema
+- `schemas/agentic/` — Role prompt, agent-state, dispatch, mission, gearwit families. A separate capability-taxonomy schema is **deferred**.
 - `docs/decisions/` — ADRs (Architecture Decision Records), SDRs, DDRs
-- `docs/specs/` — Canonical specifications (Skill ABI, peer contract, capability taxonomy)
+- `docs/specs/` — Canonical specifications (peer contract, coordination, identity)
 - `config/agentic/roles/` — Agent role definitions for the Lanyte platform
 - `docs/policies/` — Security and operational policies
 
@@ -42,6 +42,7 @@ Lanyte is a **secure, self-hosted autonomous AI agent platform**. Key architectu
 | 257     | `channel_257.schema.json` | fulminar (HTTP proxy)          |
 | 258     | `channel_258.schema.json` | lanyte-admin (admin UI)        |
 | 259     | `channel_259.schema.json` | skill executor I/O             |
+| 260     | `channel_260.schema.json` | chanvoy (chat bridge)          |
 
 **Schema naming**: user channels MUST be `channel_NNN.schema.json`. Do not use logical names — ipcprims will silently ignore them. See ADR-0006.
 
