@@ -15,11 +15,11 @@ This is the bootstrap pattern. When Lanyte's own agent infrastructure (memory st
 
 Agent coordination requires exactly three cross-repo functions:
 
-| Function      | Purpose                             | Location                                | Scope                    |
-| ------------- | ----------------------------------- | --------------------------------------- | ------------------------ |
-| **Messaging** | Inter-role communication            | `~/dev/lanytehq/chat/`                  | Append-only, per-channel |
-| **Context**   | Per-role persistent state           | `~/dev/lanytehq/context/<role>/`        | Read-write, per-role     |
-| **Roles**     | Identity and capability definitions | `config/agentic/roles/` | Git-versioned, canonical |
+| Function      | Purpose                             | Location                         | Scope                    |
+| ------------- | ----------------------------------- | -------------------------------- | ------------------------ |
+| **Messaging** | Inter-role communication            | `~/dev/lanytehq/chat/`           | Append-only, per-channel |
+| **Context**   | Per-role persistent state           | `~/dev/lanytehq/context/<role>/` | Read-write, per-role     |
+| **Roles**     | Identity and capability definitions | `config/agentic/roles/`          | Git-versioned, canonical |
 
 All three are local-machine-only (not committed to any repo) except Roles, which are the canonical source of truth in crucible.
 
