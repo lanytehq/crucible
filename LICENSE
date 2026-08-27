@@ -7,6 +7,12 @@ This repository uses a split licensing model:
 - **Creative works and data** (documentation, specifications, schemas, registries, and other non-code assets) are dedicated to the public domain under **CC0 1.0**.
   - See `LICENSE-CC0`.
 
+## Scope Limitation
+
+This repository is documentation, JSON Schema contracts, and lightweight
+CI/scripts. It is not a runtime library, not a crates.io crate, and not a Go
+module. Implementations live in dedicated downstream repositories.
+
 ## Trademark Notice
 
 "3 Leaps®" is a registered trademark of 3 Leaps, LLC, a Florida LLC with offices
@@ -20,6 +26,8 @@ these marks in derivative works does not imply endorsement by 3 Leaps, LLC. As
 a courtesy, rename derivative projects to avoid using "lanyte" or "lanytehq" in
 repository, package, or product names.
 
-For additional governance details and contributor obligations, see:
+For additional governance details and contributor obligations, see
 https://github.com/3leaps/oss-policies
+and the trademark policy at
+https://github.com/3leaps/oss-policies/blob/main/TRADEMARK-POLICY.md
 
