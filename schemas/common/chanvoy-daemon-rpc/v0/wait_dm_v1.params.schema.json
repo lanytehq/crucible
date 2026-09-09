@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/common/chanvoy-daemon-rpc/v0/wait_dm_v1.params.schema.json",
+  "title": "Chanvoy wait_dm_v1 Parameters",
+  "description": "Strict parameters for one one-shot wait on a direct message by exact username. Username resolve and create-if-missing are inside daemon admission. There is no team or channel selector.",
+  "type": "object",
+  "required": [
+    "username",
+    "timeout_secs"
+  ],
+  "$defs": {
+    "nullable-string": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      ]
+    }
+  },
+  "properties": {
+    "username": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "description": "Exact Mattermost username of the peer. Not a channel id, UUID, user id, or {uid}__{uid} DM name. The runtime additionally enforces a 256 UTF-8 byte limit."
+    },
+    "timeout_secs": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 18446744073709551615,
+      "description": "Required positive u64 duration. The absolute deadline starts at RPC entry and covers username resolve, direct-channel create-if-missing, baseline bind, ownership, subscribe/backfill, and block."
+    },
+    "contains": {
+      "$ref": "#/$defs/nullable-string",
+      "description": "Optional case-sensitive literal body substring. Empty is refused at runtime. The runtime additionally enforces a 256 UTF-8 byte limit."
+    },
+    "pattern": {
+      "$ref": "#/$defs/nullable-string",
+      "description": "Optional Rust-regex body pattern. Combines with contains using logical AND. Empty is refused. Compiled size is limited at runtime."
+    },
+    "after": {
+      "$ref": "#/$defs/nullable-string",
+      "description": "Exclusive baseline post id on this DM conversation. Bound before registry acquisition. Null or absent means tip-at-arm with seam protection after the waiter is admitted. This is not an inbox cursor."
+    },
+    "replace_wait_id": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Opaque wait id from a prior wait_already_active conflict. Compare-and-replace only; a malformed, stale, absent, or other-channel id is wait_conflict_changed."
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

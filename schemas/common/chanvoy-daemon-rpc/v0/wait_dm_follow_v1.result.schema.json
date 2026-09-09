@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/common/chanvoy-daemon-rpc/v0/wait_dm_follow_v1.result.schema.json",
+  "title": "Chanvoy wait_dm_follow_v1 Terminal Result",
+  "description": "Terminal response after the matching deadman or replaced stream record. peer_username and canonical dm_name are required so callers never reverse a channel UUID. Stream records remain wait_follow_v1.event after admission.",
+  "$defs": {
+    "post-id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]{26}$"
+    },
+    "peer": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "wait_id",
+        "mode",
+        "peer_username",
+        "dm_name"
+      ],
+      "properties": {
+        "wait_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "mode": {
+          "type": "string",
+          "const": "deadman"
+        },
+        "peer_username": {
+          "$ref": "#/$defs/peer"
+        },
+        "dm_name": {
+          "$ref": "#/$defs/peer"
+        },
+        "tip": {
+          "$ref": "#/$defs/post-id"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "wait_id",
+        "mode",
+        "replaced_by_wait_id",
+        "peer_username",
+        "dm_name"
+      ],
+      "properties": {
+        "wait_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "mode": {
+          "type": "string",
+          "const": "replaced"
+        },
+        "replaced_by_wait_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "peer_username": {
+          "$ref": "#/$defs/peer"
+        },
+        "dm_name": {
+          "$ref": "#/$defs/peer"
+        },
+        "tip": {
+          "$ref": "#/$defs/post-id"
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}
