@@ -326,3 +326,98 @@ Filters, exclusive `--after`, self-post ignore, websocket-degraded admission,
 single-waiter ownership, and compare-and-replace retain the `wait_channel_v3`
 semantics. Follow is cursor- and attention-neutral: it does not acknowledge,
 post, mark read, or advance persistent state.
+
+## `wait_dm_v1`
+
+`wait_dm_v1` waits on one direct-message conversation selected by **exact
+username**. Username resolution and create-if-missing (`GET
+/users/username/{username}` then `POST /channels/direct`) run **inside**
+daemon wait admission under the same absolute deadline as baseline bind,
+ownership, subscribe/backfill, and block. It is a new capability and does
+not alter `wait_channel_v3` or `wait_follow_v1`.
+
+| Surface           | Contract                          |
+| ----------------- | --------------------------------- |
+| JSON-RPC method   | `wait_dm_v1`                      |
+| Parameters        | `wait_dm_v1.params.schema.json`   |
+| Successful result | `wait_dm_v1.result.schema.json`   |
+| Error detail      | `wait_dm_v1.error.schema.json`    |
+
+### Capability and compatibility
+
+Method presence is the capability gate. Method-not-found (`-32601`) is a
+hard capability failure (exit 2). A client must not fall back to
+`wait_channel_v3`, `wait_channel_v2`, or a CLI preflight that resolves the
+username then issues a second wait RPC.
+
+There is no separate capability payload in v0. Do not add optional fields
+to the deny-unknown `wait_channel_v3` / `wait_follow_v1` documents.
+
+### Parameters and pre-provider validation
+
+Before username lookup, direct-channel creation, baseline work, or wait
+ownership, the daemon must validate:
+
+1. `username` is non-empty, at most 256 UTF-8 bytes, and is **not** a
+   waitable-peer shape: RFC UUID, Mattermost user-id (26-character id),
+   or `{uid}__{uid}` DM channel name.
+2. `username` is not the current bot identity (daemon-bound username).
+   Do not trim or case-fold into a different identity. Do not search by
+   display name.
+3. `timeout_secs` is greater than zero.
+4. `contains` and `pattern` follow `wait_channel_v3` filter rules.
+5. An explicit `after` is a post id on that DM conversation (not an
+   inbox cursor) and is bound after the DM channel exists, before
+   registry acquisition.
+6. There is no `team` and no `channel` field. Unknown properties refuse.
+
+Unknown, inaccessible, or self targets use **one** diagnostic class:
+"not a waitable peer". Creation of the DM channel sends no message.
+
+Identity for `POST /channels/direct` is the daemon-bound bot user id
+(no extra `whoami` required when already bound). Call order is exact
+username lookup, then `POST /channels/direct`.
+
+### Registry lifecycle
+
+After direct-channel admission the daemon uses the **existing**
+first-match engine and the **canonical channel id** ownership key from
+`wait_channel_v3`. A legacy positional wait on the same DM name
+(`{uid}__{uid}`) and `wait_dm_v1` for that peer conflict or
+compare-and-replace as the same owner.
+
+A peer post that races create-if-missing and admission is delivered by
+the same subscribe → baseline/backfill rules as an existing channel.
+
+### Successful result
+
+A successful result contains `peer_username`, canonical `dm_name`, the
+echoed `channel` (the DM name), and exactly one shared `Message`.
+Callers must not reverse a channel UUID.
+
+Error and CLI outcome mapping match `wait_channel_v3` (`-32601`
+capability, `-32005` clean deadman, `-32007` input, `-32008` provider,
+ownership `-32009` through `-32012`).
+
+## `wait_dm_follow_v1`
+
+`wait_dm_follow_v1` is the held-follow form of `wait_dm_v1`. Admission
+is the same username resolve/create transaction. After the DM channel
+is bound, the daemon invokes the existing held-follow runner once.
+Stream records remain `wait_follow_v1.event` (that document is not
+widened). The terminal result names `peer_username` and `dm_name`.
+
+| Surface           | Contract                                |
+| ----------------- | --------------------------------------- |
+| JSON-RPC method   | `wait_dm_follow_v1`                     |
+| Parameters        | `wait_dm_follow_v1.params.schema.json`  |
+| Stream record     | `wait_follow_v1.event.schema.json`      |
+| Terminal result   | `wait_dm_follow_v1.result.schema.json`  |
+| Error detail      | `wait_dm_follow_v1.error.schema.json`   |
+
+Method-not-found is exit 2. A client must not emulate follow with
+legacy one-shot calls or with `wait_follow_v1` after a CLI preflight.
+
+`--dm` is mutually exclusive with positional `CHANNEL`, repeated
+`--channel` fan-in, `--after-channel`, and `--team`. CLI help: "wait
+for a DM from this user; do not pass a channel id."

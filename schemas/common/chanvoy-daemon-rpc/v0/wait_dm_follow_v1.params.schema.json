@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/common/chanvoy-daemon-rpc/v0/wait_dm_follow_v1.params.schema.json",
+  "title": "Chanvoy wait_dm_follow_v1 Parameters",
+  "description": "Strict parameters for one process-held wait on a direct message by exact username. After direct-channel admission the existing wait_follow_v1.event stream is used. There is no team or channel selector.",
+  "type": "object",
+  "required": [
+    "username",
+    "timeout_secs"
+  ],
+  "$defs": {
+    "nullable-string": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      ]
+    }
+  },
+  "properties": {
+    "username": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "description": "Exact Mattermost username of the peer. Not a channel id, UUID, user id, or {uid}__{uid} DM name."
+    },
+    "timeout_secs": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 18446744073709551615,
+      "description": "Required positive u64 duration. The absolute deadline starts at RPC entry."
+    },
+    "contains": {
+      "$ref": "#/$defs/nullable-string"
+    },
+    "pattern": {
+      "$ref": "#/$defs/nullable-string"
+    },
+    "after": {
+      "$ref": "#/$defs/nullable-string",
+      "description": "Exclusive baseline post id on this DM conversation, not an inbox cursor."
+    },
+    "replace_wait_id": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

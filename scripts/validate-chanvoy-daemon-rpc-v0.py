@@ -29,6 +29,8 @@ FIXTURES = FAMILY / "fixtures"
 METHODS = (
     "wait_channels_v1",
     "wait_channel_v3",
+    "wait_dm_v1",
+    "wait_dm_follow_v1",
 )
 FOLLOW_METHOD = "wait_follow_v1"
 
