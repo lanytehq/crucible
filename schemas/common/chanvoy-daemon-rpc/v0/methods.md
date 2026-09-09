@@ -336,12 +336,12 @@ daemon wait admission under the same absolute deadline as baseline bind,
 ownership, subscribe/backfill, and block. It is a new capability and does
 not alter `wait_channel_v3` or `wait_follow_v1`.
 
-| Surface           | Contract                          |
-| ----------------- | --------------------------------- |
-| JSON-RPC method   | `wait_dm_v1`                      |
-| Parameters        | `wait_dm_v1.params.schema.json`   |
-| Successful result | `wait_dm_v1.result.schema.json`   |
-| Error detail      | `wait_dm_v1.error.schema.json`    |
+| Surface           | Contract                        |
+| ----------------- | ------------------------------- |
+| JSON-RPC method   | `wait_dm_v1`                    |
+| Parameters        | `wait_dm_v1.params.schema.json` |
+| Successful result | `wait_dm_v1.result.schema.json` |
+| Error detail      | `wait_dm_v1.error.schema.json`  |
 
 ### Capability and compatibility
 
@@ -407,13 +407,13 @@ is bound, the daemon invokes the existing held-follow runner once.
 Stream records remain `wait_follow_v1.event` (that document is not
 widened). The terminal result names `peer_username` and `dm_name`.
 
-| Surface           | Contract                                |
-| ----------------- | --------------------------------------- |
-| JSON-RPC method   | `wait_dm_follow_v1`                     |
-| Parameters        | `wait_dm_follow_v1.params.schema.json`  |
-| Stream record     | `wait_follow_v1.event.schema.json`      |
-| Terminal result   | `wait_dm_follow_v1.result.schema.json`  |
-| Error detail      | `wait_dm_follow_v1.error.schema.json`   |
+| Surface         | Contract                               |
+| --------------- | -------------------------------------- |
+| JSON-RPC method | `wait_dm_follow_v1`                    |
+| Parameters      | `wait_dm_follow_v1.params.schema.json` |
+| Stream record   | `wait_follow_v1.event.schema.json`     |
+| Terminal result | `wait_dm_follow_v1.result.schema.json` |
+| Error detail    | `wait_dm_follow_v1.error.schema.json`  |
 
 Method-not-found is exit 2. A client must not emulate follow with
 legacy one-shot calls or with `wait_follow_v1` after a CLI preflight.
