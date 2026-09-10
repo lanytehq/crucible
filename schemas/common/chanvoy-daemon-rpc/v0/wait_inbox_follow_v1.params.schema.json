@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/common/chanvoy-daemon-rpc/v0/wait_inbox_follow_v1.params.schema.json",
+  "title": "Chanvoy wait_inbox_follow_v1 Parameters",
+  "description": "Strict parameters for one process-held wait on any direct message to this bot. Stream records use wait_inbox_follow_v1.event, not wait_follow_v1.event. There is no team, channel, or username selector.",
+  "type": "object",
+  "required": [
+    "timeout_secs"
+  ],
+  "$defs": {
+    "nullable-string": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      ]
+    },
+    "inbox-cursor": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 32768,
+      "pattern": "^inv1\\.",
+      "description": "Opaque versioned inbox cursor. Not a Mattermost post id. Encoded form is capped at 32 KiB. The decoded catalog is never a wire field."
+    }
+  },
+  "properties": {
+    "timeout_secs": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 18446744073709551615,
+      "description": "Required positive u64 duration. The absolute deadline starts at RPC entry and covers subscribe, catalog, baselines, ownership, bind, and block."
+    },
+    "contains": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      ],
+      "description": "Optional case-sensitive literal body substring. Empty is refused at runtime."
+    },
+    "pattern": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      ],
+      "description": "Optional Rust-regex body pattern. Combines with contains using logical AND."
+    },
+    "after": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 32768,
+          "pattern": "^inv1\\.",
+          "description": "Opaque versioned inbox cursor. Not a Mattermost post id. Encoded form is capped at 32 KiB. The decoded catalog is never a wire field."
+        }
+      ],
+      "description": "Exclusive inbox cursor from a prior inbox result. Not a Mattermost post id. Null or absent means subscribe-then-catalog tip-at-arm."
+    },
+    "replace_wait_id": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64,
+          "description": "Opaque wait id from a prior wait_already_active conflict. Inbox-to-inbox compare-and-replace only."
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

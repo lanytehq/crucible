@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/common/chanvoy-daemon-rpc/v0/wait_inbox_follow_v1.result.schema.json",
+  "title": "Chanvoy wait_inbox_follow_v1 Terminal Result",
+  "description": "Terminal response after the matching deadman or replaced stream record. inbox_cursor is the last proven cursor (omitted when none was sink-acknowledged). It is not a Mattermost post id.",
+  "$defs": {
+    "inbox-cursor": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 32768,
+      "pattern": "^inv1\\.",
+      "description": "Opaque versioned inbox cursor. Not a Mattermost post id. Encoded form is capped at 32 KiB. The decoded catalog is never a wire field."
+    },
+    "wait-id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "wait_id",
+        "mode"
+      ],
+      "properties": {
+        "wait_id": {
+          "$ref": "#/$defs/wait-id"
+        },
+        "mode": {
+          "type": "string",
+          "const": "deadman"
+        },
+        "inbox_cursor": {
+          "$ref": "#/$defs/inbox-cursor"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "wait_id",
+        "mode",
+        "replaced_by_wait_id"
+      ],
+      "properties": {
+        "wait_id": {
+          "$ref": "#/$defs/wait-id"
+        },
+        "mode": {
+          "type": "string",
+          "const": "replaced"
+        },
+        "replaced_by_wait_id": {
+          "$ref": "#/$defs/wait-id"
+        },
+        "inbox_cursor": {
+          "$ref": "#/$defs/inbox-cursor"
+        }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

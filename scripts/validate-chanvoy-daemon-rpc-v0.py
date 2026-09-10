@@ -31,8 +31,12 @@ METHODS = (
     "wait_channel_v3",
     "wait_dm_v1",
     "wait_dm_follow_v1",
+    "wait_inbox_v1",
+    "wait_inbox_follow_v1",
 )
 FOLLOW_METHOD = "wait_follow_v1"
+INBOX_FOLLOW_METHOD = "wait_inbox_follow_v1"
+POST_ID_RE = __import__("re").compile(r"^[a-z0-9]{26}$")
 
 
 def schema_paths(method: str) -> dict[str, pathlib.Path]:
@@ -87,6 +91,43 @@ def semantic_violations(name: str, instance: dict) -> list[str]:
     return violations
 
 
+def inbox_event_violations(instance: dict) -> list[str]:
+    """Cross-value inbox follow invariants JSON Schema cannot express."""
+    violations: list[str] = []
+    mode = instance.get("mode")
+    if mode in {"backlog", "live"}:
+        messages = instance.get("messages") or []
+        matched = instance.get("matched_post_id")
+        cursor = instance.get("next_inbox_cursor")
+        if messages and matched != messages[0].get("id"):
+            violations.append("matched_post_id must equal the sole message id")
+        if isinstance(cursor, str) and POST_ID_RE.match(cursor):
+            violations.append("next_inbox_cursor must not be a Mattermost post id")
+        if cursor == matched:
+            violations.append("next_inbox_cursor must be distinct from matched_post_id")
+        if "tip" in instance:
+            violations.append("inbox events must not carry wait_follow_v1 tip")
+    if mode in {"deadman", "canceled", "replaced", "failed"}:
+        cursor = instance.get("inbox_cursor")
+        if isinstance(cursor, str) and POST_ID_RE.match(cursor):
+            violations.append("inbox_cursor must not be a Mattermost post id")
+    return violations
+
+
+def inbox_result_violations(instance: dict) -> list[str]:
+    violations: list[str] = []
+    messages = instance.get("messages") or []
+    matched = instance.get("matched_post_id")
+    cursor = instance.get("next_inbox_cursor")
+    if messages and matched and matched != messages[0].get("id"):
+        violations.append("matched_post_id must equal the sole message id")
+    if isinstance(cursor, str) and POST_ID_RE.match(cursor):
+        violations.append("next_inbox_cursor must not be a Mattermost post id")
+    if cursor and matched and cursor == matched:
+        violations.append("next_inbox_cursor must be distinct from matched_post_id")
+    return violations
+
+
 for method in METHODS:
     for name, schema_path in schema_paths(method).items():
         schema = load(schema_path)
@@ -126,6 +167,12 @@ for method in METHODS:
                 and (violations := semantic_violations(name, instance))
             ):
                 fail(f"{label} conforming {fixture.name}: {violations[0]}")
+            elif (
+                name == "result"
+                and method == "wait_inbox_v1"
+                and (violations := inbox_result_violations(instance))
+            ):
+                fail(f"{label} conforming {fixture.name}: {violations[0]}")
             else:
                 ok(f"{label} conforming {fixture.name}")
 
@@ -135,6 +182,8 @@ for method in METHODS:
             violations = (
                 semantic_violations(name, instance)
                 if method == "wait_channels_v1"
+                else inbox_result_violations(instance)
+                if method == "wait_inbox_v1" and name == "result"
                 else []
             )
             if errors or violations:
@@ -194,6 +243,49 @@ for follow_kind in ("params", "event", "result", "error"):
             else:
                 fail(
                     f"{follow_label} negative {fixture.name}: "
+                    "expected rejection, got pass"
+                )
+
+inbox_event_label = f"{INBOX_FOLLOW_METHOD}.event"
+inbox_event_schema_path = FAMILY / f"{inbox_event_label}.schema.json"
+inbox_event_schema = load(inbox_event_schema_path)
+try:
+    Draft202012Validator.check_schema(inbox_event_schema)
+except Exception as error:  # noqa: BLE001
+    fail(f"lint {inbox_event_schema_path.name}: {error}")
+else:
+    if inbox_event_schema.get("$id", "").rsplit("/", 1)[-1] != inbox_event_schema_path.name:
+        fail(f"lint {inbox_event_schema_path.name}: $id basename mismatch")
+    else:
+        ok(f"lint {inbox_event_schema_path.name}")
+        inbox_event_validator = Draft202012Validator(inbox_event_schema)
+        inbox_event_root = FIXTURES / INBOX_FOLLOW_METHOD / "event"
+        conforming = sorted((inbox_event_root / "conforming").glob("*.json"))
+        negative = sorted((inbox_event_root / "negative").glob("*.json"))
+        if not conforming or not negative:
+            fail(f"{inbox_event_label}: fixture set is empty")
+        for fixture in conforming:
+            instance = load(fixture)
+            errors = list(inbox_event_validator.iter_errors(instance))
+            semantic = inbox_event_violations(instance)
+            if errors:
+                fail(
+                    f"{inbox_event_label} conforming {fixture.name}: "
+                    f"{errors[0].message}"
+                )
+            elif semantic:
+                fail(f"{inbox_event_label} conforming {fixture.name}: {semantic[0]}")
+            else:
+                ok(f"{inbox_event_label} conforming {fixture.name}")
+        for fixture in negative:
+            instance = load(fixture)
+            errors = list(inbox_event_validator.iter_errors(instance))
+            semantic = inbox_event_violations(instance)
+            if errors or semantic:
+                ok(f"{inbox_event_label} negative {fixture.name}")
+            else:
+                fail(
+                    f"{inbox_event_label} negative {fixture.name}: "
                     "expected rejection, got pass"
                 )
 
