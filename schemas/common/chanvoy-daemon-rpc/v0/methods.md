@@ -471,11 +471,13 @@ cursor, not Mattermost post id.
 
 A decoded cursor is still **proven** against the authenticated type-`D`
 catalog and bounded history after catalog/peer resolution and **before**
-ownership/bind. A future watermark, a missing or contradictory
+ownership/bind. A future watermark, a positive watermark with no
+authenticated post at that exact `create_at`, a missing or contradictory
 equal-watermark id, or any other history-unprovable anchor fails
-`cursor_uncertain`. It must not expire as a clean deadman. The valid
-empty cursor (watermark 0, no observed ids) is admitted without that
-history proof.
+`cursor_uncertain`. It must not expire as a clean deadman. Only the
+valid empty cursor (watermark 0, no observed ids) is admitted without
+that history proof. Every non-empty observed-id set must still be
+proven at that exact watermark.
 
 Ordering is `(create_at, observed-id set at watermark)`. A candidate is
 new when `create_at` is greater than the watermark, or equal to the
