@@ -1,0 +1,15 @@
+{
+  "schema": "wait_inbox_follow_v2.event",
+  "wait_id": "wait_0123456789abcdef0123456789abcdef",
+  "mode": "deadman",
+  "messages": [
+    {
+      "id": "postid00000000000000000002",
+      "user_id": "userid00000000000000000001",
+      "username": "dave-3leaps",
+      "message": "poke",
+      "create_at": 1786480000000,
+      "root_id": "postid00000000000000000002"
+    }
+  ]
+}

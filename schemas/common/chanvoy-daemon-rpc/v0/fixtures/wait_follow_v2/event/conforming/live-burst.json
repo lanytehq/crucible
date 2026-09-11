@@ -1,0 +1,25 @@
+{
+  "schema": "wait_follow_v2.event",
+  "wait_id": "wait_0123456789abcdef0123456789abcdef",
+  "mode": "live",
+  "tip": "postid00000000000000000003",
+  "truncated": false,
+  "messages": [
+    {
+      "id": "postid00000000000000000002",
+      "user_id": "userid00000000000000000002",
+      "username": "agent-example",
+      "message": "first live",
+      "create_at": 1786480000001,
+      "root_id": "postid00000000000000000002"
+    },
+    {
+      "id": "postid00000000000000000003",
+      "user_id": "userid00000000000000000003",
+      "username": "agent-example",
+      "message": "second live",
+      "create_at": 1786480000002,
+      "root_id": "postid00000000000000000003"
+    }
+  ]
+}

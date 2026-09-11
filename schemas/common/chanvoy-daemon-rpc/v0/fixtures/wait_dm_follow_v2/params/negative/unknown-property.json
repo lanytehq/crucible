@@ -1,0 +1,6 @@
+{
+  "username": "dave-3leaps",
+  "timeout_secs": 30,
+  "coalesce_ms": 5000,
+  "channel": "org-lanytehq/brief-per-045"
+}
