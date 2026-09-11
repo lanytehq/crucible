@@ -151,6 +151,15 @@ binding, the daemon must validate:
 3. `contains` and `pattern` are non-empty when present. Each source is at
    most 256 UTF-8 bytes. `pattern` compiles within the implementation's
    64 KiB regex-size limit. The two filters combine with logical AND.
+   `mention`, when true, is a further AND: only posts that mention **this
+   bot** complete the wait. The provider adapter uses one canonical
+   `mentions_bot` decision from the message body: an exact `@username`
+   token (ASCII case-insensitive; `@bot-suffix` is not a match). REST
+   posts do not carry mention-id metadata, so live and backlog must not
+   split on WS-only fields. Non-matches advance an internal observation
+   cursor only and are never match tips. Self-posts never match. The
+   same helper applies to push, REST backfill, polling, reconnect,
+   `--dm`, fan-in, and `--inbox`.
 4. An explicit `after` is non-empty and is bound to the resolved channel
    before registry acquisition.
 5. `replace_wait_id`, when present, is a non-empty string at most 64
