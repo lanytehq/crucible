@@ -41,6 +41,10 @@
     "pattern": {
       "$ref": "#/$defs/nullable-string"
     },
+    "mention": {
+      "type": "boolean",
+      "description": "When true, only posts that mention this bot complete the wait. Logical AND with contains and pattern. Default false/absent. Non-matches are not tips."
+    },
     "after": {
       "$ref": "#/$defs/nullable-string",
       "description": "Exclusive baseline post id on this DM conversation, not an inbox cursor."

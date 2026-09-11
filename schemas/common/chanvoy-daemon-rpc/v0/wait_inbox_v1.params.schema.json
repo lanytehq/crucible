@@ -61,6 +61,10 @@
       ],
       "description": "Optional Rust-regex body pattern. Combines with contains using logical AND."
     },
+    "mention": {
+      "type": "boolean",
+      "description": "When true, only posts that mention this bot complete the wait. Logical AND with contains and pattern. Default false/absent. Non-matches are not tips."
+    },
     "after": {
       "oneOf": [
         {
