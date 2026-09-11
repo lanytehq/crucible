@@ -421,3 +421,164 @@ legacy one-shot calls or with `wait_follow_v1` after a CLI preflight.
 `--dm` is mutually exclusive with positional `CHANNEL`, repeated
 `--channel` fan-in, `--after-channel`, and `--team`. CLI help: "wait
 for a DM from this user; do not pass a channel id."
+
+## `wait_inbox_v1`
+
+`wait_inbox_v1` waits on **any direct message** to this bot, including a
+direct channel created while the wait is armed. It is a new capability.
+Do not add inbox fields to `wait_channel_v3`, `wait_follow_v1`,
+`wait_dm_v1`, or `wait_dm_follow_v1`.
+
+| Surface           | Contract                           |
+| ----------------- | ---------------------------------- |
+| JSON-RPC method   | `wait_inbox_v1`                    |
+| Parameters        | `wait_inbox_v1.params.schema.json` |
+| Successful result | `wait_inbox_v1.result.schema.json` |
+| Error detail      | `wait_inbox_v1.error.schema.json`  |
+
+### Capability and compatibility
+
+Method presence is the capability gate. Method-not-found (`-32601`) is a
+hard capability failure (exit 2). A client must not fall back to N stacked
+`wait_channel_v3` / `wait_dm_v1` calls, to `wait_channels_v1` fan-in, or to
+the truncated human `list_dms` helper.
+
+There is no team, channel, or username selector. Unknown properties refuse.
+
+### Inbox cursor
+
+`--after` is a versioned, bounded **inbox cursor**, not a Mattermost post
+id. One post id is not an exclusive cursor across independent DM
+histories, and `(create_at, post_id)` lexical order can miss a later
+arrival in the same millisecond with a lower random id.
+
+The opaque CLI/RPC string:
+
+1. Starts with `inv1.` so it cannot be confused with a 26-character
+   Mattermost post id.
+2. Is at most 32 KiB encoded.
+3. Binds the admitting **profile** and **daemon bot user id**.
+4. Carries the provider watermark (`create_at`) plus the bounded set of
+   already-observed post ids at that watermark (at most 128).
+5. Is observation-only: it is not a capability token and never contains
+   message bodies or a channel catalog.
+
+Decode and fully validate the cursor **before** provider I/O. Wrong
+profile, wrong bot, malformed, oversize, or unprovable cursors fail as
+`cursor_uncertain` (`-32007`). A value shaped like a Mattermost post id
+fails as input with a diagnostic that names the distinction: inbox
+cursor, not Mattermost post id.
+
+A decoded cursor is still **proven** against the authenticated type-`D`
+catalog and bounded history after catalog/peer resolution and **before**
+ownership/bind. A future watermark, a positive watermark with an empty
+observed-id set, a positive watermark with no authenticated post at that
+exact `create_at`, a missing or contradictory equal-watermark id, or any
+other history-unprovable anchor fails `cursor_uncertain`. It must not
+expire as a clean deadman. Only the valid empty cursor (watermark 0, no
+observed ids) is admitted without that history proof. Honest cursors
+never encode `watermark > 0` with an empty observed-id set; every
+non-empty observed-id set must still be proven at that exact watermark.
+
+Ordering is `(create_at, observed-id set at watermark)`. A candidate is
+new when `create_at` is greater than the watermark, or equal to the
+watermark and not in the observed-id set. The cursor advances only after
+the corresponding record crosses the CLI sink boundary.
+
+### Subscribe, catalog, and reconnect
+
+With no `--after`, the daemon must subscribe to inbox-relevant push
+**before** catalog and baseline work, snapshot the complete authenticated
+type-`D` catalog, establish per-channel tips, then drain the buffered
+push stream. Tip-at-arm must not have a catalog-to-subscribe seam.
+
+Discovery paginates authenticated provider type `D` to completion and
+excludes group DMs (`G`). The human `dms` helper (one unpaged request,
+truncated to 20) is not a complete catalog. Exceeding 1,024 direct
+channels in one catalog, or 512 retained backfill candidates total,
+fails `capacity` rather than silently truncating. An exactly-full last
+page is not proof of completion; the next page must be observed empty or
+the wait fails closed.
+
+WebSocket admission and reconnect catch-up include direct channels while
+inbox is armed even when they are not in `monitored_channels`. A new-DM
+post may be buffered while bounded channel-type/peer lookup completes.
+Lookup failure, catalog overflow, provider lag, or an exhausted history
+bound fails `capacity` or `cursor_uncertain`. It must not become a clean
+deadman or a truncation-success.
+
+### Ownership
+
+Inbox occupies one profile-wide **DM-class** ownership key. While it is
+live, `wait_dm_v1` and a positional wait that resolves to type `D`
+conflict. Conversely, an active DM-specific wait blocks inbox admission.
+`--replace-wait` / `replace_wait_id` may compare-and-replace **only**
+another inbox wait id. It must not silently replace a peer-specific or
+positional DM waiter (`wait_conflict_changed`).
+
+Self-posts never wake. First matching peer post wins.
+
+### Successful result
+
+A successful result labels `peer_username`, `dm_name`, `matched_post_id`,
+and `next_inbox_cursor` as four distinct fields. `matched_post_id` equals
+the single `messages[0].id`. The cursor must not equal that post id and
+must not match `^[a-z0-9]{26}$`. Callers must not reverse a channel UUID
+and must not treat the cursor as a post id.
+
+Error and CLI outcome mapping match `wait_channel_v3` (`-32601`
+capability, `-32005` clean deadman, `-32007` input including
+`cursor_uncertain` and `capacity`, `-32008` provider, ownership `-32009`
+through `-32012`). Caps (1,024 DMs / 512 backfill / 32 KiB cursor / 128
+equal-watermark ids) are fail-closed implementation defaults, not product
+SLAs, and are not help-text promises.
+
+## `wait_inbox_follow_v1`
+
+`wait_inbox_follow_v1` is the held-follow form of `wait_inbox_v1`.
+Admission, catalog, ownership, and cursor rules are the same. The daemon
+invokes one inbox observer / waitprims registration, not N stacked
+channel waits. Stream records are **`wait_inbox_follow_v1.event`**. Do
+not widen or overload `wait_follow_v1.event` (`tip == sole message.id` is
+false for an inbox cursor).
+
+| Surface         | Contract                                  |
+| --------------- | ----------------------------------------- |
+| JSON-RPC method | `wait_inbox_follow_v1`                    |
+| Parameters      | `wait_inbox_follow_v1.params.schema.json` |
+| Stream record   | `wait_inbox_follow_v1.event.schema.json`  |
+| Terminal result | `wait_inbox_follow_v1.result.schema.json` |
+| Error detail    | `wait_inbox_follow_v1.error.schema.json`  |
+
+Method-not-found is exit 2. A client must not emulate follow with one-shot
+inbox calls or with `wait_follow_v1` after discovering DM names.
+
+### Record order and cursor semantics
+
+Every record carries `schema: "wait_inbox_follow_v1.event"` and the same
+opaque `wait_id`. A valid stream contains:
+
+1. exactly one `armed` receipt, written only after admission succeeds;
+2. zero or more `backlog` or `live` records in observation order; and
+3. at most one terminal `deadman`, `canceled`, `replaced`, or `failed`
+   record.
+
+The `armed` receipt has no post-id `tip` and no inbox cursor. Each
+backlog/live record contains exactly one message and labels
+`peer_username`, `dm_name`, `matched_post_id`, and `next_inbox_cursor`
+separately. `matched_post_id` equals that message id. `next_inbox_cursor`
+is the sink-acknowledged cursor after that record and is never a post id.
+Live delivery is never truncated. Only backlog may set `truncated` true.
+
+Terminal records carry only the last **proven** cursor as `inbox_cursor`
+(omitted when none was sink-acknowledged). A later sink write/flush
+failure closes the daemon connection immediately (exit 2) and must not
+publish or persist a cursor beyond the last delivered record. Replay from
+that last delivered cursor must recover the undelivered record.
+
+`failed.reason_code` is a bounded local class. Inbox adds `capacity`
+alongside `cursor_uncertain`. Raw provider detail is never stream data.
+
+`--inbox` is mutually exclusive with positional `CHANNEL`, repeated
+`--channel` fan-in, `--dm`, `--after-channel`, and `--team`. CLI help:
+"wait for any DM to this bot; do not pass a channel id."
