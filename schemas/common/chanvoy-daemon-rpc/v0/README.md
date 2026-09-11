@@ -6,33 +6,33 @@ numbered Lanyte core-gateway channels and are not loaded by ipcprims.
 
 ## Artifacts
 
-| Artifact                               | Purpose                                                                   |
-| -------------------------------------- | ------------------------------------------------------------------------- |
-| `methods.md`                           | Method catalog, outcome mapping, capability rule, and semantic invariants |
-| `wait_channels_v1.params.schema.json`  | Strict parameters for bounded multi-channel wait                          |
-| `wait_channels_v1.result.schema.json`  | Successful first-match result                                             |
-| `wait_channels_v1.error.schema.json`   | Existing daemon JSON-RPC error-detail shape and allowed codes             |
-| `wait_channel_v3.params.schema.json`   | Single-channel wait with single-waiter ownership and compare-and-replace  |
-| `wait_channel_v3.result.schema.json`   | Successful first-match result plus optional wait ids                      |
-| `wait_channel_v3.error.schema.json`    | Deadman/input/provider codes plus structured ownership hard errors        |
-| `wait_follow_v1.params.schema.json`    | Strict parameters for a held single-channel wait                          |
-| `wait_follow_v1.event.schema.json`     | Ordered JSONL records for a process-held single-channel wait              |
-| `wait_follow_v1.result.schema.json`    | Deadman or replaced terminal response                                     |
-| `wait_follow_v1.error.schema.json`     | Capability, input, provider, and structured ownership hard errors         |
-| `wait_dm_v1.params.schema.json`        | One-shot wait on a DM by exact username                                   |
-| `wait_dm_v1.result.schema.json`        | First-match result with peer username and canonical DM name               |
-| `wait_dm_v1.error.schema.json`         | Capability/input/provider codes plus structured ownership hard errors     |
-| `wait_dm_follow_v1.params.schema.json` | Held wait on a DM by exact username                                       |
-| `wait_dm_follow_v1.result.schema.json` | Deadman or replaced terminal result with peer username and DM name        |
-| `wait_dm_follow_v1.error.schema.json`  | Capability, input, provider, and structured ownership hard errors         |
-| `wait_inbox_v1.params.schema.json`     | One-shot wait on any DM to this bot (inbox cursor, not a post id)         |
-| `wait_inbox_v1.result.schema.json`     | First-match result with peer, matched post id, and next inbox cursor      |
-| `wait_inbox_v1.error.schema.json`      | Capability/input/provider codes plus structured ownership hard errors     |
-| `wait_inbox_follow_v1.params.schema.json` | Held wait on any DM to this bot                                        |
-| `wait_inbox_follow_v1.event.schema.json`  | Inbox JSONL records (not `wait_follow_v1.event`)                       |
-| `wait_inbox_follow_v1.result.schema.json` | Deadman or replaced terminal result with last proven inbox cursor      |
-| `wait_inbox_follow_v1.error.schema.json`  | Capability, input, provider, and structured ownership hard errors      |
-| `fixtures/`                            | Conforming and negative examples for every schema                         |
+| Artifact                                  | Purpose                                                                   |
+| ----------------------------------------- | ------------------------------------------------------------------------- |
+| `methods.md`                              | Method catalog, outcome mapping, capability rule, and semantic invariants |
+| `wait_channels_v1.params.schema.json`     | Strict parameters for bounded multi-channel wait                          |
+| `wait_channels_v1.result.schema.json`     | Successful first-match result                                             |
+| `wait_channels_v1.error.schema.json`      | Existing daemon JSON-RPC error-detail shape and allowed codes             |
+| `wait_channel_v3.params.schema.json`      | Single-channel wait with single-waiter ownership and compare-and-replace  |
+| `wait_channel_v3.result.schema.json`      | Successful first-match result plus optional wait ids                      |
+| `wait_channel_v3.error.schema.json`       | Deadman/input/provider codes plus structured ownership hard errors        |
+| `wait_follow_v1.params.schema.json`       | Strict parameters for a held single-channel wait                          |
+| `wait_follow_v1.event.schema.json`        | Ordered JSONL records for a process-held single-channel wait              |
+| `wait_follow_v1.result.schema.json`       | Deadman or replaced terminal response                                     |
+| `wait_follow_v1.error.schema.json`        | Capability, input, provider, and structured ownership hard errors         |
+| `wait_dm_v1.params.schema.json`           | One-shot wait on a DM by exact username                                   |
+| `wait_dm_v1.result.schema.json`           | First-match result with peer username and canonical DM name               |
+| `wait_dm_v1.error.schema.json`            | Capability/input/provider codes plus structured ownership hard errors     |
+| `wait_dm_follow_v1.params.schema.json`    | Held wait on a DM by exact username                                       |
+| `wait_dm_follow_v1.result.schema.json`    | Deadman or replaced terminal result with peer username and DM name        |
+| `wait_dm_follow_v1.error.schema.json`     | Capability, input, provider, and structured ownership hard errors         |
+| `wait_inbox_v1.params.schema.json`        | One-shot wait on any DM to this bot (inbox cursor, not a post id)         |
+| `wait_inbox_v1.result.schema.json`        | First-match result with peer, matched post id, and next inbox cursor      |
+| `wait_inbox_v1.error.schema.json`         | Capability/input/provider codes plus structured ownership hard errors     |
+| `wait_inbox_follow_v1.params.schema.json` | Held wait on any DM to this bot                                           |
+| `wait_inbox_follow_v1.event.schema.json`  | Inbox JSONL records (not `wait_follow_v1.event`)                          |
+| `wait_inbox_follow_v1.result.schema.json` | Deadman or replaced terminal result with last proven inbox cursor         |
+| `wait_inbox_follow_v1.error.schema.json`  | Capability, input, provider, and structured ownership hard errors         |
+| `fixtures/`                               | Conforming and negative examples for every schema                         |
 
 All schemas use JSON Schema 2020-12 and reject unknown object properties.
 The family validator also enforces the cross-value relations named in

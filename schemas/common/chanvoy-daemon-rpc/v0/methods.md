@@ -542,13 +542,13 @@ channel waits. Stream records are **`wait_inbox_follow_v1.event`**. Do
 not widen or overload `wait_follow_v1.event` (`tip == sole message.id` is
 false for an inbox cursor).
 
-| Surface         | Contract                                    |
-| --------------- | ------------------------------------------- |
-| JSON-RPC method | `wait_inbox_follow_v1`                      |
-| Parameters      | `wait_inbox_follow_v1.params.schema.json`   |
-| Stream record   | `wait_inbox_follow_v1.event.schema.json`    |
-| Terminal result | `wait_inbox_follow_v1.result.schema.json`   |
-| Error detail    | `wait_inbox_follow_v1.error.schema.json`    |
+| Surface         | Contract                                  |
+| --------------- | ----------------------------------------- |
+| JSON-RPC method | `wait_inbox_follow_v1`                    |
+| Parameters      | `wait_inbox_follow_v1.params.schema.json` |
+| Stream record   | `wait_inbox_follow_v1.event.schema.json`  |
+| Terminal result | `wait_inbox_follow_v1.result.schema.json` |
+| Error detail    | `wait_inbox_follow_v1.error.schema.json`  |
 
 Method-not-found is exit 2. A client must not emulate follow with one-shot
 inbox calls or with `wait_follow_v1` after discovering DM names.
