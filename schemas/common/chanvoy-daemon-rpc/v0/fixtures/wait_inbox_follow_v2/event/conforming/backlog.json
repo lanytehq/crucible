@@ -1,0 +1,34 @@
+{
+  "schema": "wait_inbox_follow_v2.event",
+  "wait_id": "wait_0123456789abcdef0123456789abcdef",
+  "mode": "backlog",
+  "matched_post_id": "postid00000000000000000003",
+  "next_inbox_cursor": "inv1.eyJiIjoib2M1NXJ5Mzc5N251M21lbXoxZzl6dGF1eG8iLCJpIjpbInBvc3RpZDAwMDAwMDAwMDAwMDAwMDAwMDAzIl0sInAiOiJicmF2by1kZXZsZWFkLWxhbnl0ZWhxIiwidiI6MSwidyI6MTc4NjQ4MDAwMDAwMn0",
+  "truncated": false,
+  "messages": [
+    {
+      "peer_username": "dave-3leaps",
+      "dm_name": "7bz1xwdw1fdx3dpk149b8oyeyc__oc55ry3797nu3memz1g9ztauxo",
+      "message": {
+        "id": "postid00000000000000000002",
+        "user_id": "userid00000000000000000001",
+        "username": "dave-3leaps",
+        "message": "first backlog DM",
+        "create_at": 1786480000001,
+        "root_id": "postid00000000000000000002"
+      }
+    },
+    {
+      "peer_username": "agent-example",
+      "dm_name": "aaaaaaaaaaaaaaaaaaaaaaaaaa__oc55ry3797nu3memz1g9ztauxo",
+      "message": {
+        "id": "postid00000000000000000003",
+        "user_id": "aaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "username": "agent-example",
+        "message": "second backlog DM",
+        "create_at": 1786480000002,
+        "root_id": "postid00000000000000000003"
+      }
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "timeout_secs": 14400,
+  "coalesce_ms": 10000
+}

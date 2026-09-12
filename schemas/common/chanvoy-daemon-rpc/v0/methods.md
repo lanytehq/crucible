@@ -591,3 +591,83 @@ alongside `cursor_uncertain`. Raw provider detail is never stream data.
 `--inbox` is mutually exclusive with positional `CHANNEL`, repeated
 `--channel` fan-in, `--dm`, `--after-channel`, and `--team`. CLI help:
 "wait for any DM to this bot; do not pass a channel id."
+
+## Coalescing follow v2
+
+Coalescing is an explicit, capability-gated mode. It never widens a v1
+document and is never inferred from CLI or daemon version metadata. A client
+that requests coalescing uses exactly one of these methods:
+
+| Scope        | JSON-RPC method        | Stream record                |
+| ------------ | ---------------------- | ---------------------------- |
+| channel      | `wait_follow_v2`       | `wait_follow_v2.event`       |
+| named DM     | `wait_dm_follow_v2`    | `wait_follow_v2.event`       |
+| any-DM inbox | `wait_inbox_follow_v2` | `wait_inbox_follow_v2.event` |
+
+Each method has its correspondingly named strict params, terminal-result, and
+error-detail schema. Method-not-found (`-32601`) is a hard capability failure.
+A client must not fake coalescing by buffering v1 lines, fall back to v1, or
+silently disable the requested flag. Omitting coalescing uses the unchanged
+v1 method and one-message stream records.
+
+### Window and admission
+
+Every v2 params document requires `coalesce_ms`, an integer from 1 through
+10,000. Five seconds is the recommended operating value; ten seconds is the
+hard maximum. The daemon validates it before provider I/O or waiter
+ownership. There is no server default.
+
+All ordinary scope resolution, exclusive baseline, ownership, replacement,
+deadline, reconnect, self-post, and filter rules are inherited from the
+corresponding v1 method. A post enters the coalescing engine only after every
+active selector has accepted it, including `contains`, `pattern`, and
+`mention`. A filtered post does not open or extend a window and is not a
+stream tip.
+
+The first admitted post opens one fixed window of `coalesce_ms`. Later posts
+do not slide or extend that deadline. The daemon flushes the ordered burst at
+the first of:
+
+1. the fixed window deadline;
+2. 32 admitted messages; or
+3. a terminal posture or local cancellation.
+
+The `armed` record is written immediately after admission and is never
+coalesced or delayed. When a terminal posture races a non-empty burst, the
+burst is written and flushed first, followed immediately by the terminal
+record. No live/backlog record follows a terminal record.
+
+Each backlog/live burst contains one through 32 messages in strict
+`(create_at, id)` order. The top-level `tip` on `wait_follow_v2.event` equals
+the final message id and is the exclusive resume baseline. Hitting 32 flushes
+the full burst; it does not discard a tail. Consequently v2 live/backlog
+records carry `truncated: false`.
+
+The sink write and flush remain the acknowledgement boundary. A sink failure
+must not publish or retain a tip/cursor beyond the last completely delivered
+record. Connection close cancels the held runner, and replay from the last
+delivered tip/cursor recovers the undelivered admitted messages.
+
+### Named-DM v2
+
+`wait_dm_follow_v2` retains the exact-username admission and canonical-channel
+ownership of `wait_dm_follow_v1`. Its stream uses `wait_follow_v2.event`
+because one named DM is one fixed channel. Its terminal result retains
+`peer_username` and canonical `dm_name`.
+
+### Inbox v2
+
+An inbox burst may contain admitted messages from different direct channels.
+It therefore cannot carry one truthful top-level peer or DM label. Each
+`messages` entry in `wait_inbox_follow_v2.event` is a matched-message envelope
+containing:
+
+- `peer_username`;
+- canonical `dm_name`; and
+- the shared `message`.
+
+The envelopes are globally ordered by their nested message `(create_at, id)`.
+Top-level `matched_post_id` equals the final nested message id.
+`next_inbox_cursor` is the sink-acknowledged cursor after that final message;
+it is never a Mattermost post id. Terminal `inbox_cursor` remains the last
+cursor proven by a completed sink write/flush.

@@ -1,0 +1,5 @@
+{
+  "channel": "org-example/release-floor",
+  "timeout_secs": 3600,
+  "coalesce_ms": 10001
+}

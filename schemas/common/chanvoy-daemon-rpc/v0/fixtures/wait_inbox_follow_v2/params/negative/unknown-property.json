@@ -1,0 +1,5 @@
+{
+  "timeout_secs": 600,
+  "coalesce_ms": 5000,
+  "channel": "town-square"
+}

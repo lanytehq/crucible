@@ -19,12 +19,19 @@ numbered Lanyte core-gateway channels and are not loaded by ipcprims.
 | `wait_follow_v1.event.schema.json`        | Ordered JSONL records for a process-held single-channel wait              |
 | `wait_follow_v1.result.schema.json`       | Deadman or replaced terminal response                                     |
 | `wait_follow_v1.error.schema.json`        | Capability, input, provider, and structured ownership hard errors         |
+| `wait_follow_v2.params.schema.json`       | Held single-channel wait with a required bounded coalescing window        |
+| `wait_follow_v2.event.schema.json`        | Ordered JSONL burst records containing one through 32 messages            |
+| `wait_follow_v2.result.schema.json`       | Deadman or replaced terminal response for coalescing channel follow       |
+| `wait_follow_v2.error.schema.json`        | Capability, input, provider, and structured ownership hard errors         |
 | `wait_dm_v1.params.schema.json`           | One-shot wait on a DM by exact username                                   |
 | `wait_dm_v1.result.schema.json`           | First-match result with peer username and canonical DM name               |
 | `wait_dm_v1.error.schema.json`            | Capability/input/provider codes plus structured ownership hard errors     |
 | `wait_dm_follow_v1.params.schema.json`    | Held wait on a DM by exact username                                       |
 | `wait_dm_follow_v1.result.schema.json`    | Deadman or replaced terminal result with peer username and DM name        |
 | `wait_dm_follow_v1.error.schema.json`     | Capability, input, provider, and structured ownership hard errors         |
+| `wait_dm_follow_v2.params.schema.json`    | Held named-DM wait with a required bounded coalescing window              |
+| `wait_dm_follow_v2.result.schema.json`    | Deadman or replaced terminal result with peer username and DM name        |
+| `wait_dm_follow_v2.error.schema.json`     | Capability, input, provider, and structured ownership hard errors         |
 | `wait_inbox_v1.params.schema.json`        | One-shot wait on any DM to this bot (inbox cursor, not a post id)         |
 | `wait_inbox_v1.result.schema.json`        | First-match result with peer, matched post id, and next inbox cursor      |
 | `wait_inbox_v1.error.schema.json`         | Capability/input/provider codes plus structured ownership hard errors     |
@@ -32,6 +39,10 @@ numbered Lanyte core-gateway channels and are not loaded by ipcprims.
 | `wait_inbox_follow_v1.event.schema.json`  | Inbox JSONL records (not `wait_follow_v1.event`)                          |
 | `wait_inbox_follow_v1.result.schema.json` | Deadman or replaced terminal result with last proven inbox cursor         |
 | `wait_inbox_follow_v1.error.schema.json`  | Capability, input, provider, and structured ownership hard errors         |
+| `wait_inbox_follow_v2.params.schema.json` | Held inbox wait with a required bounded coalescing window                 |
+| `wait_inbox_follow_v2.event.schema.json`  | Ordered cross-DM burst records with per-message peer and DM labels        |
+| `wait_inbox_follow_v2.result.schema.json` | Deadman or replaced terminal result with last proven inbox cursor         |
+| `wait_inbox_follow_v2.error.schema.json`  | Capability, input, provider, and structured ownership hard errors         |
 | `fixtures/`                               | Conforming and negative examples for every schema                         |
 
 All schemas use JSON Schema 2020-12 and reject unknown object properties.

@@ -31,11 +31,13 @@ METHODS = (
     "wait_channel_v3",
     "wait_dm_v1",
     "wait_dm_follow_v1",
+    "wait_dm_follow_v2",
     "wait_inbox_v1",
     "wait_inbox_follow_v1",
+    "wait_inbox_follow_v2",
 )
-FOLLOW_METHOD = "wait_follow_v1"
-INBOX_FOLLOW_METHOD = "wait_inbox_follow_v1"
+FOLLOW_METHODS = ("wait_follow_v1", "wait_follow_v2")
+INBOX_FOLLOW_METHODS = ("wait_inbox_follow_v1", "wait_inbox_follow_v2")
 POST_ID_RE = __import__("re").compile(r"^[a-z0-9]{26}$")
 
 
@@ -91,7 +93,23 @@ def semantic_violations(name: str, instance: dict) -> list[str]:
     return violations
 
 
-def inbox_event_violations(instance: dict) -> list[str]:
+def ordered_message_violations(messages: list[dict]) -> list[str]:
+    """Return violations of strict `(create_at, id)` message ordering."""
+    keys = [
+        (message.get("create_at"), message.get("id"))
+        for message in messages
+        if isinstance(message, dict)
+    ]
+    if len(keys) > 1 and (
+        any(not isinstance(at, int) or not isinstance(ident, str) for at, ident in keys)
+        or keys != sorted(keys)
+        or len(keys) != len(set(keys))
+    ):
+        return ["messages must be strictly ordered by (create_at, id)"]
+    return []
+
+
+def inbox_event_violations(method: str, instance: dict) -> list[str]:
     """Cross-value inbox follow invariants JSON Schema cannot express."""
     violations: list[str] = []
     mode = instance.get("mode")
@@ -99,14 +117,25 @@ def inbox_event_violations(instance: dict) -> list[str]:
         messages = instance.get("messages") or []
         matched = instance.get("matched_post_id")
         cursor = instance.get("next_inbox_cursor")
-        if messages and matched != messages[0].get("id"):
+        if method == "wait_inbox_follow_v2":
+            plain_messages = [
+                item.get("message", {})
+                for item in messages
+                if isinstance(item, dict) and isinstance(item.get("message"), dict)
+            ]
+            if plain_messages and matched != plain_messages[-1].get("id"):
+                violations.append(
+                    "matched_post_id must equal the final burst message id"
+                )
+            violations.extend(ordered_message_violations(plain_messages))
+        elif messages and matched != messages[0].get("id"):
             violations.append("matched_post_id must equal the sole message id")
         if isinstance(cursor, str) and POST_ID_RE.match(cursor):
             violations.append("next_inbox_cursor must not be a Mattermost post id")
         if cursor == matched:
             violations.append("next_inbox_cursor must be distinct from matched_post_id")
         if "tip" in instance:
-            violations.append("inbox events must not carry wait_follow_v1 tip")
+            violations.append("inbox events must not carry wait_follow tip")
     if mode in {"deadman", "canceled", "replaced", "failed"}:
         cursor = instance.get("inbox_cursor")
         if isinstance(cursor, str) and POST_ID_RE.match(cursor):
@@ -191,103 +220,120 @@ for method in METHODS:
             else:
                 fail(f"{label} negative {fixture.name}: expected rejection, got pass")
 
-for follow_kind in ("params", "event", "result", "error"):
-    follow_label = f"{FOLLOW_METHOD}.{follow_kind}"
-    follow_schema_path = FAMILY / f"{follow_label}.schema.json"
-    follow_schema = load(follow_schema_path)
+for follow_method in FOLLOW_METHODS:
+    for follow_kind in ("params", "event", "result", "error"):
+        follow_label = f"{follow_method}.{follow_kind}"
+        follow_schema_path = FAMILY / f"{follow_label}.schema.json"
+        follow_schema = load(follow_schema_path)
+        try:
+            Draft202012Validator.check_schema(follow_schema)
+        except Exception as error:  # noqa: BLE001
+            fail(f"lint {follow_schema_path.name}: {error}")
+        else:
+            if (
+                follow_schema.get("$id", "").rsplit("/", 1)[-1]
+                != follow_schema_path.name
+            ):
+                fail(f"lint {follow_schema_path.name}: $id basename mismatch")
+                continue
+            ok(f"lint {follow_schema_path.name}")
+            follow_validator = Draft202012Validator(follow_schema)
+            follow_root = FIXTURES / follow_method / follow_kind
+            conforming = sorted((follow_root / "conforming").glob("*.json"))
+            negative = sorted((follow_root / "negative").glob("*.json"))
+            if not conforming or not negative:
+                fail(f"{follow_label}: fixture set is empty")
+            for fixture in conforming:
+                instance = load(fixture)
+                errors = list(follow_validator.iter_errors(instance))
+                messages = instance.get("messages") or []
+                semantic = []
+                if follow_kind == "event" and instance.get("mode") in {
+                    "backlog",
+                    "live",
+                }:
+                    if messages and instance.get("tip") != messages[-1].get("id"):
+                        semantic.append("tip must equal final message id")
+                    if follow_method == "wait_follow_v2":
+                        semantic.extend(ordered_message_violations(messages))
+                if errors:
+                    fail(
+                        f"{follow_label} conforming {fixture.name}: {errors[0].message}"
+                    )
+                elif semantic:
+                    fail(f"{follow_label} conforming {fixture.name}: {semantic[0]}")
+                else:
+                    ok(f"{follow_label} conforming {fixture.name}")
+
+            for fixture in negative:
+                instance = load(fixture)
+                errors = list(follow_validator.iter_errors(instance))
+                messages = instance.get("messages") or []
+                semantic = []
+                if follow_kind == "event" and instance.get("mode") in {
+                    "backlog",
+                    "live",
+                }:
+                    if messages and instance.get("tip") != messages[-1].get("id"):
+                        semantic.append("tip must equal final message id")
+                    if follow_method == "wait_follow_v2":
+                        semantic.extend(ordered_message_violations(messages))
+                if errors or semantic:
+                    ok(f"{follow_label} negative {fixture.name}")
+                else:
+                    fail(
+                        f"{follow_label} negative {fixture.name}: "
+                        "expected rejection, got pass"
+                    )
+
+for inbox_follow_method in INBOX_FOLLOW_METHODS:
+    inbox_event_label = f"{inbox_follow_method}.event"
+    inbox_event_schema_path = FAMILY / f"{inbox_event_label}.schema.json"
+    inbox_event_schema = load(inbox_event_schema_path)
     try:
-        Draft202012Validator.check_schema(follow_schema)
+        Draft202012Validator.check_schema(inbox_event_schema)
     except Exception as error:  # noqa: BLE001
-        fail(f"lint {follow_schema_path.name}: {error}")
+        fail(f"lint {inbox_event_schema_path.name}: {error}")
     else:
-        if follow_schema.get("$id", "").rsplit("/", 1)[-1] != follow_schema_path.name:
-            fail(f"lint {follow_schema_path.name}: $id basename mismatch")
-            continue
-        ok(f"lint {follow_schema_path.name}")
-        follow_validator = Draft202012Validator(follow_schema)
-        follow_root = FIXTURES / FOLLOW_METHOD / follow_kind
-        conforming = sorted((follow_root / "conforming").glob("*.json"))
-        negative = sorted((follow_root / "negative").glob("*.json"))
-        if not conforming or not negative:
-            fail(f"{follow_label}: fixture set is empty")
-        for fixture in conforming:
-            instance = load(fixture)
-            errors = list(follow_validator.iter_errors(instance))
-            tip_mismatch = (
-                follow_kind == "event"
-                and instance.get("mode") in {"backlog", "live"}
-                and instance.get("messages")
-                and instance.get("tip") != instance["messages"][-1].get("id")
-            )
-            if errors:
-                fail(f"{follow_label} conforming {fixture.name}: {errors[0].message}")
-            elif tip_mismatch:
-                fail(
-                    f"{follow_label} conforming {fixture.name}: "
-                    "tip must equal final message id"
-                )
-            else:
-                ok(f"{follow_label} conforming {fixture.name}")
-
-        for fixture in negative:
-            instance = load(fixture)
-            errors = list(follow_validator.iter_errors(instance))
-            tip_mismatch = (
-                follow_kind == "event"
-                and instance.get("mode") in {"backlog", "live"}
-                and instance.get("messages")
-                and instance.get("tip") != instance["messages"][-1].get("id")
-            )
-            if errors or tip_mismatch:
-                ok(f"{follow_label} negative {fixture.name}")
-            else:
-                fail(
-                    f"{follow_label} negative {fixture.name}: "
-                    "expected rejection, got pass"
-                )
-
-inbox_event_label = f"{INBOX_FOLLOW_METHOD}.event"
-inbox_event_schema_path = FAMILY / f"{inbox_event_label}.schema.json"
-inbox_event_schema = load(inbox_event_schema_path)
-try:
-    Draft202012Validator.check_schema(inbox_event_schema)
-except Exception as error:  # noqa: BLE001
-    fail(f"lint {inbox_event_schema_path.name}: {error}")
-else:
-    if inbox_event_schema.get("$id", "").rsplit("/", 1)[-1] != inbox_event_schema_path.name:
-        fail(f"lint {inbox_event_schema_path.name}: $id basename mismatch")
-    else:
-        ok(f"lint {inbox_event_schema_path.name}")
-        inbox_event_validator = Draft202012Validator(inbox_event_schema)
-        inbox_event_root = FIXTURES / INBOX_FOLLOW_METHOD / "event"
-        conforming = sorted((inbox_event_root / "conforming").glob("*.json"))
-        negative = sorted((inbox_event_root / "negative").glob("*.json"))
-        if not conforming or not negative:
-            fail(f"{inbox_event_label}: fixture set is empty")
-        for fixture in conforming:
-            instance = load(fixture)
-            errors = list(inbox_event_validator.iter_errors(instance))
-            semantic = inbox_event_violations(instance)
-            if errors:
-                fail(
-                    f"{inbox_event_label} conforming {fixture.name}: "
-                    f"{errors[0].message}"
-                )
-            elif semantic:
-                fail(f"{inbox_event_label} conforming {fixture.name}: {semantic[0]}")
-            else:
-                ok(f"{inbox_event_label} conforming {fixture.name}")
-        for fixture in negative:
-            instance = load(fixture)
-            errors = list(inbox_event_validator.iter_errors(instance))
-            semantic = inbox_event_violations(instance)
-            if errors or semantic:
-                ok(f"{inbox_event_label} negative {fixture.name}")
-            else:
-                fail(
-                    f"{inbox_event_label} negative {fixture.name}: "
-                    "expected rejection, got pass"
-                )
+        if (
+            inbox_event_schema.get("$id", "").rsplit("/", 1)[-1]
+            != inbox_event_schema_path.name
+        ):
+            fail(f"lint {inbox_event_schema_path.name}: $id basename mismatch")
+        else:
+            ok(f"lint {inbox_event_schema_path.name}")
+            inbox_event_validator = Draft202012Validator(inbox_event_schema)
+            inbox_event_root = FIXTURES / inbox_follow_method / "event"
+            conforming = sorted((inbox_event_root / "conforming").glob("*.json"))
+            negative = sorted((inbox_event_root / "negative").glob("*.json"))
+            if not conforming or not negative:
+                fail(f"{inbox_event_label}: fixture set is empty")
+            for fixture in conforming:
+                instance = load(fixture)
+                errors = list(inbox_event_validator.iter_errors(instance))
+                semantic = inbox_event_violations(inbox_follow_method, instance)
+                if errors:
+                    fail(
+                        f"{inbox_event_label} conforming {fixture.name}: "
+                        f"{errors[0].message}"
+                    )
+                elif semantic:
+                    fail(
+                        f"{inbox_event_label} conforming {fixture.name}: {semantic[0]}"
+                    )
+                else:
+                    ok(f"{inbox_event_label} conforming {fixture.name}")
+            for fixture in negative:
+                instance = load(fixture)
+                errors = list(inbox_event_validator.iter_errors(instance))
+                semantic = inbox_event_violations(inbox_follow_method, instance)
+                if errors or semantic:
+                    ok(f"{inbox_event_label} negative {fixture.name}")
+                else:
+                    fail(
+                        f"{inbox_event_label} negative {fixture.name}: "
+                        "expected rejection, got pass"
+                    )
 
 if failures:
     print(f"\n{len(failures)} failure(s)")
