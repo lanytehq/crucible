@@ -1,0 +1,25 @@
+{
+  "schema": "mail.delegation.v0",
+  "delegation_id": "example-delegation-readonly",
+  "account_ref": "example-account-1",
+  "principal": {
+    "kind": "human",
+    "ref": "example-principal"
+  },
+  "delegate": {
+    "kind": "agent",
+    "ref": "example-triage-agent"
+  },
+  "grants": [
+    {
+      "ops": [
+        "search",
+        "delete"
+      ],
+      "effect": "allow"
+    }
+  ],
+  "valid_from": "2026-09-01T00:00:00Z",
+  "expires_at": null,
+  "revoked_at": null
+}

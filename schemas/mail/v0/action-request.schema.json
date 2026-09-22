@@ -1,0 +1,304 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/mail/v0/action-request.schema.json",
+  "title": "Mail Action Request v0",
+  "description": "Policy-evaluation input for one requested mail operation. Carries references, digests and derived facts; never message bodies or subjects.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "request_id",
+    "delegation_id",
+    "op",
+    "session",
+    "requested_at"
+  ],
+  "$defs": {
+    "uuid-v4": {
+      "type": "string",
+      "description": "UUID v4 identifier (ADR-0006 request correlation form).",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "delegation-id": {
+      "type": "string",
+      "description": "Opaque delegation identifier; same value space as the MAIL channel delegation_id.",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[^\\u0000-\\u0020\\u007F]+$"
+    },
+    "safe-token": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[^\\u0000-\\u0020\\u007F]+$"
+    },
+    "sha256": {
+      "type": "string",
+      "description": "Lowercase hex SHA-256 digest.",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "op": {
+      "type": "string",
+      "description": "Mail operation. Superset of MAIL channel operations.",
+      "enum": [
+        "search",
+        "read",
+        "list_folders",
+        "draft",
+        "mark",
+        "move",
+        "archive",
+        "trash",
+        "send",
+        "reply",
+        "forward"
+      ]
+    },
+    "mailbox-selector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "value"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "role",
+            "name"
+          ]
+        },
+        "value": {
+          "$ref": "#/$defs/safe-token"
+        }
+      }
+    },
+    "recipient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "address",
+        "relationship"
+      ],
+      "properties": {
+        "address": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 320,
+          "pattern": "^[^\\s@]+@[^\\s@]+$"
+        },
+        "relationship": {
+          "description": "Derived by the enforcing peer, never supplied by the delegate.",
+          "enum": [
+            "known_correspondent",
+            "same_domain",
+            "new_external",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "signal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "id",
+        "outcome"
+      ],
+      "properties": {
+        "source": {
+          "enum": [
+            "detector",
+            "assessor"
+          ]
+        },
+        "id": {
+          "$ref": "#/$defs/safe-token"
+        },
+        "outcome": {
+          "enum": [
+            "flag",
+            "clear",
+            "abstain",
+            "error"
+          ]
+        },
+        "label": {
+          "$ref": "#/$defs/safe-token"
+        },
+        "evidence_digest": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "object-ref": {
+      "type": "string",
+      "description": "Opaque object reference. Never a subject, address, or other content.",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:~-]{0,255}$"
+    },
+    "media-type": {
+      "type": "string",
+      "description": "Lowercase type/subtype without parameters.",
+      "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]{0,126}/[a-z0-9][a-z0-9!#$&^_.+-]{0,126}$"
+    }
+  },
+  "properties": {
+    "schema": {
+      "const": "mail.action-request.v0"
+    },
+    "request_id": {
+      "$ref": "#/$defs/uuid-v4"
+    },
+    "delegation_id": {
+      "$ref": "#/$defs/delegation-id"
+    },
+    "op": {
+      "$ref": "#/$defs/op"
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "session_ref",
+        "taint"
+      ],
+      "properties": {
+        "session_ref": {
+          "$ref": "#/$defs/safe-token"
+        },
+        "taint": {
+          "enum": [
+            "clean",
+            "tainted",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "targets": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "message_refs": {
+          "type": "array",
+          "maxItems": 500,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/object-ref"
+          }
+        },
+        "draft_ref": {
+          "$ref": "#/$defs/object-ref"
+        },
+        "mailbox": {
+          "$ref": "#/$defs/mailbox-selector"
+        },
+        "keyword": {
+          "type": "string",
+          "pattern": "^\\$?[A-Za-z0-9_-]{1,64}$"
+        }
+      }
+    },
+    "thread": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "origin"
+      ],
+      "properties": {
+        "thread_ref": {
+          "$ref": "#/$defs/object-ref"
+        },
+        "origin": {
+          "enum": [
+            "user_initiated",
+            "inbound",
+            "unknown"
+          ]
+        }
+      }
+    },
+    "recipients": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "to": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/recipient"
+          }
+        },
+        "cc": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/recipient"
+          }
+        },
+        "bcc": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/recipient"
+          }
+        }
+      }
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "draft_digest",
+        "size_bytes"
+      ],
+      "properties": {
+        "draft_digest": {
+          "$ref": "#/$defs/sha256",
+          "description": "SHA-256 over the canonical draft projection (headers, recipients, bodies, attachment digests)."
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "attachments": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "content_type",
+              "size_bytes",
+              "digest"
+            ],
+            "properties": {
+              "content_type": {
+                "$ref": "#/$defs/media-type"
+              },
+              "size_bytes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "digest": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          }
+        }
+      }
+    },
+    "signals": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/signal"
+      }
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

@@ -10,6 +10,14 @@ entries are archived in `docs/releases/vX.Y.Z.md`.
 
 ## [Unreleased]
 
+### Added
+
+- `schemas/mail/v0/` mail policy contract family: delegation, action
+  request, and policy decision schemas with conforming and negative
+  fixtures, semantic-validation rules, and the `check-mail-v0` gate.
+- DDR-0001 recording the mail policy family and deferring MAIL channel
+  extension.
+
 ## [0.1.0] - 2026-08-27
 
 First public-track release of Lanyte Crucible. GitHub slug is

@@ -1,0 +1,33 @@
+{
+  "schema": "mail.policy-decision.v0",
+  "decision_id": "9c4e2a6b-8d1f-4b3a-a5c7-1e9f3b5d7a2c",
+  "request_id": "8f14e45f-ceea-467a-9575-3b6a7c1d2e3f",
+  "delegation_id": "example-delegation-assistant",
+  "op": "reply",
+  "input_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "evaluator": {
+    "name": "example-evaluator",
+    "version": "0.1.0",
+    "policy_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "baseline_decision": "allow",
+  "decision": "allow",
+  "reasons": [
+    {
+      "source": "delegation",
+      "code": "grant_allows"
+    }
+  ],
+  "chain": {
+    "entry_id": "6d2b8f4a-1c7e-4a9b-8e3d-5f1a7c9b3e2d",
+    "prev_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "decided_at": "2026-09-22T18:00:01Z",
+  "signals": [
+    {
+      "source": "assessor",
+      "id": "inbound-injection",
+      "outcome": "flag"
+    }
+  ]
+}

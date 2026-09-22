@@ -1,0 +1,33 @@
+{
+  "schema": "mail.delegation.v0",
+  "delegation_id": "example-delegation-no-send",
+  "account_ref": "example-account-1",
+  "principal": {
+    "kind": "human",
+    "ref": "example-principal"
+  },
+  "delegate": {
+    "kind": "agent",
+    "ref": "example-agent"
+  },
+  "grants": [
+    {
+      "ops": [
+        "search",
+        "read"
+      ],
+      "effect": "allow"
+    },
+    {
+      "ops": [
+        "send",
+        "reply",
+        "forward"
+      ],
+      "effect": "deny"
+    }
+  ],
+  "valid_from": "2026-09-01T00:00:00Z",
+  "expires_at": "2026-12-01T00:00:00Z",
+  "revoked_at": null
+}

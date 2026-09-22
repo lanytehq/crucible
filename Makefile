@@ -23,7 +23,7 @@ clean: ## Remove build artifacts (placeholder)
 	@echo "[ok] nothing to clean"
 
 .PHONY: check
-check: guard-no-submodules guard-version-file check-ipc-schemas check-dispatch-v0 check-mission-v0 check-mission-v0.1 check-chanvoy-daemon-rpc-v0 check-gearwit-interrupt-v0 test-epilogue fmt-check ## Repo guards + schema family gates + format honesty
+check: guard-no-submodules guard-version-file check-ipc-schemas check-dispatch-v0 check-mission-v0 check-mission-v0.1 check-chanvoy-daemon-rpc-v0 check-gearwit-interrupt-v0 check-mail-v0 test-epilogue fmt-check ## Repo guards + schema family gates + format honesty
 	@echo "OK"
 
 .PHONY: check-ipc-schemas
@@ -82,6 +82,18 @@ check-gearwit-interrupt-v0: ## Validate Gearwit interrupt v0 schemas and fixture
 		uv run --with jsonschema scripts/validate-gearwit-interrupt-v0.py; \
 	else \
 		echo "[!!] the Gearwit interrupt v0 family gate REQUIRES the python 'jsonschema' package"; \
+		echo "[!!] install it (pip install jsonschema) or install uv — this gate never soft-skips"; \
+		exit 1; \
+	fi
+
+.PHONY: check-mail-v0
+check-mail-v0: ## Validate the mail policy v0 schemas and fixtures
+	@if python3 -c 'import jsonschema' >/dev/null 2>&1; then \
+		python3 scripts/validate-mail-v0.py; \
+	elif command -v uv >/dev/null 2>&1; then \
+		uv run --with jsonschema scripts/validate-mail-v0.py; \
+	else \
+		echo "[!!] the mail v0 family gate REQUIRES the python 'jsonschema' package"; \
 		echo "[!!] install it (pip install jsonschema) or install uv — this gate never soft-skips"; \
 		exit 1; \
 	fi

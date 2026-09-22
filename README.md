@@ -76,6 +76,12 @@ Shared type definitions referenced across schemas:
   JSON-RPC boundary. This is separate from the numbered core-gateway IPC
   channels.
 
+### `schemas/mail/`
+
+- `v0/` — provider-neutral mail policy contracts: delegation, action request,
+  and policy decision. The MAIL IPC channel remains the wire contract. See
+  [`schemas/mail/v0/README.md`](schemas/mail/v0/README.md).
+
 ### `config/agentic/roles/`
 
 Lanyte product copies of agent role definitions, including Lanyte-only seats.

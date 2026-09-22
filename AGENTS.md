@@ -14,6 +14,7 @@ Contents:
 
 - `schemas/ipc/` — JSON Schema 2020-12 files for all IPC channels (loaded by ipcprims at runtime)
 - `schemas/agentic/` — Role prompt, agent-state, dispatch, mission, gearwit families. A separate capability-taxonomy schema is **deferred**.
+- `schemas/mail/` — Mail policy contract family (delegation, action request, policy decision)
 - `docs/decisions/` — ADRs (Architecture Decision Records), SDRs, DDRs
 - `docs/specs/` — Canonical specifications (peer contract, coordination, identity)
 - `config/agentic/roles/` — Agent role definitions for the Lanyte platform
