@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.lanyte.dev/mail/v0/delegation.schema.json",
   "title": "Mail Delegation v0",
-  "description": "Grant of bounded mail authority from an account principal to a delegate. Absence of a matching allow grant is a denial.",
+  "description": "Grant of bounded mail authority from an account principal to a delegate. Absence of a matching allow grant is a denial. A grant that permits a send-class operation requires recipient, untrusted-content and approval rules.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -186,7 +186,6 @@
         },
         "new_external": {
           "enum": [
-            "allow",
             "require_approval",
             "deny"
           ]
@@ -261,5 +260,46 @@
     "revoked_at": {
       "$ref": "#/$defs/nullable-datetime"
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "grants": {
+            "contains": {
+              "type": "object",
+              "required": [
+                "ops",
+                "effect"
+              ],
+              "properties": {
+                "effect": {
+                  "enum": [
+                    "allow",
+                    "require_approval"
+                  ]
+                },
+                "ops": {
+                  "contains": {
+                    "enum": [
+                      "send",
+                      "reply",
+                      "forward"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "recipients",
+          "untrusted_content",
+          "approval"
+        ]
+      }
+    }
+  ]
 }

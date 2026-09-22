@@ -57,13 +57,14 @@ Adopt Option C. Add `schemas/mail/v0/` with three artifacts:
 1. **Delegation** — grants of operations to a delegate over an account, with
    recipient rules, untrusted-content rules, rate limits, approval token
    lifetime, and a validity window. Absence of an allow is a denial; the
-   strictest overlapping effect wins. No credentials.
+   strictest overlapping effect wins. A grant that permits sending requires
+   recipient, untrusted-content, and approval rules. No credentials.
 2. **Action request** — the evaluator input for one operation: operation,
    session taint, targets, thread origin, recipients with peer-derived
    relationship, draft digest, and detector or assessor signals. References and
    digests only; no bodies or subjects.
 3. **Policy decision** — baseline decision (delegation and facts), final
-   decision (after signals), reason codes, evaluator identity and policy
+   decision (after signals), the signal outcomes considered, reason codes, evaluator identity and policy
    digest, an input digest, an approval binding to the draft digest when
    approval is required, and optional ADR-0008 hash-chain linkage.
 
@@ -74,7 +75,8 @@ Design choices:
   surfaces the channel does not yet carry.
 - **Signals only escalate.** Recording both `baseline_decision` and `decision`
   makes the rule checkable from evidence: a record whose decision is weaker
-  than its baseline is non-conforming.
+  than its baseline is non-conforming, and a record that ignores an
+  escalating signal outcome for its operation class is non-conforming.
 - **Approval binds to content.** A `require_approval` decision names the draft
   digest. The ADR-0007 gate token is the credential presented at send time and
   is valid only for that digest.

@@ -13,5 +13,6 @@
   "baseline_decision": "allow",
   "decision": "allow",
   "reasons": [],
-  "decided_at": "2026-09-22T18:01:00Z"
+  "decided_at": "2026-09-22T18:01:00Z",
+  "signals": []
 }

@@ -1,0 +1,52 @@
+{
+  "schema": "mail.action-request.v0",
+  "request_id": "2e4a6c8e-0b1d-4f3a-9c5e-7a9b1d3f5e7c",
+  "delegation_id": "example-delegation-assistant",
+  "op": "reply",
+  "session": {
+    "session_ref": "example-session-7",
+    "taint": "tainted"
+  },
+  "targets": {
+    "message_refs": [
+      "M-example-0001"
+    ],
+    "draft_ref": "D-example-0042"
+  },
+  "thread": {
+    "thread_ref": "T-example-0009",
+    "origin": "user_initiated"
+  },
+  "recipients": {
+    "to": [
+      {
+        "address": "colleague@example.com",
+        "relationship": "known_correspondent"
+      }
+    ]
+  },
+  "content": {
+    "draft_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "size_bytes": 1843,
+    "attachments": [
+      {
+        "content_type": "application/pdf",
+        "size_bytes": 20480,
+        "digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      }
+    ]
+  },
+  "signals": [
+    {
+      "source": "detector",
+      "id": "otp-code",
+      "outcome": "clear"
+    },
+    {
+      "source": "assessor",
+      "id": "outbound-sensitivity",
+      "outcome": "abstain"
+    }
+  ],
+  "requested_at": "2026-09-22T18:00:00Z"
+}

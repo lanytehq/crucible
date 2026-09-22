@@ -1,0 +1,71 @@
+{
+  "schema": "mail.delegation.v0",
+  "delegation_id": "example-delegation-assistant",
+  "account_ref": "example-account-1",
+  "principal": {
+    "kind": "human",
+    "ref": "example-principal"
+  },
+  "delegate": {
+    "kind": "agent",
+    "ref": "example-agent"
+  },
+  "grants": [
+    {
+      "ops": [
+        "search",
+        "read",
+        "list_folders"
+      ],
+      "effect": "allow",
+      "mailboxes": [
+        {
+          "kind": "role",
+          "value": "inbox"
+        }
+      ]
+    },
+    {
+      "ops": [
+        "draft",
+        "mark",
+        "archive"
+      ],
+      "effect": "allow"
+    },
+    {
+      "ops": [
+        "send",
+        "reply"
+      ],
+      "effect": "require_approval"
+    },
+    {
+      "ops": [
+        "forward",
+        "trash"
+      ],
+      "effect": "deny"
+    }
+  ],
+  "recipients": {
+    "allowed": [
+      "*@example.com"
+    ],
+    "new_external": "require_approval",
+    "max_per_message": 10
+  },
+  "untrusted_content": {
+    "trusted_senders": [
+      "*@example.com"
+    ],
+    "tainted_send": "require_approval"
+  },
+  "limits": {
+    "sends_per_hour": 10,
+    "sends_per_day": 50
+  },
+  "valid_from": "2026-09-01T00:00:00Z",
+  "expires_at": "2026-12-01T00:00:00Z",
+  "revoked_at": null
+}

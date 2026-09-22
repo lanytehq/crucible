@@ -24,8 +24,14 @@ Consumers derive the class from `op`; it is never transmitted.
 4. When grants overlap, the strictest effect wins: `deny` over
    `require_approval` over `allow`.
 5. `recipients.new_external` and `untrusted_content.tainted_send` can only
-   make a send-class decision stricter than its grant.
-6. A delegation never carries credentials. The enforcing peer resolves
+   make a send-class decision stricter than its grant. Neither admits `allow`.
+6. A delegation with any `allow` or `require_approval` grant covering a
+   send-class operation carries `recipients`, `untrusted_content`, and
+   `approval`. A delegation whose send-class grants are all `deny` needs none of
+   them. **(gate, structurally)**
+7. `limits` is optional in v0. Without it the evaluator applies no rate cap;
+   deployments that need one set it explicitly.
+8. A delegation never carries credentials. The enforcing peer resolves
    `account_ref` to credentials it holds; the delegate never sees them.
 
 ## Action request rules
@@ -35,34 +41,68 @@ Consumers derive the class from `op`; it is never transmitted.
 2. `draft_digest` is SHA-256 over the canonical draft projection: recipients,
    headers, bodies, and attachment digests. Any change to the draft changes
    the digest.
-3. `relationship` and `session.taint` are derived by the enforcing peer from
+3. Object references (`message_refs`, `draft_ref`, `thread_ref`) are opaque
+   tokens and attachment `content_type` is a bare `type/subtype`. Addresses
+   appear only in `recipients.*.address`. **(gate, structurally)** The token
+   pattern rejects whitespace and punctuation-bearing text; it cannot prove a
+   single-word token is not content, so producers mint references, never copy
+   message fields into them.
+4. `relationship` and `session.taint` are derived by the enforcing peer from
    its own state. Values asserted by the delegate are ignored.
-4. `taint: unknown` is evaluated as `tainted`.
-5. A session becomes `tainted` when message content from a sender outside
+5. `taint: unknown` is evaluated as `tainted`.
+6. A session becomes `tainted` when message content from a sender outside
    `untrusted_content.trusted_senders` has been returned to the delegate in
    that session. Taint does not decay within a session.
-6. `request_id` is the idempotency key. Reuse with a different canonical
+7. `request_id` is the idempotency key. Reuse with a different canonical
    request is a hard conflict.
 
 ## Decision rules
 
 1. `decision` is never weaker than `baseline_decision` (order:
    `allow` < `require_approval` < `deny`). **(gate)**
-2. Signals raise, never lower. A send-class request with any signal outcome of
-   `abstain` or `error` is decided at least `require_approval`.
-3. An `approval` binding is present exactly when `decision` is
+2. Signals raise, never lower. The decision records the signal outcomes it
+   considered in `signals`. These outcomes require at least
+   `require_approval`: **(gate)**
+
+   | Class  | Escalating outcomes        | Non-escalating              |
+   | ------ | -------------------------- | --------------------------- |
+   | send   | `flag`, `abstain`, `error` | `clear`                     |
+   | mutate | `flag`                     | `clear`, `abstain`, `error` |
+   | read   | none                       | all                         |
+
+   On read-class operations a `flag` annotates returned content for the
+   delegate and may raise session taint; it does not change the decision.
+
+3. A decision stricter than `baseline_decision` names at least one `signal`
+   reason and at least one escalating signal outcome. Only signals move a
+   decision above its baseline. **(gate)**
+4. An `approval` binding is present exactly when `decision` is
    `require_approval`, and `approval.expires_at` is later than `decided_at`.
    **(gate)**
-4. Approval is bound to `approval.draft_digest`. A gate token issued for a
+5. Approval is bound to `approval.draft_digest`. A gate token issued for a
    decision is single-use and valid only for a send whose current draft digest
    equals that value.
-5. `reasons` are machine codes, never free text, addresses, or content.
+   `approval.expires_at` is no later than `decided_at + approval.token_ttl_secs`
+   and no later than the delegation's `expires_at`. These bounds cross records
+   and are enforced by the evaluator, not by this family's gate.
+6. `reasons` are machine codes, never free text, addresses, or content.
    **(gate, structurally)**
-6. An evaluator that cannot reach a decision yields `deny` for send-class and
+7. An evaluator that cannot reach a decision yields `deny` for send-class and
    mutate-class operations.
-7. When `chain` is present, `prev_hash` is SHA-256 of the canonical JSON of the
+8. When `chain` is present, `prev_hash` is SHA-256 of the canonical JSON of the
    previous decision record from the same producer (ADR-0008 form); the first
    record uses 64 zeros.
+
+## Not covered by the gate
+
+- Whether `approval.draft_digest` equals the request's `content.draft_digest`:
+  request and decision are separate records, joined by `request_id` and
+  `input_digest` at evaluation time.
+- Single use of the gate token: enforced at send time by the token issuer.
+- Peer derivation of `relationship` and `taint`: an evaluation rule. The
+  fixtures prove only that the value sets are closed.
+- Blind-copy recipients appear on the action request by design so policy can
+  evaluate them; decision records carry no addresses.
 
 ## Canonical JSON
 

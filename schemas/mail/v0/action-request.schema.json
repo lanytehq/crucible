@@ -131,6 +131,16 @@
           "$ref": "#/$defs/sha256"
         }
       }
+    },
+    "object-ref": {
+      "type": "string",
+      "description": "Opaque object reference. Never a subject, address, or other content.",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:~-]{0,255}$"
+    },
+    "media-type": {
+      "type": "string",
+      "description": "Lowercase type/subtype without parameters.",
+      "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]{0,126}/[a-z0-9][a-z0-9!#$&^_.+-]{0,126}$"
     }
   },
   "properties": {
@@ -175,21 +185,18 @@
           "maxItems": 500,
           "uniqueItems": true,
           "items": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 512
+            "$ref": "#/$defs/object-ref"
           }
         },
         "draft_ref": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 512
+          "$ref": "#/$defs/object-ref"
         },
         "mailbox": {
           "$ref": "#/$defs/mailbox-selector"
         },
         "keyword": {
-          "$ref": "#/$defs/safe-token"
+          "type": "string",
+          "pattern": "^\\$?[A-Za-z0-9_-]{1,64}$"
         }
       }
     },
@@ -201,9 +208,7 @@
       ],
       "properties": {
         "thread_ref": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 512
+          "$ref": "#/$defs/object-ref"
         },
         "origin": {
           "enum": [
@@ -270,9 +275,7 @@
             ],
             "properties": {
               "content_type": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 256
+                "$ref": "#/$defs/media-type"
               },
               "size_bytes": {
                 "type": "integer",

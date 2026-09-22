@@ -28,7 +28,22 @@ ARTIFACTS = {
 }
 
 SEND_CLASS = {"send", "reply", "forward"}
+MUTATE_CLASS = {"draft", "mark", "move", "archive", "trash"}
 DECISION_RANK = {"allow": 0, "require_approval": 1, "deny": 2}
+# Signal outcomes that raise a decision to at least require_approval, per class.
+ESCALATING_OUTCOMES = {
+    "send": {"flag", "abstain", "error"},
+    "mutate": {"flag"},
+    "read": set(),
+}
+
+
+def op_class(op) -> str:
+    if op in SEND_CLASS:
+        return "send"
+    if op in MUTATE_CLASS:
+        return "mutate"
+    return "read"
 
 failures: list[str] = []
 
@@ -78,6 +93,27 @@ def semantic_violations(artifact: str, instance: dict) -> list[str]:
         final = DECISION_RANK.get(instance.get("decision"))
         if baseline is not None and final is not None and final < baseline:
             violations.append("decision must not be weaker than baseline_decision")
+        outcomes = {
+            signal.get("outcome")
+            for signal in instance.get("signals") or []
+            if isinstance(signal, dict)
+        }
+        escalating = ESCALATING_OUTCOMES[op_class(instance.get("op"))]
+        if final is not None and outcomes & escalating:
+            if final < DECISION_RANK["require_approval"]:
+                violations.append(
+                    "escalating signal outcome requires at least require_approval"
+                )
+        if baseline is not None and final is not None and final > baseline:
+            reasons = instance.get("reasons") or []
+            if not any(
+                isinstance(r, dict) and r.get("source") == "signal" for r in reasons
+            ):
+                violations.append("escalation above baseline requires a signal reason")
+            if not outcomes & escalating:
+                violations.append(
+                    "escalation above baseline requires an escalating signal"
+                )
         has_approval = "approval" in instance
         if instance.get("decision") == "require_approval" and not has_approval:
             violations.append("require_approval requires an approval binding")

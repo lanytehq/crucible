@@ -16,6 +16,7 @@
     "baseline_decision",
     "decision",
     "reasons",
+    "signals",
     "decided_at"
   ],
   "$defs": {
@@ -174,6 +175,39 @@
         },
         "prev_hash": {
           "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "signals": {
+      "type": "array",
+      "maxItems": 64,
+      "description": "Signal outcomes the evaluator considered. Identifiers and outcomes only.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "id",
+          "outcome"
+        ],
+        "properties": {
+          "source": {
+            "enum": [
+              "detector",
+              "assessor"
+            ]
+          },
+          "id": {
+            "$ref": "#/$defs/safe-token"
+          },
+          "outcome": {
+            "enum": [
+              "flag",
+              "clear",
+              "abstain",
+              "error"
+            ]
+          }
         }
       }
     },

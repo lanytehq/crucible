@@ -19,5 +19,11 @@
     }
   ],
   "decided_at": "2026-09-22T18:01:00Z",
-  "signals": []
+  "signals": [
+    {
+      "source": "assessor",
+      "id": "inbound-injection",
+      "outcome": "flag"
+    }
+  ]
 }

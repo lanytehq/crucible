@@ -26,5 +26,17 @@
     "entry_id": "6d2b8f4a-1c7e-4a9b-8e3d-5f1a7c9b3e2d",
     "prev_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
   },
-  "decided_at": "2026-09-22T18:00:01Z"
+  "decided_at": "2026-09-22T18:00:01Z",
+  "signals": [
+    {
+      "source": "detector",
+      "id": "otp-code",
+      "outcome": "clear"
+    },
+    {
+      "source": "assessor",
+      "id": "outbound-sensitivity",
+      "outcome": "abstain"
+    }
+  ]
 }
