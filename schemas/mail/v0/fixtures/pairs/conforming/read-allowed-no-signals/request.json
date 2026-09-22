@@ -1,0 +1,16 @@
+{
+  "schema": "mail.action-request.v0",
+  "request_id": "1c3e5a7b-9d2f-4e6a-8b0c-2d4f6a8c0e1a",
+  "delegation_id": "example-delegation-readonly",
+  "op": "read",
+  "session": {
+    "session_ref": "example-session-8",
+    "taint": "clean"
+  },
+  "targets": {
+    "message_refs": [
+      "M-example-0002"
+    ]
+  },
+  "requested_at": "2026-09-22T18:01:00Z"
+}

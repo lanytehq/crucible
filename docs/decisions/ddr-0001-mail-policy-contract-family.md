@@ -76,7 +76,10 @@ Design choices:
 - **Signals only escalate.** Recording both `baseline_decision` and `decision`
   makes the rule checkable from evidence: a record whose decision is weaker
   than its baseline is non-conforming, and a record that ignores an
-  escalating signal outcome for its operation class is non-conforming.
+  escalating signal outcome for its operation class is non-conforming. A
+  decision's signals must equal its request's signals, and its approval digest
+  must equal the request's draft digest, so an evaluator cannot omit a signal
+  or approve a different draft without the pair failing verification.
 - **Approval binds to content.** A `require_approval` decision names the draft
   digest. The ADR-0007 gate token is the credential presented at send time and
   is valid only for that digest.

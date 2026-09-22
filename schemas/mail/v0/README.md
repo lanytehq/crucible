@@ -7,13 +7,13 @@ define a provider protocol, a transport, or message content.
 
 ## Artifacts
 
-| Artifact                      | Purpose                                                        |
-| ----------------------------- | -------------------------------------------------------------- |
-| `delegation.schema.json`      | Bounded mail authority from an account principal to a delegate |
-| `action-request.schema.json`  | Policy input for one requested operation (refs and digests)    |
-| `policy-decision.schema.json` | Decision stage for one request, with reasons and approval bind |
-| `semantic-validation.md`      | Cross-value invariants JSON Schema cannot express              |
-| `fixtures/`                   | Conforming and negative contract examples                      |
+| Artifact                      | Purpose                                                            |
+| ----------------------------- | ------------------------------------------------------------------ |
+| `delegation.schema.json`      | Bounded mail authority from an account principal to a delegate     |
+| `action-request.schema.json`  | Policy input for one requested operation (refs and digests)        |
+| `policy-decision.schema.json` | Decision stage for one request, with reasons and approval bind     |
+| `semantic-validation.md`      | Cross-value invariants JSON Schema cannot express                  |
+| `fixtures/`                   | Conforming and negative examples, including request/decision pairs |
 
 Run `make check-mail-v0` to validate every schema, fixture, and semantic
 negative control.

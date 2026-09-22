@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import datetime
+import hashlib
 import json
 import pathlib
 import sys
@@ -169,6 +170,74 @@ for artifact, schema_path in ARTIFACTS.items():
                     f"{artifact} negative {fixture.name}: "
                     "expected rejection, got pass"
                 )
+
+
+def canonical_digest(instance: dict) -> str:
+    encoded = json.dumps(
+        instance, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def pair_violations(request: dict, decision: dict) -> list[str]:
+    """Cross-record rules binding a decision to the request it decided."""
+    violations: list[str] = []
+    for field in ("request_id", "delegation_id", "op"):
+        if request.get(field) != decision.get(field):
+            violations.append(f"{field} differs between request and decision")
+    if decision.get("input_digest") != canonical_digest(request):
+        violations.append("input_digest is not the canonical request digest")
+    projected = [
+        {key: signal.get(key) for key in ("source", "id", "outcome")}
+        for signal in request.get("signals") or []
+        if isinstance(signal, dict)
+    ]
+    if decision.get("signals") != projected:
+        violations.append("decision signals differ from the request signals")
+    approval = decision.get("approval")
+    if isinstance(approval, dict):
+        content = request.get("content") or {}
+        if approval.get("draft_digest") != content.get("draft_digest"):
+            violations.append("approval draft_digest differs from the request")
+    return violations
+
+
+validators = {
+    artifact: Draft202012Validator(load(path), format_checker=FormatChecker())
+    for artifact, path in ARTIFACTS.items()
+}
+for disposition in ("conforming", "negative"):
+    pair_dirs = sorted(
+        d for d in (FIXTURES / "pairs" / disposition).glob("*") if d.is_dir()
+    )
+    if not pair_dirs:
+        fail(f"pairs {disposition}: fixture set is empty")
+        continue
+    for pair_dir in pair_dirs:
+        request = load(pair_dir / "request.json")
+        decision = load(pair_dir / "decision.json")
+        single = [
+            f"request: {e.message}"
+            for e in validators["action-request"].iter_errors(request)
+        ] + [
+            f"decision: {e.message}"
+            for e in validators["policy-decision"].iter_errors(decision)
+        ]
+        single += semantic_violations("action-request", request)
+        single += semantic_violations("policy-decision", decision)
+        if single:
+            fail(f"pairs {disposition} {pair_dir.name}: record invalid: {single[0]}")
+            continue
+        violations = pair_violations(request, decision)
+        if disposition == "conforming":
+            if violations:
+                fail(f"pairs conforming {pair_dir.name}: {violations[0]}")
+            else:
+                ok(f"pairs conforming {pair_dir.name}")
+        elif violations:
+            ok(f"pairs negative {pair_dir.name}")
+        else:
+            fail(f"pairs negative {pair_dir.name}: expected rejection, got pass")
 
 if failures:
     print(f"\n{len(failures)} failure(s)")

@@ -1,0 +1,46 @@
+{
+  "schema": "mail.policy-decision.v0",
+  "decision_id": "3b9d1f7e-5a2c-4c8e-9f1a-7e5c3a1b9d2f",
+  "request_id": "8f14e45f-ceea-467a-9575-3b6a7c1d2e3f",
+  "delegation_id": "example-delegation-assistant",
+  "op": "reply",
+  "input_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+  "evaluator": {
+    "name": "example-evaluator",
+    "version": "0.1.0",
+    "policy_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "baseline_decision": "require_approval",
+  "decision": "require_approval",
+  "reasons": [
+    {
+      "source": "delegation",
+      "code": "grant_requires_approval"
+    },
+    {
+      "source": "signal",
+      "code": "assessor_abstained"
+    }
+  ],
+  "approval": {
+    "draft_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expires_at": "2026-09-22T18:15:00Z"
+  },
+  "chain": {
+    "entry_id": "6d2b8f4a-1c7e-4a9b-8e3d-5f1a7c9b3e2d",
+    "prev_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "decided_at": "2026-09-22T18:00:01Z",
+  "signals": [
+    {
+      "source": "detector",
+      "id": "otp-code",
+      "outcome": "clear"
+    },
+    {
+      "source": "assessor",
+      "id": "outbound-sensitivity",
+      "outcome": "abstain"
+    }
+  ]
+}

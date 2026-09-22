@@ -93,11 +93,25 @@ Consumers derive the class from `op`; it is never transmitted.
    previous decision record from the same producer (ADR-0008 form); the first
    record uses 64 zeros.
 
+## Request and decision pair rules
+
+A decision is bound to the request it decided. Given both records, a verifier
+checks: **(gate, pair fixtures)**
+
+1. `request_id`, `delegation_id`, and `op` are equal in both records.
+2. `input_digest` equals the canonical digest of the request.
+3. The decision `signals` equal the request `signals` projected to `source`,
+   `id`, and `outcome`, in the same order. A decision cannot drop, add, or
+   reorder a signal, so an empty list is valid only when the request carried
+   none. `signals` is required on every decision.
+4. When present, `approval.draft_digest` equals the request
+   `content.draft_digest`.
+
 ## Not covered by the gate
 
-- Whether `approval.draft_digest` equals the request's `content.draft_digest`:
-  request and decision are separate records, joined by `request_id` and
-  `input_digest` at evaluation time.
+- A decision checked without its request: the pair rules need both records.
+  Consumers that retain decisions retain or can retrieve the request by
+  `input_digest`.
 - Single use of the gate token: enforced at send time by the token issuer.
 - Peer derivation of `relationship` and `taint`: an evaluation rule. The
   fixtures prove only that the value sets are closed.
