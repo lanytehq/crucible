@@ -21,3 +21,10 @@ Validate:
 ```sh
 ipcprims echo /tmp/lanyte-test.sock --validate schemas/ipc/
 ```
+
+## Consumer-specific local contracts
+
+[Local runtime-control contracts](local/README.md) use explicitly selected roots
+outside the numbered gateway registry. The directory loader does not recurse
+into that family; the command above validates numbered channels only. Local
+contracts do not allocate a channel or change CHAT260 authority.
