@@ -10,12 +10,24 @@ Schemas are SSOT artifacts intended for **machine consumption**. The canonical f
 ## IPC schemas
 
 - `schemas/ipc/` — numbered Lanyte core-gateway channel contracts loaded by
-  ipcprims.
+  ipcprims. That loader does not recurse into `schemas/ipc/local/`.
+- `schemas/ipc/local/` — Chanvoy runtime-control v1. Nine transport-selected
+  roots, validated by `make check-chanvoy-runtime-control-v1`. Not a
+  numbered channel. ADR-0018 remains Proposed.
 
 ## Common protocol schemas
 
 - `schemas/common/chanvoy-daemon-rpc/v0/` — Chanvoy local daemon JSON-RPC
-  method contracts, including the bounded multi-channel wait capability.
+  method contracts: channel wait, process-held follow, named-DM and inbox
+  wait and follow, mention filtering, and bounded coalescing. Not loaded
+  by ipcprims.
+
+## Mail policy schemas
+
+- `schemas/mail/v0/` — provider-neutral delegation, action request, and
+  policy decision. A decision is not a provider effect. The numbered MAIL
+  channel is unchanged. DDR-0001 remains Proposed. Gate:
+  `make check-mail-v0`.
 
 ## Agentic protocol schemas
 

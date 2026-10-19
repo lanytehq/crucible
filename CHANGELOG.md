@@ -12,21 +12,30 @@ entries are archived in `docs/releases/vX.Y.Z.md`.
 
 ## [0.2.0] - 2026-10-19
 
+Contract release since v0.1.0. It adds local runtime-control, Chanvoy
+wait and follow RPC methods, and a provider-neutral mail policy family.
+Existing numbered IPC schema files are unchanged. Publishing the
+contracts does not qualify a consumer implementation or native process
+lifecycle. ADR-0018 and DDR-0001 remain Proposed.
+
 Full notes: [`docs/releases/v0.2.0.md`](docs/releases/v0.2.0.md).
 
 ### Added
 
-- Explicit local runtime-control v1 contracts with nine selected roots,
-  conformance fixtures, semantics, and required meta-validation and fixture gates.
-- Proposed ADR-0018 documenting local runtime-control placement.
-- Chanvoy process-held follow, named-DM and inbox waits, mention filtering,
-  and bounded coalescing follow RPC contracts with conformance validation.
-
-- `schemas/mail/v0/` mail policy contract family: delegation, action
-  request, and policy decision schemas with conforming and negative
-  fixtures, semantic-validation rules, and the `check-mail-v0` gate.
-- DDR-0001 recording the mail policy family and deferring MAIL channel
-  extension.
+- Local runtime-control v1 under `schemas/ipc/local/`: nine
+  transport-selected roots, 100 conformance cases, family semantics,
+  and `make check-chanvoy-runtime-control-v1`. The numbered gateway
+  loader does not discover this directory. ADR-0018 records the
+  placement and remains Proposed.
+- Chanvoy daemon RPC methods for process-held channel follow, named-DM
+  wait and follow, and inbox wait and follow, including mention
+  filtering and bounded coalescing on the v2 follow methods. Clients
+  negotiate by method name. Gate: `make check-chanvoy-daemon-rpc-v0`.
+- Mail policy v0 under `schemas/mail/v0/`: delegation, action-request,
+  and policy-decision schemas, semantic rules, fixtures, and
+  `make check-mail-v0`. Decisions carry references and reason codes,
+  not provider effects. DDR-0001 records the family and remains
+  Proposed. The numbered MAIL channel is unchanged.
 
 ## [0.1.0] - 2026-08-27
 
