@@ -32,7 +32,7 @@ jobs:
           go install github.com/fulmenhq/goneat@v0.5.16
           go install github.com/google/yamlfmt/cmd/yamlfmt@v0.16.0
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
-          npm install -g prettier@3.5.3
+          npm install -g prettier@3.9.6
           goneat version
           command -v yamlfmt
           prettier --version
