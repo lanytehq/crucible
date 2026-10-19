@@ -1,7 +1,7 @@
 # Lanyte Crucible
 
 [![lifecycle](https://img.shields.io/badge/lifecycle-alpha-orange)](LIFECYCLE_PHASE)
-[![version](https://img.shields.io/badge/version-0.1.0-blue)](VERSION)
+[![version](https://img.shields.io/badge/version-0.2.0-blue)](VERSION)
 
 **Lanyte platform contracts:** IPC channel schemas, mission and dispatch
 families, agent role copies, ADRs, and policies. Message types live here
@@ -46,6 +46,12 @@ schema-validated message framing.
 | 259     | `channel_259.schema.json` | skill executor I/O      |
 | 260     | `channel_260.schema.json` | chanvoy — CHAT bridge   |
 
+Local runtime-control contracts live in
+[`schemas/ipc/local/`](schemas/ipc/local/README.md). They use explicitly
+selected roots and are not numbered channels. The directory loader does
+not discover them, and the `ipcprims --validate schemas/ipc/` command
+below covers numbered channels only. ADR-0018 remains Proposed.
+
 ### `schemas/agentic/`
 
 Schemas for agent-side contracts:
@@ -73,8 +79,10 @@ Shared type definitions referenced across schemas:
 - `v0/naming.schema.json` — naming conventions (role slugs, instance names,
   scope paths).
 - `chanvoy-daemon-rpc/v0/` — versioned contracts for Chanvoy's local daemon
-  JSON-RPC boundary. This is separate from the numbered core-gateway IPC
-  channels.
+  JSON-RPC boundary, including process-held follow, named-DM and inbox
+  waits, mention filtering, and bounded coalescing. This is separate
+  from the numbered core-gateway IPC channels. See
+  [`schemas/common/chanvoy-daemon-rpc/v0/README.md`](schemas/common/chanvoy-daemon-rpc/v0/README.md).
 
 ### `schemas/mail/`
 
@@ -118,13 +126,16 @@ Security and operational policies for the platform.
 ## Schema validation
 
 ```sh
-# Validate all IPC schemas via ipcprims
+# Numbered gateway channels only. Does not validate schemas/ipc/local/.
 ipcprims echo /tmp/lanyte-test.sock --validate schemas/ipc/
 
-# Check JSON validity
+# Check JSON validity of numbered channel files
 for f in schemas/ipc/*.schema.json; do
   python3 -m json.tool "$f" > /dev/null && echo "ok $f" || echo "FAIL $f"
 done
+
+# Local runtime-control, Chanvoy daemon RPC, and mail policy
+make check-chanvoy-runtime-control-v1 check-chanvoy-daemon-rpc-v0 check-mail-v0
 ```
 
 ## Local docs preview

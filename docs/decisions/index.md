@@ -25,6 +25,7 @@ Decisions are recorded as ADRs when they are hard to reverse or when multiple vi
 | ADR-0015 | Grant phase must produce instantiate-ready artifacts                       | Accepted            |
 | ADR-0016 | Agent-critical file input symlink policy                                   | Accepted            |
 | ADR-0017 | Out-of-band planning root                                                  | Proposed            |
+| ADR-0018 | Explicit local runtime-control contracts                                   | Proposed            |
 
 ## DDR Index
 

@@ -9,6 +9,36 @@ Current release notes for Lanyte Crucible. For complete history, see
 
 ---
 
+## v0.2.0 (2026-10-19)
+
+Contract release since v0.1.0. Three additions, and two limits that
+travel with them.
+
+- **Local runtime control v1** — nine transport-selected roots under
+  `schemas/ipc/local/`, with 100 conformance cases and
+  `make check-chanvoy-runtime-control-v1`. The numbered gateway loader
+  does not discover this directory. Select the root your transport
+  uses. Schema acceptance is not process-death, lease-release, or
+  readiness proof. ADR-0018 remains Proposed.
+- **Chanvoy wait and follow RPC** — process-held channel follow,
+  named-DM wait and follow, and inbox wait and follow, plus mention
+  filtering and bounded coalescing on the v2 methods. Call the method
+  you implement. A missing method is a hard capability failure.
+  Inbox resume uses the inbox cursor, not a post id.
+- **Mail policy v0** — delegation, action request, and policy decision
+  under `schemas/mail/v0/`, with `make check-mail-v0`. These records
+  carry references and decisions, not message bodies or provider
+  effects. DDR-0001 remains Proposed. The numbered MAIL channel is
+  unchanged.
+
+Existing numbered IPC schema files are unchanged. Pin the published
+commit and verify embedded schema hashes. `make check` and
+`make quality` qualify this repository only.
+
+See [docs/releases/v0.2.0.md](docs/releases/v0.2.0.md).
+
+---
+
 ## v0.1.0 (2026-08-27)
 
 **First public-track release of Lanyte Crucible.** GitHub slug
