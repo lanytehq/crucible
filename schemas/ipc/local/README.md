@@ -25,6 +25,12 @@ goneat schema validate-data \
   --format json
 ```
 
+`make check-chanvoy-runtime-control-v1` runs the explicit family gate, also
+included in `make check` and therefore in the check and release workflows. It
+checks schema meta-validity with an invalid-schema control, shared definitions,
+exact root selection, all 100 fixture expectations and complete positive/negative
+coverage for each root. It resolves manifest paths from the repository root.
+
 Validate every manifest case against its named selected schema and compare the
 result to `expected_valid`. Independently check family and selected schemas
 against JSON Schema 2020-12, including an invalid-schema negative control.

@@ -23,7 +23,7 @@ clean: ## Remove build artifacts (placeholder)
 	@echo "[ok] nothing to clean"
 
 .PHONY: check
-check: guard-no-submodules guard-version-file check-ipc-schemas check-dispatch-v0 check-mission-v0 check-mission-v0.1 check-chanvoy-daemon-rpc-v0 check-gearwit-interrupt-v0 check-mail-v0 test-epilogue fmt-check ## Repo guards + schema family gates + format honesty
+check: guard-no-submodules guard-version-file check-ipc-schemas check-dispatch-v0 check-mission-v0 check-mission-v0.1 check-chanvoy-daemon-rpc-v0 check-chanvoy-runtime-control-v1 check-gearwit-interrupt-v0 check-mail-v0 test-epilogue fmt-check ## Repo guards + schema family gates + format honesty
 	@echo "OK"
 
 .PHONY: check-ipc-schemas
@@ -71,6 +71,17 @@ check-chanvoy-daemon-rpc-v0: ## Validate the Chanvoy daemon RPC v0 schemas and f
 	else \
 		echo "[!!] the Chanvoy daemon RPC v0 gate REQUIRES the python 'jsonschema' package"; \
 		echo "[!!] install it (pip install jsonschema) or install uv — this gate never soft-skips"; \
+		exit 1; \
+	fi
+
+.PHONY: check-chanvoy-runtime-control-v1
+check-chanvoy-runtime-control-v1: ## Validate explicit local runtime-control roots and fixtures
+	@if python3 -c 'import jsonschema' >/dev/null 2>&1; then \
+		python3 scripts/validate-chanvoy-runtime-control-v1.py; \
+	elif command -v uv >/dev/null 2>&1; then \
+		uv run --with jsonschema==4.25.1 scripts/validate-chanvoy-runtime-control-v1.py; \
+	else \
+		echo "[!!] runtime-control v1 requires python jsonschema or uv"; \
 		exit 1; \
 	fi
 
