@@ -10,7 +10,17 @@ entries are archived in `docs/releases/vX.Y.Z.md`.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-19
+
+Full notes: [`docs/releases/v0.2.0.md`](docs/releases/v0.2.0.md).
+
 ### Added
+
+- Explicit local runtime-control v1 contracts with nine selected roots,
+  conformance fixtures, semantics, and required meta-validation and fixture gates.
+- Proposed ADR-0018 documenting local runtime-control placement.
+- Chanvoy process-held follow, named-DM and inbox waits, mention filtering,
+  and bounded coalescing follow RPC contracts with conformance validation.
 
 - `schemas/mail/v0/` mail policy contract family: delegation, action
   request, and policy decision schemas with conforming and negative
@@ -105,6 +115,7 @@ tag time.)
   supervisor per the release-signing manual baseline policy; CI never
   signs.
 
-[Unreleased]: https://github.com/lanytehq/crucible/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/lanytehq/crucible/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/lanytehq/crucible/releases/tag/v0.2.0
 [0.1.0]: https://github.com/lanytehq/crucible/releases/tag/v0.1.0
 [0.0.1]: https://github.com/lanytehq/crucible/releases/tag/v0.0.1
