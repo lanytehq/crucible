@@ -157,7 +157,8 @@ is plain text or a goal object; plain text stays valid on its own.
    The effective rank is the item's `rank`, or its list index when it has
    none, so plain-text items sort by position. Lower rank sorts first. An
    unordered set is goal objects that share one rank. `priority` (`p0`
-   most urgent) is a separate field and does not change order.
+   most urgent) is a separate field and does not change order. `sort-vectors.json` pins the expected order for representative lists;
+   every implementation must reproduce it. **(gate)**
 3. `rank` is a number within ±2^31 that is a multiple of 1/16, so every
    implementation stores and compares it exactly. A writer inserts by
    halving (1.5, 1.25, …) and renumbers the list when no multiple of 1/16

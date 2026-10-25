@@ -21,6 +21,7 @@ entry stays valid wherever a durable-record record is expected.
 | Kind vocabulary (classifier dimension)               | `config/classifiers/dimensions/content-kind.dimension.json` |
 | Rules JSON Schema cannot express                     | `semantic-validation.md`                                    |
 | Revision digest vectors (RFC 8785 + sha256)          | `digest-vectors.json`                                       |
+| Goal list order vectors                              | `sort-vectors.json`                                         |
 | Fixtures                                             | `fixtures/{entry,kind-registry}/`                           |
 
 `payload_contract` tokens are `contract: agent-<kind>/v0`. The registry maps

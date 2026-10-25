@@ -1,0 +1,56 @@
+{
+  "description": "Expected order for goal lists under the documented sort key: effective rank (rank, or list index when absent), then list index; lower first. Every implementation must produce these index orders.",
+  "cases": [
+    {
+      "name": "mixed plain text and ranked goals",
+      "entry": "fixtures/entry/conforming/day-mixed-goals.json",
+      "list": "plan",
+      "order": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "name": "unordered set shares one rank",
+      "entry": "fixtures/entry/conforming/day-unordered-goals.json",
+      "list": "plan",
+      "order": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "grid edges and negative rank",
+      "entry": "fixtures/entry/conforming/day-rank-grid-edges.json",
+      "list": "plan",
+      "order": [
+        1,
+        0,
+        2
+      ]
+    },
+    {
+      "name": "rank overrides position",
+      "value": [
+        "first by position",
+        {
+          "id": "z",
+          "outcome": "ranked to the end",
+          "rank": 10
+        },
+        {
+          "id": "y",
+          "outcome": "ranked ahead",
+          "rank": -1
+        }
+      ],
+      "order": [
+        2,
+        0,
+        1
+      ]
+    }
+  ]
+}

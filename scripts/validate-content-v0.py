@@ -1054,6 +1054,25 @@ for vector in vectors["vectors"]:
     else:
         ok(f"digest {vector['entry']}")
 
+# Sort vectors: the documented order is executable, not only described.
+
+
+def goal_order(items: list) -> list[int]:
+    def key(pair):
+        index, item = pair
+        rank = item.get("rank") if isinstance(item, dict) else None
+        return (index if rank is None else rank, index)
+    return [index for index, _ in sorted(enumerate(items), key=key)]
+
+
+for case in load(FAMILY / "sort-vectors.json")["cases"]:
+    items = case["value"] if "value" in case else load(FAMILY / case["entry"])["payload"][case["list"]]
+    got = goal_order(items)
+    if got != case["order"]:
+        fail(f"sort {case['name']}: {got}, expected {case['order']}")
+    else:
+        ok(f"sort {case['name']}")
+
 # Reason-code coverage: every declared code is proven, and no proof is stale.
 unproven = REASON_CODES - proven_codes - (SELF_TESTED & self_test_proven)
 if SELF_TESTED - self_test_proven:
