@@ -3,7 +3,9 @@
 JSON Schema validates the entry envelope, each kind's payload, and the kind
 registry. Writers and readers must also enforce these rules. Rules marked
 **(gate)** are checked by `make check-memory-v0`, and each negative fixture
-names the rule it must be rejected for. The others need runtime state the
+names the rule it must be rejected for. **(gate, pairs)** rules relate a
+revision to the revision it supersedes and are checked on
+`fixtures/pairs/`. The others need runtime state the
 fixtures cannot carry.
 
 ## Envelope rules
@@ -36,13 +38,17 @@ fixtures cannot carry.
 2. `revision_policy: revisioned` kinds supersede by `record_id`; each
    revision names the immediately previous revision **(gate)** and its
    digest. A stale `supersedes` is a revision conflict and is never
-   merged.
-3. Every write carries an idempotency key scoped to the stream. A repeat with
+   merged. **(gate, pairs)**
+3. A revision keeps its predecessor's `stream`, `record_id`, and
+   `payload_contract`. A revision cannot change an entry's kind, so an agent
+   cannot supersede a maintainer-class entry through another kind.
+   **(gate, pairs)**
+4. Every write carries an idempotency key scoped to the stream. A repeat with
    the same digest returns the original outcome; a repeat with a different
    digest is an idempotency conflict.
-4. Withdrawing an entry marks it retired. Retired entries keep their history
+5. Withdrawing an entry marks it retired. Retired entries keep their history
    and are skipped by current reads; nothing is deleted or rewritten.
-5. The legacy checkpoint lane keeps its own hash chain. Its stored values are
+6. The legacy checkpoint lane keeps its own hash chain. Its stored values are
    never recomputed or reinterpreted as entry digests.
 
 ## Authority rules
@@ -60,9 +66,10 @@ fixtures cannot carry.
    **(gate)**
 5. The one exception is a handoff acknowledgement. A revision above 1 of a
    handoff may be written by the seat named in `payload.to`, and only with
-   `state: acknowledged`. **(gate)** At write time the store also requires
-   that every other payload member equals the superseded revision, so an
-   acknowledgement cannot rewrite the handoff.
+   `state: acknowledged`. **(gate)** Relative to the revision it supersedes,
+   the predecessor is `open`, and the acknowledgement keeps
+   `classification`, `labels`, `links`, and every payload member other than
+   `state` and `acknowledged_at`. **(gate, pairs)**
 6. An identity entry's `agent.role` and `agent.scope` equal its stream.
    **(gate)**
 7. `attestation: required` kinds need a verified attestation session
@@ -91,6 +98,12 @@ fixtures cannot carry.
 6. Volatility describes how often a kind changes within a stream. It is set
    in the registry, never on an entry.
 
+## Input rules
+
+1. Entries are I-JSON: unique member names, well-formed Unicode, and numbers
+   exact in IEEE 754 binary64. An entry that cannot be canonicalized is
+   rejected. **(gate)**
+
 ## Rendering rules
 
 1. `wake` renders a bounded summary: at most 30 lines and 2 KiB. Field caps
@@ -99,11 +112,16 @@ fixtures cannot carry.
 
 ## Content rules
 
-1. No payload carries a secret value. Member names matching
-   `common/v0/secret-keys.schema.json#/$defs/secretShapedName` are rejected at
-   any depth. **(gate)**
+1. No payload carries a secret value. At any depth, a member name that fails
+   `common/v0/secret-keys.schema.json#/$defs/memberName` or matches
+   `secretShapedName`, and a string value that matches
+   `credentialShapedValue`, rejects the entry. **(gate)** The value check is a
+   backstop for recognisable credentials; it cannot prove a string holds no
+   secret.
 2. A credential reference names where a credential lives and how to unlock
-   it. It never holds the credential.
+   it. Its `locator` must be a reference in its store's format, and
+   `recipient` a public key or a name. It never holds the credential.
+   **(gate)**
 3. A blob body is capped by the registry's `max_body_bytes` and limited to
    its `body_media_types`. **(gate)** Blobs are excluded from `wake`,
    `export`, and `seed`.

@@ -36,11 +36,21 @@ access-tier, and retention-lifecycle, and the expected volatility of each
 kind's stream. The enums are inlined and checked against vendored copies of
 the 3leaps dimension definitions.
 
+## Secret-shaped names and values
+
+`schemas/common/v0/secret-keys.schema.json` owns the member-name and value
+patterns, and `secret-keys.conformance.json` is the table every regex engine
+must agree with. The patterns use character classes only and avoid anchors
+that differ between engines, so JSON Schema validators in Python, ECMA-262
+and Rust classify each case the same way.
+
 ## Vendored files
 
 `config/classifiers/vendor/3leaps/`, `schemas/vendor/3leaps/`, and
 `scripts/vendor/3leaps/` hold verbatim copies of 3leaps/crucible files, each
-pinned by commit and sha256 in its `MANIFEST.json`. Refresh with
+pinned by commit and sha256 in its `MANIFEST.json`. The gate checks each
+manifest lists exactly the expected files and stops before loading any
+vendored file if a check fails. Refresh with
 `scripts/vendor-3leaps-contracts.sh` and review the diff.
 
 ## Validate

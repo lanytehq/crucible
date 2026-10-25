@@ -98,5 +98,29 @@
   "decision-without-evidence": {
     "code": "payload-schema",
     "why": "a decision note carries evidence"
+  },
+  "duplicate-member": {
+    "code": "ijson",
+    "why": "member names are unique"
+  },
+  "lone-surrogate": {
+    "code": "ijson",
+    "why": "strings are well-formed Unicode"
+  },
+  "revision-beyond-binary64": {
+    "code": "not-canonicalizable",
+    "why": "integers must be exact in binary64 to canonicalize"
+  },
+  "cred-ref-bearer-locator": {
+    "code": "payload-schema",
+    "why": "an env locator is a variable name, not a value"
+  },
+  "cred-ref-token-in-seclusor-path": {
+    "code": "secret-shaped-member",
+    "why": "a credential-shaped value is rejected wherever the format would admit it"
+  },
+  "cred-ref-token-recipient": {
+    "code": "payload-schema",
+    "why": "recipient is a public key or a name"
   }
 }

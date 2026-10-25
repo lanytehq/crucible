@@ -1,0 +1,54 @@
+{
+  "predecessor": {
+    "v": 0,
+    "stream": "devlead.example",
+    "record_id": "fact:clean-tree-gate",
+    "revision": 1,
+    "payload_contract": "contract: agent-learned-fact/v0",
+    "payload": {
+      "statement": "The final gate requires a clean working tree.",
+      "confidence": "observed",
+      "source": "gate output",
+      "review_by": "2027-01-31"
+    },
+    "provenance": {
+      "actor_kind": "agent",
+      "actor": "devlead.example",
+      "supervisor": "maintainer",
+      "model": "example-model",
+      "tool": "example-tool"
+    },
+    "classification": {
+      "retention": "standard",
+      "sensitivity": "1-confidential"
+    }
+  },
+  "revision": {
+    "v": 0,
+    "stream": "devlead.example",
+    "record_id": "fact:clean-tree-gate",
+    "revision": 2,
+    "payload_contract": "contract: agent-learned-fact/v0",
+    "payload": {
+      "statement": "The final gate requires a clean working tree and a committed tip.",
+      "confidence": "observed",
+      "source": "gate output",
+      "review_by": "2027-01-31"
+    },
+    "provenance": {
+      "actor_kind": "agent",
+      "actor": "devlead.example",
+      "supervisor": "maintainer",
+      "model": "example-model",
+      "tool": "example-tool"
+    },
+    "classification": {
+      "retention": "standard",
+      "sensitivity": "1-confidential"
+    },
+    "supersedes": {
+      "revision": 1,
+      "digest": "sha256:551650e7a9e671d79b7f54ed45c8edc6c28c46a2686ad81743ed226cfe1f29ab"
+    }
+  }
+}

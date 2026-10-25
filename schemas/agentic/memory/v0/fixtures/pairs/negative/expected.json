@@ -1,0 +1,30 @@
+{
+  "kind-switch-hijacks-identity": {
+    "code": "identity-changed",
+    "why": "a revision keeps its predecessor's kind"
+  },
+  "stream-moved": {
+    "code": "identity-changed",
+    "why": "a revision keeps its stream"
+  },
+  "stale-digest": {
+    "code": "supersedes-digest",
+    "why": "supersedes.digest is the predecessor's digest"
+  },
+  "ack-lowers-classification": {
+    "code": "ack-metadata-changed",
+    "why": "an acknowledgement keeps classification"
+  },
+  "ack-changes-labels": {
+    "code": "ack-metadata-changed",
+    "why": "an acknowledgement keeps labels"
+  },
+  "ack-rewrites-summary": {
+    "code": "ack-payload-changed",
+    "why": "an acknowledgement changes only state and acknowledged_at"
+  },
+  "ack-of-closed-handoff": {
+    "code": "ack-predecessor-not-open",
+    "why": "only an open handoff can be acknowledged"
+  }
+}

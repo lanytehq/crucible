@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import hashlib
-import importlib.util
 import json
 import pathlib
 import sys
@@ -59,8 +58,49 @@ WRITER_CLAIMS = {
 failures: list[str] = []
 
 
+def _strict_object(pairs: list[tuple[str, object]]) -> dict:
+    seen: dict = {}
+    for name, value in pairs:
+        if name in seen:
+            raise ValueError(f"duplicate member {name!r}")
+        seen[name] = value
+    return seen
+
+
+def _check_text(value) -> None:
+    if isinstance(value, str):
+        try:
+            value.encode("utf-8")
+        except UnicodeEncodeError as error:
+            raise ValueError("lone surrogate in string") from error
+    elif isinstance(value, dict):
+        for name, child in value.items():
+            _check_text(name)
+            _check_text(child)
+    elif isinstance(value, list):
+        for child in value:
+            _check_text(child)
+
+
+def parse_ijson(raw: str):
+    """Decode I-JSON: unique member names, well-formed Unicode, finite numbers."""
+    value = json.loads(
+        raw,
+        object_pairs_hook=_strict_object,
+        parse_constant=lambda name: (_ for _ in ()).throw(ValueError(name)),
+    )
+    _check_text(value)
+    return value
+
+
+verified_bytes: dict[pathlib.Path, bytes] = {}
+
+
 def load(path: pathlib.Path):
-    return json.loads(path.read_text())
+    """Read JSON; vendored files come only from the bytes verified against their manifest."""
+    if path in verified_bytes:
+        return parse_ijson(verified_bytes[path].decode("utf-8"))
+    return parse_ijson(path.read_text(encoding="utf-8"))
 
 
 def fail(message: str) -> None:
@@ -85,27 +125,66 @@ def dimension_order(path: pathlib.Path) -> dict[str, int]:
     return {key: index for index, key in enumerate(dimension_keys(path))}
 
 
-def load_jcs():
-    # Keep the vendored directory byte-identical to its manifest.
-    sys.dont_write_bytecode = True
-    spec = importlib.util.spec_from_file_location(
-        "rfc8785", VENDOR_JCS / "rfc8785-canonicalize.py"
-    )
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 # --- vendored files match their manifests -----------------------------------
+#
+# Runs before anything reads a vendored file. Each manifest must list exactly
+# the files in its directory; any mismatch stops the gate before vendored code
+# or schemas are loaded.
 
-for directory in (VENDOR_DIMENSIONS, VENDOR_RECORD, VENDOR_JCS):
-    manifest = load(directory / "MANIFEST.json")
-    for name, entry in manifest["files"].items():
-        digest = hashlib.sha256((directory / name).read_bytes()).hexdigest()
-        if digest != entry["sha256"]:
-            fail(f"vendor {directory.name}/{name}: sha256 differs from MANIFEST")
+VENDOR_INVENTORY = {
+    VENDOR_DIMENSIONS: {
+        "dimensions/access-tier.dimension.json",
+        "dimensions/retention-lifecycle.dimension.json",
+        "dimensions/sensitivity.dimension.json",
+        "dimensions/volatility.dimension.json",
+        "schemas/dimension-definition.schema.json",
+    },
+    VENDOR_RECORD: {"record.schema.json"},
+    VENDOR_JCS: {"rfc8785-canonicalize.py"},
+}
+for directory, inventory in VENDOR_INVENTORY.items():
+    label = directory.relative_to(REPO)
+    try:
+        manifest = load(directory / "MANIFEST.json")
+    except (OSError, ValueError) as error:
+        fail(f"vendor {label}: unreadable MANIFEST.json: {error}")
+        continue
+    files = manifest.get("files") if isinstance(manifest, dict) else None
+    commit = manifest.get("commit") if isinstance(manifest, dict) else None
+    if not isinstance(commit, str) or len(commit) != 40:
+        fail(f"vendor {label}: MANIFEST.json commit is not a full sha")
+    if not isinstance(files, dict) or set(files) != inventory:
+        fail(f"vendor {label}: MANIFEST.json must list exactly {sorted(inventory)}")
+        continue
+    on_disk = {
+        str(path.relative_to(directory))
+        for path in directory.rglob("*")
+        if path.is_file() and path.name != "MANIFEST.json"
+    }
+    if on_disk != inventory:
+        fail(f"vendor {label}: unexpected files {sorted(on_disk ^ inventory)}")
+    for name in sorted(inventory):
+        raw = (directory / name).read_bytes()
+        if hashlib.sha256(raw).hexdigest() != files[name].get("sha256"):
+            fail(f"vendor {label}/{name}: sha256 differs from MANIFEST")
         else:
-            ok(f"vendor {directory.relative_to(REPO)}/{name}")
+            verified_bytes[directory / name] = raw
+            ok(f"vendor {label}/{name}")
+
+if failures:
+    print(f"\n{len(failures)} failure(s); vendored files unverified, stopping")
+    sys.exit(1)
+
+
+def load_jcs():
+    """Run the canonicalizer from the exact bytes verified above."""
+    path = VENDOR_JCS / "rfc8785-canonicalize.py"
+    namespace = {"__name__": "rfc8785", "__file__": str(path)}
+    exec(compile(verified_bytes[path], str(path), "exec"), namespace)
+    return namespace
+
+
+jcs = load_jcs()
 
 # --- schema resources --------------------------------------------------------
 
@@ -261,7 +340,12 @@ def check_negatives(group: str, directory: pathlib.Path, judge) -> None:
     if set(expected) != present:
         fail(f"{group} negative expected.json out of step: {sorted(set(expected) ^ present)}")
     for name in sorted(present):
-        codes = {code for code, _ in judge(load(directory / f"{name}.json"))}
+        try:
+            instance = load(directory / f"{name}.json")
+        except ValueError:
+            codes = {"ijson"}
+        else:
+            codes = {code for code, _ in judge(instance)}
         want = expected.get(name, {}).get("code")
         if not codes:
             fail(f"{group} negative {name}.json: expected rejection, got pass")
@@ -321,14 +405,43 @@ def secret_paths(value, path: str = "$") -> list[str]:
     found: list[str] = []
     if isinstance(value, dict):
         for name, child in value.items():
-            if secret_name.is_valid(name):
+            if name_rejected(name):
                 found.append(f"{path}.{name}")
             found.extend(secret_paths(child, f"{path}.{name}"))
     elif isinstance(value, list):
         for index, child in enumerate(value):
             found.extend(secret_paths(child, f"{path}[{index}]"))
+    elif isinstance(value, str) and credential_value.is_valid(value):
+        found.append(f"{path} (credential-shaped value)")
     return found
 
+
+member_name = Draft202012Validator(
+    {"$ref": f"{SECRET_ID}#/$defs/memberName"}, registry=registry
+)
+
+
+def name_rejected(name: str) -> bool:
+    return not member_name.is_valid(name) or secret_name.is_valid(name)
+
+
+conformance = load(REPO / "schemas/common/v0/secret-keys.conformance.json")
+for name in conformance["reject"]:
+    if not name_rejected(name):
+        fail(f"secret-keys conformance: {name!r} should be rejected")
+for name in conformance["accept"]:
+    if name_rejected(name):
+        fail(f"secret-keys conformance: {name!r} should be accepted")
+credential_value = Draft202012Validator(
+    {"$ref": f"{SECRET_ID}#/$defs/credentialShapedValue"}, registry=registry
+)
+for value in conformance["value_reject"]:
+    if not credential_value.is_valid(value):
+        fail(f"secret-keys conformance: value {value!r} should match")
+for value in conformance["value_accept"]:
+    if credential_value.is_valid(value):
+        fail(f"secret-keys conformance: value {value!r} should not match")
+ok(f"secret-keys conformance ({len(conformance['reject'])} reject, {len(conformance['accept'])} accept, {len(conformance['value_reject'])} values)")
 
 # Every kind payload is closed today, so no fixture can reach the walk above
 # through schema validation. Exercise it directly so the guard stays live for
@@ -337,6 +450,7 @@ for probe, expected_paths in (
     ({"labels": {"api_key": "x"}}, ["$.labels.api_key"]),
     ({"items": [{"Token": "x"}]}, ["$.items[0].Token"]),
     ({"locator": "x", "env_names": ["X"]}, []),
+    ({"note": "Bearer abcdefgh12345678"}, ["$.note (credential-shaped value)"]),
 ):
     if secret_paths(probe) != expected_paths:
         fail(f"secret walk self-test {probe}: got {secret_paths(probe)}")
@@ -425,7 +539,12 @@ def entry_violations(entry: dict) -> list[tuple[str, str]]:
 
 
 def entry_judge(instance) -> list[tuple[str, str]]:
-    return schema_codes(entry_validator, instance) + entry_violations(instance)
+    problems = schema_codes(entry_validator, instance) + entry_violations(instance)
+    try:
+        jcs["jcs_dumps"](instance)
+    except (TypeError, ValueError) as error:
+        problems.append(("not-canonicalizable", f"entry is not I-JSON: {error}"))
+    return problems
 
 
 conforming = sorted((FIXTURES / "entry/conforming").glob("*.json"))
@@ -457,13 +576,63 @@ for fixture, want in load(FIXTURES / "reader-tier.json").items():
         else:
             ok(f"reader tier {fixture} at {sensitivity} -> {tier}")
 
+# --- revision pairs ----------------------------------------------------------
+#
+# Rules that relate a revision to the revision it supersedes. Each pair file
+# holds {"predecessor": entry, "revision": entry}.
+
+
+def entry_digest(entry: dict) -> str:
+    canonical = jcs["jcs_dumps"](entry).encode("utf-8")
+    return "sha256:" + hashlib.sha256(canonical).hexdigest()
+
+
+ACK_MEMBERS = {"state", "acknowledged_at"}
+
+
+def pair_violations(pair: dict) -> list[tuple[str, str]]:
+    violations: list[tuple[str, str]] = []
+    before, after = pair.get("predecessor", {}), pair.get("revision", {})
+    for side, entry in (("predecessor", before), ("revision", after)):
+        for code, message in entry_judge(entry):
+            violations.append((f"{side}-invalid", f"{side}: {message}"))
+    for member in ("stream", "record_id", "payload_contract"):
+        if before.get(member) != after.get(member):
+            violations.append(("identity-changed", f"{member} changes across revisions"))
+    supersedes = after.get("supersedes", {})
+    if supersedes.get("revision") != before.get("revision"):
+        violations.append(("supersedes-revision", "supersedes.revision does not name the predecessor"))
+    if supersedes.get("digest") != entry_digest(before):
+        violations.append(("supersedes-digest", "supersedes.digest is not the predecessor's digest"))
+    provenance = after.get("provenance", {})
+    if provenance.get("actor_kind") == "agent" and provenance.get("actor") != after.get("stream"):
+        # An agent writing outside its own stream is only ever acknowledging a handoff.
+        if before.get("payload", {}).get("state") != "open":
+            violations.append(("ack-predecessor-not-open", "only an open handoff can be acknowledged"))
+        for member in ("classification", "labels", "links"):
+            if before.get(member) != after.get(member):
+                violations.append(("ack-metadata-changed", f"an acknowledgement may not change {member}"))
+        before_rest = {k: v for k, v in before.get("payload", {}).items() if k not in ACK_MEMBERS}
+        after_rest = {k: v for k, v in after.get("payload", {}).items() if k not in ACK_MEMBERS}
+        if before_rest != after_rest:
+            violations.append(("ack-payload-changed", "an acknowledgement may change only state and acknowledged_at"))
+    return violations
+
+
+for fixture in sorted((FIXTURES / "pairs/conforming").glob("*.json")):
+    problems = pair_violations(load(fixture))
+    if problems:
+        fail(f"pair conforming {fixture.name}: {problems[0][1]}")
+    else:
+        ok(f"pair conforming {fixture.name}")
+check_negatives("pair", FIXTURES / "pairs/negative", pair_violations)
+
 # --- digest vectors (RFC 8785 JCS, sha256) -----------------------------------
 
-jcs = load_jcs()
 vectors = load(VECTORS)
 for vector in vectors["vectors"]:
     instance = load(FAMILY / vector["entry"])
-    canonical = jcs.jcs_dumps(instance).encode("utf-8")
+    canonical = jcs["jcs_dumps"](instance).encode("utf-8")
     digest = "sha256:" + hashlib.sha256(canonical).hexdigest()
     if digest != vector["digest"]:
         fail(f"digest {vector['entry']}: {digest} != {vector['digest']}")
