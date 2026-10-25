@@ -31,12 +31,7 @@
     "record_id": "handoff:2026-10-25:01",
     "revision": 2,
     "payload_contract": "contract: agent-handoff/v0",
-    "payload": {
-      "to": "devlead.example",
-      "summary": "rewritten",
-      "state": "acknowledged",
-      "acknowledged_at": "2026-10-25T14:00:00Z"
-    },
+    "payload": "string",
     "provenance": {
       "actor_kind": "agent",
       "actor": "devlead.example",
@@ -53,7 +48,7 @@
     ],
     "supersedes": {
       "revision": 1,
-      "digest": "sha256:899048c99b8eb8d08bdc4ce667cc6683470f2bea5297e8fb84690de8d23de932"
+      "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     }
   }
 }

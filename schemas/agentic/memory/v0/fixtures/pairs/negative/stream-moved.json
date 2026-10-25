@@ -37,7 +37,7 @@
     },
     "provenance": {
       "actor_kind": "agent",
-      "actor": "devlead.example",
+      "actor": "devlead.other",
       "supervisor": "maintainer",
       "model": "example-model",
       "tool": "example-tool"

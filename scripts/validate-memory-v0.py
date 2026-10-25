@@ -239,7 +239,7 @@ registry = Registry().with_resources(resources)
 # treats a format with no registered checker as valid, so the gate registers
 # its own and refuses any format it has no checker for.
 RFC3339 = re.compile(
-    r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])"
+    r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,6})?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])"
 )
 PCHAR = r"(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})"
 URI = re.compile(
@@ -297,7 +297,10 @@ def formats_used(node) -> set[str]:
     return found
 
 
-for schema_id, schema in schemas.items():
+for schema_id, schema in [
+    *schemas.items(),
+    ("dimension-definition.schema.json", load(VENDOR_DIMENSIONS / "schemas/dimension-definition.schema.json")),
+]:
     missing = formats_used(schema) - set(format_checker.checkers)
     if missing:
         fail(f"formats {schema_id.rsplit('/', 1)[-1]}: no checker for {sorted(missing)}")
@@ -460,18 +463,19 @@ def check_negatives(group: str, directory: pathlib.Path, judge) -> None:
             ok(f"{group} negative {name}.json ({want})")
 
 
+def registry_judge(doc) -> list[tuple[str, str]]:
+    # Registry semantics assume the shape the registry schema guarantees.
+    return schema_codes(registry_validator, doc) or registry_violations(doc)
+
+
 kind_registry = load(REGISTRY_FILE)
-problems = schema_codes(registry_validator, kind_registry) + registry_violations(kind_registry)
+problems = registry_judge(kind_registry)
 if problems:
     fail(f"registry kinds.json: {problems[0][1]}")
 else:
     ok("registry kinds.json")
 
-check_negatives(
-    "kind-registry",
-    FIXTURES / "kind-registry/negative",
-    lambda doc: schema_codes(registry_validator, doc) + registry_violations(doc),
-)
+check_negatives("kind-registry", FIXTURES / "kind-registry/negative", registry_judge)
 
 by_contract = {
     entry["payload_contract"]: entry
@@ -662,8 +666,8 @@ def entry_violations(entry: dict) -> list[tuple[str, str]]:
         )
         if not handoff_ack:
             violations.append(("foreign-stream", f"{actor} may not write into stream {stream}"))
-    if kind == "handoff" and revision == 1 and "acknowledged_at" in payload:
-        violations.append(("ack-time-at-creation", "a new handoff carries no acknowledgement"))
+    if kind == "handoff" and revision == 1 and (payload.get("state") != "open" or "acknowledged_at" in payload):
+        violations.append(("ack-time-at-creation", "a new handoff is open and carries no acknowledgement"))
     if kind == "handoff" and payload.get("state") == "acknowledged":
         # The recipient acknowledges, in the sender's stream. A seat never
         # acknowledges a handoff in its own stream, even one naming itself.
@@ -751,6 +755,20 @@ elif not any(code == "unregistered-contract" for code, _ in entry_violations({**
 else:
     ok("canonicalizability and registry self-tests")
 
+# The handoff schema already ties acknowledged_at to a non-open state, so a
+# fixture cannot reach the "revision 1 is open" half alone. Check it directly
+# on a payload that skips that schema coupling.
+_closed = load(FIXTURES / "entry/conforming/handoff-open.json")
+_closed["payload"] = {**_closed["payload"], "state": "closed"}
+_saved = kind_validators.pop("contract: agent-handoff/v0")
+try:
+    if not any(code == "ack-time-at-creation" for code, _ in entry_violations(_closed)):
+        fail("handoff self-test: a closed revision-1 handoff was accepted")
+    else:
+        ok("handoff self-test: revision 1 must be open")
+finally:
+    kind_validators["contract: agent-handoff/v0"] = _saved
+
 
 def entry_digest(entry: dict) -> str:
     canonical = jcs["jcs_dumps"](entry).encode("utf-8")
@@ -762,10 +780,15 @@ ACK_MEMBERS = {"state", "acknowledged_at"}
 
 def pair_violations(pair: dict) -> list[tuple[str, str]]:
     violations: list[tuple[str, str]] = []
-    before, after = pair.get("predecessor", {}), pair.get("revision", {})
+    if not isinstance(pair, dict) or not all(isinstance(pair.get(k), dict) for k in ("predecessor", "revision")):
+        return [("pair-shape", "a pair is an object with predecessor and revision entries")]
+    before, after = pair["predecessor"], pair["revision"]
     for side, entry in (("predecessor", before), ("revision", after)):
         for code, message in entry_judge(entry):
             violations.append((f"{side}-invalid", f"{side}: {message}"))
+    # The pair rules assume two valid entries.
+    if violations:
+        return violations
     for member in ("stream", "record_id", "payload_contract"):
         if before.get(member) != after.get(member):
             violations.append(("identity-changed", f"{member} changes across revisions"))

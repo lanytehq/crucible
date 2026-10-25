@@ -12,7 +12,8 @@ fixtures cannot carry.
 
 Semantic rules run only on entries that pass the envelope schema and the
 durable-record/v1 record schema; an entry that fails either is judged on
-those errors alone.
+those errors alone. Pair rules likewise run only when both entries are
+valid, and registry rules only on a registry that passes its schema.
 
 1. Every entry is a durable-record/v1 record. The profile narrows the record;
    it never adds a field. **(gate)**
@@ -77,8 +78,8 @@ those errors alone.
    stream, even one that names itself. **(gate)** `acknowledged_at` is set
    only by an acknowledgement and never changes afterwards, so the owner can
    close an acknowledged handoff but cannot forge or move its
-   acknowledgement. **(gate, pairs)** A new handoff carries no
-   `acknowledged_at`. **(gate)** Once acknowledged, a handoff keeps its
+   acknowledgement. **(gate, pairs)** A new handoff (revision 1) is `open` and
+   carries no `acknowledged_at`. **(gate)** Once acknowledged, a handoff keeps its
    recipient and content; later revisions change only its state.
    **(gate, pairs)** Relative to the revision it supersedes,
    the predecessor is `open`, and the acknowledgement keeps
@@ -127,7 +128,8 @@ those errors alone.
    match before a trailing newline; this rule closes that gap for every
    engine. **(gate)**
 3. Every `format` is asserted. `date-time` is RFC 3339 with an offset in
-   range and no leap second (stored instants stay totally ordered),
+   range, at most six fractional-second digits, and no leap second, so every
+   reader parses the same instant and stored instants stay totally ordered,
    `date` is an RFC 3339 full-date. `uri` holds schema identifiers, so it is
    held to the RFC 3986 subset they use: `https`, a registered host, an
    optional numeric port, and an absolute path, with no userinfo, query, or

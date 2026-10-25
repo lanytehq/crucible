@@ -27,14 +27,6 @@
     "code": "ack-predecessor-not-open",
     "why": "only an open handoff can be acknowledged"
   },
-  "owner-self-ack-rewrite": {
-    "code": "ack-predecessor-not-open",
-    "why": "a self-addressed acknowledgement still needs an open predecessor and may not rewrite the handoff"
-  },
-  "owner-retargets-and-acknowledges": {
-    "code": "ack-payload-changed",
-    "why": "an acknowledgement may not change to or summary"
-  },
   "owner-closes-with-forged-ack-time": {
     "code": "ack-time-without-ack",
     "why": "acknowledged_at is set only by an acknowledgement"
@@ -50,5 +42,13 @@
   "float-revision-skip": {
     "code": "predecessor-invalid",
     "why": "a revision of 2^53 written as a float is outside the exact range every JSON peer holds"
+  },
+  "payload-not-object": {
+    "code": "revision-invalid",
+    "why": "malformed entries are reported, not raised"
+  },
+  "pair-missing-revision": {
+    "code": "pair-shape",
+    "why": "a pair has both entries"
   }
 }

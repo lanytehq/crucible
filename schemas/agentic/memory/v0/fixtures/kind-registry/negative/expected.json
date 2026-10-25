@@ -46,5 +46,9 @@
   "legacy-schema-two-fragments": {
     "code": "schema",
     "why": "schema identifiers carry no fragment"
+  },
+  "kinds-not-objects": {
+    "code": "schema",
+    "why": "malformed registries are reported, not raised"
   }
 }

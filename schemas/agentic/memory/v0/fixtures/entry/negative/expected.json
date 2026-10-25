@@ -210,5 +210,9 @@
   "revision-above-safe-integer": {
     "code": "revision-range",
     "why": "revisions stay at or below 2^53 - 1"
+  },
+  "decided-at-sub-microsecond": {
+    "code": "payload-schema",
+    "why": "fractional seconds have at most six digits so every reader parses the same instant"
   }
 }
