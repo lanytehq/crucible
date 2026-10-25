@@ -26,6 +26,7 @@ Decisions are recorded as ADRs when they are hard to reverse or when multiple vi
 | ADR-0016 | Agent-critical file input symlink policy                                   | Accepted            |
 | ADR-0017 | Out-of-band planning root                                                  | Proposed            |
 | ADR-0018 | Explicit local runtime-control contracts                                   | Proposed            |
+| ADR-0019 | Ordering ranks on a binary grid (multiples of 1/16)                        | Proposed            |
 
 ## DDR Index
 

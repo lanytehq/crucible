@@ -56,8 +56,8 @@
     "why": "identity is maintainer-class; an agent claim fails closed"
   },
   "secret-shaped-member": {
-    "code": "secret-shaped-member",
-    "why": "a secret-shaped member name is rejected even where a kind schema would also reject it"
+    "code": "payload-schema",
+    "why": "a closed cred-ref payload rejects a secret-shaped member at the kind schema"
   },
   "handoff-open-with-ack-time": {
     "code": "payload-schema",
@@ -229,7 +229,7 @@
   },
   "goal-rank-too-precise": {
     "code": "goal-rank-precision",
-    "why": "a rank has at most four decimal places; renumber instead"
+    "why": "a rank is a multiple of 1/16; renumber instead of halving further"
   },
   "goal-rank-out-of-range": {
     "code": "payload-schema",
@@ -258,5 +258,17 @@
   "goal-outcome-too-long": {
     "code": "payload-schema",
     "why": "an outcome fits one line, like plain text"
+  },
+  "goal-parent-self": {
+    "code": "goal-parent-self",
+    "why": "a goal is not its own parent"
+  },
+  "goal-rank-binary-spelling-of-0.1": {
+    "code": "goal-rank-precision",
+    "why": "the exact binary64 value of 0.1 is not a multiple of 1/16"
+  },
+  "goal-list-null": {
+    "code": "payload-schema",
+    "why": "a goal list is an array; malformed payloads are reported, not raised"
   }
 }

@@ -152,17 +152,20 @@ is plain text or a goal object; plain text stays valid on its own.
 1. A goal object needs an `outcome`. `status` and `priority` use the
    contract: project-work/v0 values, so a goal can become a ready packet
    without translation. **(gate)**
-2. Order: list position is the order. A goal's optional `rank` overrides
-   it, lower rank first; ties break by list position, then `id`. Lower
-   `priority` (`p0`) is more urgent. An unordered set gives every item the
-   same rank. **(gate for the value rules below)**
-3. `rank` is a number within ±2^31 with at most four decimal places, so a
-   writer can insert between two goals (1 and 2, then 1.5). When no value
-   with four decimal places fits, the writer renumbers the list instead of
-   adding precision. **(gate)**
+2. Order: each item's sort key is its effective rank, then its list index.
+   The effective rank is the item's `rank`, or its list index when it has
+   none, so plain-text items sort by position. Lower rank sorts first. An
+   unordered set is goal objects that share one rank. `priority` (`p0`
+   most urgent) is a separate field and does not change order.
+3. `rank` is a number within ±2^31 that is a multiple of 1/16, so every
+   implementation stores and compares it exactly. A writer inserts by
+   halving (1.5, 1.25, …) and renumbers the list when no multiple of 1/16
+   fits. See ADR-0019. **(gate)**
 4. Goal `id`s are unique within an entry. **(gate)**
 5. `parent` names the goal a goal serves, as `<record_id>#<goal id>` in the
-   same stream, and must resolve to an existing goal. **(gate, parents)**
+   same stream, and must resolve to an existing goal. A goal is never its
+   own parent **(gate)**, and parent links form a forest: no cycles across
+   entries. **(gate, parents)**
 6. Stored weeks are ISO 8601 (Monday start). A reader that shows weeks
    another way converts at display time using the `week-start` dimension;
    stored values never change.

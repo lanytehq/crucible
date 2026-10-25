@@ -10,5 +10,9 @@
   "child-entry-invalid": {
     "code": "child-invalid",
     "why": "parent rules run only on valid entries"
+  },
+  "parent-cycle": {
+    "code": "goal-parent-cycle",
+    "why": "parent links form a forest; a day goal and a week goal cannot be each other's parents"
   }
 }

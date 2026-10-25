@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.lanyte.dev/agentic/content/v0/kinds/goal-item.schema.json",
   "title": "Goal Item",
-  "description": "One item in a week or day list: plain text, or a goal object with optional structure. Position in the list is the order; an optional rank overrides it, lower rank first. Lifecycle and priority values follow contract: project-work/v0 so a goal can be lifted into a ready packet without translation.",
+  "description": "One item in a week or day list: plain text, or a goal object with optional structure. Sort key is the effective rank (rank, or list index when absent), then list index; lower first. Lifecycle and priority values follow contract: project-work/v0 so a goal can be lifted into a ready packet without translation.",
   "$defs": {
     "goalList": {
       "type": "array",
@@ -49,7 +49,7 @@
           "type": "number",
           "minimum": -2147483648,
           "maximum": 2147483648,
-          "description": "Lower rank first. At most four decimal places; ties break by list position, then id."
+          "description": "Lower rank first. A multiple of 1/16 within \u00b12^31 (ADR-0019); renumber rather than add precision."
         },
         "priority": {
           "enum": [

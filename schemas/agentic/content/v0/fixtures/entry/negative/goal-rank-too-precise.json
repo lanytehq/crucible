@@ -11,13 +11,13 @@
       {
         "id": "d1",
         "outcome": "Open the prepare-v0.3.0 PR",
-        "rank": 1.03125,
+        "rank": 1,
         "parent": "week:2026-W44#g1"
       },
       {
         "id": "d2",
         "outcome": "Draft the store trait",
-        "rank": 1.5,
+        "rank": 1.03125,
         "parent": "week:2026-W44#g2"
       },
       {

@@ -10,6 +10,7 @@ sys.dont_write_bytecode = True
 
 import datetime
 import decimal
+import fractions
 import hashlib
 import json
 import math
@@ -82,6 +83,7 @@ REASON_CODES = {
     "retention-floor", "writer-class", "foreign-stream", "ack-time-at-creation",
     "ack-not-by-recipient", "week-not-in-year", "identity-stream",
     "goal-id-duplicate", "goal-rank-precision", "goal-parent-missing",
+    "goal-parent-self", "goal-parent-cycle", "schema-ref-cycle",
     "not-canonicalizable",
     # pairs
     "identity-changed", "supersedes-revision", "supersedes-digest",
@@ -90,6 +92,7 @@ REASON_CODES = {
 }
 # Codes no fixture can reach on its own; each has a self-test below.
 SELF_TESTED = {
+    "schema-ref-cycle",     # bounds self-test; shipped schemas are acyclic
     "not-durable-record",   # record self-test; the entry schema rejects such input first
     "unregistered-contract",  # registry self-test; the entry enum rejects first
     "not-canonicalizable",  # canonicalizability self-test
@@ -537,39 +540,66 @@ by_contract = {
 # --- bounds: every payload field has a stated maximum -------------------------
 
 
-def resolve(node: dict, base: str) -> tuple[dict, str]:
+class RefCycle(Exception):
+    pass
+
+
+def resolve(node: dict, base: str, trail: frozenset = frozenset()) -> tuple[dict, str]:
     """Follow $ref within the loaded schemas; return the target and its document id."""
     ref = node.get("$ref")
     if not ref:
         return node, base
     doc, _, pointer = ref.partition("#")
     doc = doc or base
+    key = f"{doc}#{pointer}"
+    if key in trail:
+        raise RefCycle(key)
     target = schemas[doc]
     for part in [p for p in pointer.split("/") if p]:
-        target = target[part]
-    return resolve(target, doc)
+        target = target[part.replace("~1", "/").replace("~0", "~")]
+    return resolve(target, doc, trail | {key})
 
 
-def unbounded(node: dict, path: str, base: str) -> list[str]:
+def unbounded(node: dict, path: str, base: str, trail: frozenset = frozenset()) -> list[str]:
     found: list[str] = []
+    if id(node) in trail:
+        raise RefCycle(path)
+    trail = trail | {id(node)}
     node, base = resolve(node, base)
     for keyword in ("oneOf", "anyOf", "allOf"):
         for index, branch in enumerate(node.get(keyword, [])):
-            found.extend(unbounded(branch, f"{path}<{keyword}{index}>", base))
+            found.extend(unbounded(branch, f"{path}<{keyword}{index}>", base, trail))
     kind = node.get("type")
     if kind == "string" and not ({"maxLength", "enum", "const"} & node.keys()):
         found.append(path)
     if kind == "array":
         if "maxItems" not in node:
             found.append(path + "[]")
-        found.extend(unbounded(node["items"], path + "[]", base))
+        found.extend(unbounded(node["items"], path + "[]", base, trail))
     for name, child in node.get("properties", {}).items():
-        found.extend(unbounded(child, f"{path}.{name}", base))
+        found.extend(unbounded(child, f"{path}.{name}", base, trail))
     return found
 
 
+# The shipped schemas have no $ref cycle; prove the walker would stop on one.
+_loop = "https://schemas.lanyte.dev/agentic/content/v0/self-test-loop.schema.json"
+schemas[_loop] = {"$id": _loop, "$defs": {"a": {"$ref": "#/$defs/b"}, "b": {"$ref": "#/$defs/a"}}}
+try:
+    unbounded({"$ref": f"{_loop}#/$defs/a"}, "$", _loop)
+except RefCycle:
+    self_test_proven.add("schema-ref-cycle")
+    ok("bounds self-test: a $ref cycle is reported")
+else:
+    fail("bounds self-test: a $ref cycle was not reported")
+finally:
+    del schemas[_loop]
+
 for contract, validator in kind_validators.items():
-    gaps = unbounded(validator.schema, "$", validator.schema["$id"])
+    try:
+        gaps = unbounded(validator.schema, "$", validator.schema["$id"])
+    except RefCycle as cycle:
+        fail(f"bounds {contract}: $ref cycle at {cycle}")
+        continue
     if gaps:
         fail(f"bounds {contract}: unbounded {gaps}")
     else:
@@ -636,10 +666,10 @@ for probe, expected_paths in (
 
 
 MAX_SAFE_INTEGER = 2**53 - 1
-# Lists that hold goal items, by kind, and the rank precision a writer may use
-# before it must renumber the list.
+# Lists that hold goal items, by kind. A rank is a multiple of 1/RANK_GRID so
+# every value is exact in binary64 and every language compares it the same way.
 GOAL_LISTS = {"week": ("goals", "commitments"), "day": ("plan", "outcomes", "carry_over")}
-RANK_PLACES = 4
+RANK_GRID = 16
 CONTROL = re.compile(r"[\x00-\x1f\x7f\u2028\u2029]")
 
 
@@ -677,6 +707,9 @@ def entry_violations(entry: dict) -> list[tuple[str, str]]:
     if "payload" in entry and entry["payload_contract"] in kind_validators:
         for error in kind_validators[entry["payload_contract"]].iter_errors(entry["payload"]):
             violations.append(("payload-schema", f"{kind} payload: {error.message}"))
+        # Payload rules below assume the shape the kind schema guarantees.
+        if violations:
+            return violations
     if "payload" in entry:
         for path in secret_paths(entry["payload"]):
             violations.append(("secret-shaped-member", f"secret-shaped member at {path}"))
@@ -765,8 +798,11 @@ def entry_violations(entry: dict) -> list[tuple[str, str]]:
         violations.append(("goal-id-duplicate", "goal ids are unique within an entry"))
     for goal in goals:
         rank = goal.get("rank")
-        if isinstance(rank, (int, float)) and round(rank, RANK_PLACES) != rank:
-            violations.append(("goal-rank-precision", f"rank has more than {RANK_PLACES} decimal places"))
+        if isinstance(rank, (int, float)) and (fractions.Fraction(rank) * RANK_GRID).denominator != 1:
+            violations.append(("goal-rank-precision", f"rank is not a multiple of 1/{RANK_GRID}"))
+        parent = goal.get("parent")
+        if isinstance(parent, str) and parent == f"{entry.get('record_id')}#{goal.get('id')}":
+            violations.append(("goal-parent-self", "a goal is not its own parent"))
     if kind == "identity":
         agent = payload.get("agent", {})
         if f"{agent.get('role')}.{agent.get('scope')}" != stream:
@@ -968,6 +1004,27 @@ def parent_violations(case: dict) -> list[tuple[str, str]]:
         for item in child["payload"].get(name, []):
             if isinstance(item, dict) and "parent" in item and item["parent"] not in known:
                 violations.append(("goal-parent-missing", f"parent {item['parent']} is not a goal in this stream"))
+    # Parent links across every entry in the case form a forest: no cycles.
+    edges: dict[str, str] = {}
+    for entry in [*case["parents"], child]:
+        if entry["stream"] != child["stream"]:
+            continue
+        entry_kind = by_contract[entry["payload_contract"]]["kind"]
+        for name in GOAL_LISTS.get(entry_kind, ()):
+            for item in entry["payload"].get(name, []):
+                if isinstance(item, dict) and "id" in item and "parent" in item:
+                    edges[f"{entry['record_id']}#{item['id']}"] = item["parent"]
+    for start in edges:
+        seen, node = set(), start
+        while node in edges:
+            if node in seen:
+                violations.append(("goal-parent-cycle", f"parent links from {start} form a cycle"))
+                break
+            seen.add(node)
+            node = edges[node]
+        else:
+            continue
+        break
     return violations
 
 
