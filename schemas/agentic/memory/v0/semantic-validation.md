@@ -3,7 +3,8 @@
 JSON Schema validates the entry envelope, each kind's payload, and the kind
 registry. Writers and readers must also enforce these rules. Rules marked
 **(gate)** are checked by `make check-memory-v0`, and each negative fixture
-names the rule it must be rejected for. **(gate, pairs)** rules relate a
+names the rule it must be rejected for. The gate also fails if any rule
+it declares has neither a negative fixture nor a self-test. **(gate, pairs)** rules relate a
 revision to the revision it supersedes and are checked on
 `fixtures/pairs/`. The others need runtime state the
 fixtures cannot carry.
@@ -127,7 +128,8 @@ valid, and registry rules only on a registry that passes its schema.
    match before a trailing newline; this rule closes that gap for every
    engine. **(gate)**
 3. Every `format` is asserted. `date-time` is RFC 3339 with an offset in
-   range, at most six fractional-second digits, and no leap second, so every
+   range, clock fields within 00–23:00–59:00–59, at most six fractional-second
+   digits, and no leap second, so every
    reader parses the same instant and stored instants stay totally ordered,
    `date` is an RFC 3339 full-date. `uri` holds schema identifiers, so it is
    held to the RFC 3986 subset they use: `https`, a registered host, an

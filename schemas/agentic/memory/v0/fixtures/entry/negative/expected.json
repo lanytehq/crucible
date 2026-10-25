@@ -214,5 +214,13 @@
   "decided-at-sub-microsecond": {
     "code": "payload-schema",
     "why": "fractional seconds have at most six digits so every reader parses the same instant"
+  },
+  "week-with-body": {
+    "code": "carrier",
+    "why": "a payload-carrier kind carries a payload, not a body"
+  },
+  "decided-at-hour-24": {
+    "code": "payload-schema",
+    "why": "clock hours are 00 to 23 on every Python version"
   }
 }

@@ -50,5 +50,25 @@
   "kinds-not-objects": {
     "code": "schema",
     "why": "malformed registries are reported, not raised"
+  },
+  "duplicate-contract": {
+    "code": "duplicate-contract",
+    "why": "each payload_contract names one kind"
+  },
+  "unknown-without-classification-at-write": {
+    "code": "unknown-default",
+    "why": "unknown is never a usable default"
+  },
+  "unknown-unpaired": {
+    "code": "unknown-unpaired",
+    "why": "unknown sensitivity pairs with unknown access-tier"
+  },
+  "payload-kind-without-schema": {
+    "code": "payload-schema-missing",
+    "why": "a payload-carrier kind has a payload schema"
+  },
+  "body-kind-with-payload-schema": {
+    "code": "body-kind-has-payload-schema",
+    "why": "a body-carrier kind has no payload schema"
   }
 }

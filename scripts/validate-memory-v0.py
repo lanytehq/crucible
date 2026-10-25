@@ -61,6 +61,38 @@ WRITER_CLAIMS = {
 
 failures: list[str] = []
 
+# Every reason code a judge may return. Each must be proven by a negative
+# fixture that names it, or by a self-test listed in SELF_TESTED, so no
+# rejection rule can be deleted without the gate noticing.
+REASON_CODES = {
+    "schema", "ijson", "pair-shape", "predecessor-invalid", "revision-invalid",
+    # registry
+    "duplicate-kind", "kind-not-in-dimension", "dimension-value-unregistered",
+    "duplicate-contract", "access-tier-floor", "unknown-default", "unknown-unpaired",
+    "payload-schema-missing", "body-kind-has-payload-schema",
+    # entry
+    "not-durable-record", "unregistered-contract", "carrier", "payload-schema",
+    "secret-shaped-member", "control-character", "credential-in-envelope",
+    "body-over-cap", "body-media-type", "revision-range", "single-revision",
+    "supersedes-gap", "classification-at-write", "sensitivity-floor",
+    "retention-floor", "writer-class", "foreign-stream", "ack-time-at-creation",
+    "ack-not-by-recipient", "week-not-in-year", "identity-stream",
+    "not-canonicalizable",
+    # pairs
+    "identity-changed", "supersedes-revision", "supersedes-digest",
+    "ack-time-without-ack", "ack-time-changed", "acknowledged-handoff-changed",
+    "ack-predecessor-not-open", "ack-metadata-changed", "ack-payload-changed",
+}
+# Codes no fixture can reach on its own; each has a self-test below.
+SELF_TESTED = {
+    "not-durable-record",   # the entry schema rejects first; record schema is a subset
+    "unregistered-contract",  # registry self-test
+    "not-canonicalizable",  # canonicalizability self-test
+    "supersedes-revision",  # entry-level supersedes-gap rejects first
+}
+seen_codes: set[str] = set()
+proven_codes: set[str] = set()
+
 
 def _strict_object(pairs: list[tuple[str, object]]) -> dict:
     seen: dict = {}
@@ -239,7 +271,9 @@ registry = Registry().with_resources(resources)
 # treats a format with no registered checker as valid, so the gate registers
 # its own and refuses any format it has no checker for.
 RFC3339 = re.compile(
-    r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,6})?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])"
+    # Every clock field is bounded here rather than left to fromisoformat,
+    # whose acceptance of hour 24 differs between Python versions.
+    r"[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]{1,6})?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])"
 )
 PCHAR = r"(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})"
 URI = re.compile(
@@ -455,11 +489,16 @@ def check_negatives(group: str, directory: pathlib.Path, judge) -> None:
         else:
             codes = {code for code, _ in judge(instance)}
         want = expected.get(name, {}).get("code")
+        seen_codes.update(codes)
+        unknown = codes - REASON_CODES
+        if unknown:
+            fail(f"{group} negative {name}.json: undeclared reason codes {sorted(unknown)}")
         if not codes:
             fail(f"{group} negative {name}.json: expected rejection, got pass")
         elif want not in codes:
             fail(f"{group} negative {name}.json: rejected for {sorted(codes)}, expected {want}")
         else:
+            proven_codes.add(want)
             ok(f"{group} negative {name}.json ({want})")
 
 
@@ -852,6 +891,16 @@ for vector in vectors["vectors"]:
         fail(f"digest {vector['entry']}: canonical length {len(canonical)}")
     else:
         ok(f"digest {vector['entry']}")
+
+# Reason-code coverage: every declared code is proven, and no proof is stale.
+unproven = REASON_CODES - proven_codes - SELF_TESTED
+if unproven:
+    fail(f"reason codes without a negative fixture or self-test: {sorted(unproven)}")
+else:
+    ok(f"reason codes: {len(proven_codes)} proven by fixtures, {len(SELF_TESTED)} by self-tests")
+stale = SELF_TESTED & proven_codes
+if stale:
+    fail(f"SELF_TESTED lists codes that fixtures already prove: {sorted(stale)}")
 
 for vector in vectors.get("canonicalization_vectors", []):
     canonical = jcs["jcs_dumps"](vector["value"]).encode("utf-8")
