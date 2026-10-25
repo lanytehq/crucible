@@ -1,0 +1,9 @@
+{
+  "$schema": "https://schemas.lanyte.dev/agentic/content/v0/kind-registry.schema.json",
+  "registry_version": "0.1.0",
+  "dimension": "content-kind",
+  "kinds": [
+    "identity",
+    "charter"
+  ]
+}

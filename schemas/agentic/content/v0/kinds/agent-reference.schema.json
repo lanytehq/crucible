@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/agentic/content/v0/kinds/agent-reference.schema.json",
+  "title": "Agent Reference",
+  "description": "A pointer to an external document by location and content digest, with the actions it applies to. Never a copy of the document.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "location",
+    "digest",
+    "summary"
+  ],
+  "properties": {
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "repo",
+        "path"
+      ],
+      "properties": {
+        "repo": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "rev": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{7,64}$",
+          "maxLength": 64
+        }
+      }
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "maxLength": 71
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "triggers": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(\\.[a-z][a-z0-9-]*)+$",
+        "maxLength": 64
+      }
+    }
+  }
+}

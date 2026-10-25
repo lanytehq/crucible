@@ -1,0 +1,226 @@
+{
+  "unknown-envelope-field": {
+    "code": "schema",
+    "why": "the profile adds no envelope fields"
+  },
+  "unregistered-contract": {
+    "code": "schema",
+    "why": "payload_contract is not in the registered set"
+  },
+  "dotted-contract-version": {
+    "code": "schema",
+    "why": "durable-record token pattern forbids minor versions"
+  },
+  "stream-without-scope": {
+    "code": "schema",
+    "why": "stream must be <role>.<scope>"
+  },
+  "stream-over-128": {
+    "code": "schema",
+    "why": "stream is at most 128 characters"
+  },
+  "revision-two-without-supersedes": {
+    "code": "schema",
+    "why": "durable-record requires supersedes above revision 1"
+  },
+  "payload-and-body": {
+    "code": "schema",
+    "why": "payload XOR body"
+  },
+  "payload-shape-mismatch": {
+    "code": "payload-schema",
+    "why": "the payload must validate against its kind schema"
+  },
+  "sensitivity-below-floor": {
+    "code": "sensitivity-floor",
+    "why": "cred-ref floor is 3-proprietary"
+  },
+  "retention-below-floor": {
+    "code": "retention-floor",
+    "why": "decision-note floor is long"
+  },
+  "blob-unknown-classification": {
+    "code": "classification-at-write",
+    "why": "blob classification is required at write"
+  },
+  "blob-media-type": {
+    "code": "body-media-type",
+    "why": "blob body media type is not accepted"
+  },
+  "blob-over-cap": {
+    "code": "body-over-cap",
+    "why": "blob body exceeds the registry cap"
+  },
+  "agent-writes-maintainer-kind": {
+    "code": "writer-class",
+    "why": "identity is maintainer-class; an agent claim fails closed"
+  },
+  "secret-shaped-member": {
+    "code": "secret-shaped-member",
+    "why": "a secret-shaped member name is rejected even where a kind schema would also reject it"
+  },
+  "handoff-open-with-ack-time": {
+    "code": "payload-schema",
+    "why": "open handoff must not carry acknowledged_at"
+  },
+  "handoff-foreign-rewrite": {
+    "code": "foreign-stream",
+    "why": "only the seat a handoff names may acknowledge it, and only by acknowledging"
+  },
+  "handoff-ack-by-wrong-seat": {
+    "code": "foreign-stream",
+    "why": "an acknowledgement is written by the seat named in to"
+  },
+  "handoff-ack-left-open": {
+    "code": "foreign-stream",
+    "why": "a cross-seat revision must acknowledge"
+  },
+  "foreign-scope-write": {
+    "code": "foreign-stream",
+    "why": "an actor writes only its own role and scope"
+  },
+  "single-kind-revised": {
+    "code": "single-revision",
+    "why": "decision-note is written at revision 1 only"
+  },
+  "supersedes-skips-revision": {
+    "code": "supersedes-gap",
+    "why": "supersedes names the immediately previous revision"
+  },
+  "identity-wrong-stream": {
+    "code": "identity-stream",
+    "why": "identity role and scope match the stream"
+  },
+  "week-out-of-range": {
+    "code": "payload-schema",
+    "why": "ISO week is 01 through 53"
+  },
+  "decision-without-evidence": {
+    "code": "payload-schema",
+    "why": "a decision note carries evidence"
+  },
+  "duplicate-member": {
+    "code": "ijson",
+    "why": "member names are unique"
+  },
+  "lone-surrogate": {
+    "code": "ijson",
+    "why": "strings are well-formed Unicode"
+  },
+  "revision-beyond-binary64": {
+    "code": "ijson",
+    "why": "numbers must be exact in IEEE 754 binary64"
+  },
+  "cred-ref-bearer-locator": {
+    "code": "payload-schema",
+    "why": "an env locator is a variable name, not a value"
+  },
+  "cred-ref-token-in-seclusor-path": {
+    "code": "secret-shaped-member",
+    "why": "a credential-shaped value is rejected wherever the format would admit it"
+  },
+  "cred-ref-token-recipient": {
+    "code": "payload-schema",
+    "why": "recipient is a public key or a name"
+  },
+  "decided-at-not-a-time": {
+    "code": "payload-schema",
+    "why": "decided_at is an RFC 3339 date-time"
+  },
+  "decided-at-month-13": {
+    "code": "payload-schema",
+    "why": "an RFC 3339 date-time is a real instant"
+  },
+  "ack-time-out-of-range": {
+    "code": "payload-schema",
+    "why": "acknowledged_at is a real instant"
+  },
+  "review-by-feb-31": {
+    "code": "payload-schema",
+    "why": "review_by is a real date"
+  },
+  "handoff-acknowledged-at-revision-one": {
+    "code": "ack-not-by-recipient",
+    "why": "an acknowledgement is a later revision"
+  },
+  "handoff-acknowledged-by-owner": {
+    "code": "ack-not-by-recipient",
+    "why": "the owner cannot acknowledge its own handoff"
+  },
+  "week-53-in-short-year": {
+    "code": "week-not-in-year",
+    "why": "2021 has 52 ISO weeks"
+  },
+  "decided-at-no-offset": {
+    "code": "payload-schema",
+    "why": "an RFC 3339 date-time carries an offset"
+  },
+  "decided-at-space-separator": {
+    "code": "payload-schema",
+    "why": "an RFC 3339 date-time uses T between date and time"
+  },
+  "stream-trailing-newline": {
+    "code": "control-character",
+    "why": "no control characters anywhere in an entry, including inherited envelope fields"
+  },
+  "record-id-trailing-newline": {
+    "code": "control-character",
+    "why": "record_id carries no control characters"
+  },
+  "label-with-newline": {
+    "code": "control-character",
+    "why": "labels carry no control characters"
+  },
+  "decided-at-offset-minutes-99": {
+    "code": "payload-schema",
+    "why": "offset minutes are 00 to 59"
+  },
+  "credential-in-key-ref": {
+    "code": "credential-in-envelope",
+    "why": "key_ref names a key-custody record, never key material"
+  },
+  "owner-retargets-and-acknowledges": {
+    "code": "ack-not-by-recipient",
+    "why": "a seat never acknowledges a handoff in its own stream"
+  },
+  "classification-not-object": {
+    "code": "schema",
+    "why": "classification is an object"
+  },
+  "provenance-not-object": {
+    "code": "schema",
+    "why": "provenance is an object"
+  },
+  "revision-as-string": {
+    "code": "schema",
+    "why": "revision is an integer"
+  },
+  "body-not-object": {
+    "code": "schema",
+    "why": "body is an object"
+  },
+  "decided-at-leap-second": {
+    "code": "payload-schema",
+    "why": "leap seconds are not accepted; stored instants stay totally ordered"
+  },
+  "handoff-created-with-ack-time": {
+    "code": "ack-time-at-creation",
+    "why": "a new handoff carries no acknowledgement"
+  },
+  "revision-above-safe-integer": {
+    "code": "revision-range",
+    "why": "revisions stay at or below 2^53 - 1"
+  },
+  "decided-at-sub-microsecond": {
+    "code": "payload-schema",
+    "why": "fractional seconds have at most six digits so every reader parses the same instant"
+  },
+  "week-with-body": {
+    "code": "carrier",
+    "why": "a payload-carrier kind carries a payload, not a body"
+  },
+  "decided-at-hour-24": {
+    "code": "payload-schema",
+    "why": "clock hours are 00 to 23 on every Python version"
+  }
+}

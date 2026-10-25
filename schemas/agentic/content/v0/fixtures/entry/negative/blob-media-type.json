@@ -1,0 +1,27 @@
+{
+  "v": 0,
+  "stream": "devlead.example",
+  "record_id": "blob:2026-10-25:01",
+  "revision": 1,
+  "payload_contract": "contract: agent-blob/v0",
+  "body": {
+    "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "length": 1024,
+    "media_type": "application/x-sh"
+  },
+  "provenance": {
+    "actor_kind": "agent",
+    "actor": "devlead.example",
+    "supervisor": "maintainer",
+    "model": "example-model",
+    "tool": "example-tool"
+  },
+  "classification": {
+    "retention": "short",
+    "sensitivity": "1-confidential"
+  },
+  "labels": [
+    "title:session-transcript",
+    "topic:review"
+  ]
+}

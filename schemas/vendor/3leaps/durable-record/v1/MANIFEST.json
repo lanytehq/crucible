@@ -1,0 +1,11 @@
+{
+  "source": "https://github.com/3leaps/crucible",
+  "commit": "16e6abcb1ee498da60e98f0712a29087ba55bbee",
+  "note": "Verbatim copies. Do not edit; refresh with scripts/vendor-3leaps-contracts.sh and review the diff.",
+  "files": {
+    "record.schema.json": {
+      "upstream": "schemas/durable-record/v1/record.schema.json",
+      "sha256": "9da56d87235700e8dadefb22ab3994229de69969f0056b2f73144069f63935b0"
+    }
+  }
+}

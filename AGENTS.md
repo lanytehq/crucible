@@ -13,12 +13,13 @@ This repository (`lanytehq/crucible`) is the **single source of truth (SSOT)** f
 Contents:
 
 - `schemas/ipc/` — JSON Schema 2020-12 files for numbered IPC channels (loaded by ipcprims at runtime). `schemas/ipc/local/` is Chanvoy runtime-control v1 and is not discovered by that loader.
-- `schemas/agentic/` — Role prompt, agent-state, dispatch, mission, gearwit families. A separate capability-taxonomy schema is **deferred**.
+- `schemas/agentic/` — Role prompt, agent-state, dispatch, mission, gearwit, content families. A separate capability-taxonomy schema is **deferred**.
 - `schemas/common/chanvoy-daemon-rpc/v0/` — Chanvoy local daemon JSON-RPC methods, including process-held follow and named-DM and inbox waits. Not a numbered channel.
 - `schemas/mail/` — Mail policy contract family (delegation, action request, policy decision). The numbered MAIL channel is unchanged.
 - `docs/decisions/` — ADRs (Architecture Decision Records), SDRs, DDRs
 - `docs/specs/` — Canonical specifications (peer contract, coordination, identity)
 - `config/agentic/roles/` — Agent role definitions for the Lanyte platform
+- `config/classifiers/` — Discrete choice sets (classifier dimensions), Lanyte-owned and vendored from `3leaps/crucible`
 - `docs/policies/` — Security and operational policies
 
 ---

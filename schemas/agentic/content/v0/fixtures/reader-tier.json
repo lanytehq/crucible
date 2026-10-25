@@ -1,0 +1,12 @@
+{
+  "week.json": {
+    "1-confidential": "internal",
+    "3-proprietary": "restricted",
+    "4-personal": "privileged",
+    "6-eyes-only": "eyes-only"
+  },
+  "cred-ref.json": {
+    "3-proprietary": "restricted",
+    "5-privileged": "privileged"
+  }
+}

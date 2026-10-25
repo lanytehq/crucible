@@ -1,0 +1,30 @@
+{
+  "v": 0,
+  "stream": "devlead.example",
+  "record_id": "ref:github-ops",
+  "revision": 1,
+  "payload_contract": "contract: agent-reference/v0",
+  "payload": {
+    "location": {
+      "repo": "example/runbook",
+      "path": "activities/github-ops.md"
+    },
+    "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "summary": "How to run gh under agent identity.",
+    "triggers": [
+      "git.push",
+      "gh.pr.merge"
+    ]
+  },
+  "provenance": {
+    "actor_kind": "agent",
+    "actor": "devlead.example",
+    "supervisor": "maintainer",
+    "model": "example-model",
+    "tool": "example-tool"
+  },
+  "classification": {
+    "retention": "standard",
+    "sensitivity": "1-confidential"
+  }
+}

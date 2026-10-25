@@ -37,6 +37,10 @@ Schemas are SSOT artifacts intended for **machine consumption**. The canonical f
 - `schemas/agentic/mission/v0/` and `v0.1/` — mission family (lease, deadman, cancel).
 - `schemas/agentic/gearwit/v0/` — Gearwit interrupt lifecycle and local
   daemon-to-waiter delivery contracts.
+- `schemas/agentic/content/v0/` — agent content entries (a durable-record/v1
+  profile), per-kind payload contracts, and the kind registry. Kinds are the
+  `content-kind` classifier dimension in `config/classifiers/`. DDR-0002
+  remains Proposed. Gate: `make check-content-v0`.
 
 ## Policy
 

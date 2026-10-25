@@ -29,6 +29,7 @@ Decisions are recorded as ADRs when they are hard to reverse or when multiple vi
 
 ## DDR Index
 
-| ID       | Decision                                                                  | Status   |
-| -------- | ------------------------------------------------------------------------- | -------- |
-| DDR-0001 | Mail policy contract family (delegation, action request, policy decision) | Proposed |
+| ID       | Decision                                                                                      | Status   |
+| -------- | --------------------------------------------------------------------------------------------- | -------- |
+| DDR-0001 | Mail policy contract family (delegation, action request, policy decision)                     | Proposed |
+| DDR-0002 | Agent content contract family (durable-record profile, content-kind dimension, kind registry) | Proposed |

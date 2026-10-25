@@ -1,0 +1,32 @@
+{
+  "v": 0,
+  "stream": "devlead.example",
+  "record_id": "decision:2026-10-25:01",
+  "revision": 2,
+  "payload_contract": "contract: agent-decision-note/v0",
+  "payload": {
+    "decision": "Pin the dependency by commit.",
+    "rationale": "A tag can move; a commit cannot.",
+    "decided_at": "2026-10-25T03:00:00Z",
+    "evidence": [
+      {
+        "ref": "review finding 1"
+      }
+    ]
+  },
+  "provenance": {
+    "actor_kind": "agent",
+    "actor": "devlead.example",
+    "supervisor": "maintainer",
+    "model": "example-model",
+    "tool": "example-tool"
+  },
+  "classification": {
+    "retention": "long",
+    "sensitivity": "1-confidential"
+  },
+  "supersedes": {
+    "revision": 1,
+    "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  }
+}

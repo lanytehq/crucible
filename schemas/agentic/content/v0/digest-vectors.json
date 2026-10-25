@@ -1,0 +1,46 @@
+{
+  "description": "Revision digests for conforming entries: sha256 over the RFC 8785 (JCS) UTF-8 bytes of the whole entry, with no trailing newline. JCS sorts member names by UTF-16 code units and emits non-ASCII characters as unescaped UTF-8. Every implementation must reproduce these exact values.",
+  "canonicalization": "RFC 8785",
+  "vectors": [
+    {
+      "entry": "fixtures/entry/conforming/learned-fact.json",
+      "canonical_length": 486,
+      "digest": "sha256:551650e7a9e671d79b7f54ed45c8edc6c28c46a2686ad81743ed226cfe1f29ab"
+    },
+    {
+      "entry": "fixtures/entry/conforming/learned-fact-unicode.json",
+      "canonical_length": 486,
+      "digest": "sha256:45d149946b74d147f2b56d59857d1c15d3fedbe35d17a02e69270dccaa52ded9"
+    },
+    {
+      "entry": "fixtures/entry/conforming/handoff-acknowledged.json",
+      "canonical_length": 606,
+      "digest": "sha256:fad5c32a5766827441fa50c694fad900a41ec0edc268d3eeae3297d60d865e5f"
+    },
+    {
+      "entry": "fixtures/entry/conforming/cred-ref.json",
+      "canonical_length": 342,
+      "digest": "sha256:b3bc9c083d01c8997edbc282ee222beab5f0307e602da844e0b89bfe74b7aadb"
+    },
+    {
+      "entry": "fixtures/entry/conforming/blob.json",
+      "canonical_length": 514,
+      "digest": "sha256:a0278b034bfe42f30c0b875caddb03e1b7f3ec96b7b0026eb24d2c945cd51f42"
+    }
+  ],
+  "canonicalization_vectors": [
+    {
+      "name": "utf16-member-order",
+      "description": "Member names outside the BMP sort by UTF-16 code units: U+10000 (surrogate pair D800 DC00) before U+E000. A code-point sort gets this wrong.",
+      "value": {
+        "": "private-use",
+        "𐀀": "linear-b",
+        "a": "ascii",
+        "é": "latin",
+        "名": "cjk"
+      },
+      "canonical_utf8_hex": "7b2261223a226173636969222c22c3a9223a226c6174696e222c22e5908d223a22636a6b222c22f0908080223a226c696e6561722d62222c22ee8080223a22707269766174652d757365227d",
+      "digest": "sha256:bcf1c14571c484a29729af7f02cb07171e9e687a47d8b8c17c66d67f729f89ed"
+    }
+  ]
+}

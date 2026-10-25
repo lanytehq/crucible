@@ -1,0 +1,28 @@
+{
+  "v": 0,
+  "stream": "devlead.example",
+  "record_id": "identity",
+  "revision": 1,
+  "payload_contract": "contract: agent-identity/v0",
+  "payload": {
+    "agent": {
+      "role": "devlead",
+      "scope": "example",
+      "team": "core"
+    },
+    "estate": {
+      "org": "example",
+      "home_channels": [
+        "release-example"
+      ]
+    }
+  },
+  "provenance": {
+    "actor_kind": "human",
+    "actor": "maintainer"
+  },
+  "classification": {
+    "retention": "long",
+    "sensitivity": "1-confidential"
+  }
+}

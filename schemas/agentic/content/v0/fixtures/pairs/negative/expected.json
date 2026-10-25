@@ -1,0 +1,70 @@
+{
+  "kind-switch-hijacks-identity": {
+    "code": "identity-changed",
+    "why": "a revision keeps its predecessor's kind"
+  },
+  "stream-moved": {
+    "code": "identity-changed",
+    "why": "a revision keeps its stream"
+  },
+  "stale-digest": {
+    "code": "supersedes-digest",
+    "why": "supersedes.digest is the predecessor's digest"
+  },
+  "ack-lowers-classification": {
+    "code": "ack-metadata-changed",
+    "why": "an acknowledgement keeps classification"
+  },
+  "ack-changes-labels": {
+    "code": "ack-metadata-changed",
+    "why": "an acknowledgement keeps labels"
+  },
+  "ack-rewrites-summary": {
+    "code": "ack-payload-changed",
+    "why": "an acknowledgement changes only state and acknowledged_at"
+  },
+  "ack-of-closed-handoff": {
+    "code": "ack-predecessor-not-open",
+    "why": "only an open handoff can be acknowledged"
+  },
+  "owner-closes-with-forged-ack-time": {
+    "code": "ack-time-without-ack",
+    "why": "acknowledged_at is set only by an acknowledgement"
+  },
+  "ack-time-moved-on-close": {
+    "code": "ack-time-changed",
+    "why": "acknowledged_at does not change once set"
+  },
+  "close-rewrites-acknowledged-content": {
+    "code": "acknowledged-handoff-changed",
+    "why": "an acknowledged handoff keeps its recipient and content"
+  },
+  "float-revision-skip": {
+    "code": "predecessor-invalid",
+    "why": "a revision of 2^53 written as a float is outside the exact range every JSON peer holds"
+  },
+  "payload-not-object": {
+    "code": "revision-invalid",
+    "why": "malformed entries are reported, not raised"
+  },
+  "pair-missing-revision": {
+    "code": "pair-shape",
+    "why": "a pair has both entries"
+  },
+  "close-lowers-classification": {
+    "code": "acknowledged-handoff-changed",
+    "why": "closing keeps the acknowledged classification"
+  },
+  "close-changes-links": {
+    "code": "acknowledged-handoff-changed",
+    "why": "closing keeps the acknowledged links"
+  },
+  "close-adds-labels": {
+    "code": "acknowledged-handoff-changed",
+    "why": "closing keeps the acknowledged labels"
+  },
+  "supersedes-wrong-predecessor": {
+    "code": "supersedes-revision",
+    "why": "supersedes.revision names the predecessor actually presented"
+  }
+}
