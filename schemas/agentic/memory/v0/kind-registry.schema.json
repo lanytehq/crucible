@@ -76,7 +76,7 @@
         "payload_contract": {
           "type": "string",
           "pattern": "^contract: [a-z0-9][a-z0-9-]*/v[0-9]+$",
-          "description": "durable-record payload_contract token for entries of this kind."
+          "description": "durable-record payload_contract token for entries of this kind. Payload-carrier kinds have a payload schema at kinds/agent-<kind>.schema.json; a body-carrier kind's token names the kind only."
         },
         "legacy": {
           "type": "object",
@@ -172,8 +172,43 @@
               "seed"
             ]
           }
+        },
+        "body_media_types": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "maxLength": 64,
+            "pattern": "^[a-z]+/[a-z0-9][a-z0-9.+-]*$"
+          },
+          "description": "Media types a body-carrier kind accepts. Required when carrier is body."
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "carrier": {
+                "const": "body"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "body_media_types"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "body_media_types"
+              ]
+            }
+          }
+        }
+      ]
     },
     "classification": {
       "type": "object",

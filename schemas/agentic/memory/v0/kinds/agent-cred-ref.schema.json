@@ -33,12 +33,14 @@
       "maxItems": 16,
       "items": {
         "type": "string",
-        "pattern": "^[A-Z][A-Z0-9_]{0,63}$"
+        "pattern": "^[A-Z][A-Z0-9_]{0,63}$",
+        "maxLength": 64
       }
     },
     "unlock_reference_id": {
       "type": "string",
-      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+      "maxLength": 128
     }
   }
 }

@@ -15,7 +15,8 @@
       "properties": {
         "stream": {
           "pattern": "^[a-z0-9][a-z0-9_-]{0,63}\\.[a-z0-9][a-z0-9_-]{0,63}$",
-          "description": "<role>.<scope> of the seat that owns the stream."
+          "description": "<role>.<scope> of the seat that owns the stream.",
+          "maxLength": 128
         },
         "payload_contract": {
           "enum": [

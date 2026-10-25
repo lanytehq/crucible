@@ -159,6 +159,13 @@
         "wake",
         "export",
         "seed"
+      ],
+      "body_media_types": [
+        "text/plain",
+        "text/markdown",
+        "application/json",
+        "image/png",
+        "application/pdf"
       ]
     }
   ]

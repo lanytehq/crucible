@@ -14,7 +14,7 @@
     "statement": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 512
+      "maxLength": 240
     },
     "confidence": {
       "enum": [
@@ -38,7 +38,8 @@
       "maxItems": 8,
       "items": {
         "type": "string",
-        "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+        "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+        "maxLength": 64
       }
     }
   }

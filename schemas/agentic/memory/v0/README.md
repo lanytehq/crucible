@@ -14,7 +14,7 @@ entry stays valid wherever a durable-record record is expected.
 | Piece                                                | File                                                       |
 | ---------------------------------------------------- | ---------------------------------------------------------- |
 | Entry envelope (profile of durable-record/v1 record) | `entry.schema.json`                                        |
-| One payload contract per kind                        | `kinds/agent-<kind>.schema.json`                           |
+| Payload contract per payload-carrier kind            | `kinds/agent-<kind>.schema.json`                           |
 | Kind registry schema                                 | `kind-registry.schema.json`                                |
 | Kind registry instance                               | `config/agentic/memory/v0/kinds.json`                      |
 | Kind vocabulary (classifier dimension)               | `config/classifiers/dimensions/memory-kind.dimension.json` |
@@ -23,8 +23,9 @@ entry stays valid wherever a durable-record record is expected.
 | Fixtures                                             | `fixtures/{entry,kind-registry}/`                          |
 
 `payload_contract` tokens are `contract: agent-<kind>/v0`. The registry maps
-each kind to its token, writer class, revision policy, and classification
-floor. Writer class and classification are registry properties; nothing in a
+each kind to its token, writer class, revision policy, carrier, and
+classification floor. Blob carries a body reference instead of a payload, so
+it has no payload schema; the registry lists the media types it accepts. Writer class and classification are registry properties; nothing in a
 payload changes them.
 
 ## Classification

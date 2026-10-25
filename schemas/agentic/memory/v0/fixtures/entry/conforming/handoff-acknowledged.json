@@ -12,7 +12,7 @@
   },
   "provenance": {
     "actor_kind": "agent",
-    "actor": "devrev",
+    "actor": "devrev.example",
     "supervisor": "maintainer",
     "model": "example-model",
     "tool": "example-tool"

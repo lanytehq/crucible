@@ -14,20 +14,21 @@
     "to": {
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9_-]{0,63}\\.[a-z0-9][a-z0-9_-]{0,63}$",
-      "description": "<role>.<scope> of the receiving seat."
+      "description": "<role>.<scope> of the receiving seat.",
+      "maxLength": 128
     },
     "summary": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 1024
+      "maxLength": 400
     },
     "next_actions": {
       "type": "array",
-      "maxItems": 16,
+      "maxItems": 6,
       "items": {
         "type": "string",
         "minLength": 1,
-        "maxLength": 200
+        "maxLength": 120
       }
     },
     "state": {
@@ -44,7 +45,7 @@
     },
     "context_refs": {
       "type": "array",
-      "maxItems": 16,
+      "maxItems": 6,
       "items": {
         "type": "string",
         "minLength": 1,

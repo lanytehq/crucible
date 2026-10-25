@@ -1,17 +1,102 @@
 {
-  "unknown-envelope-field": "profile adds no envelope fields",
-  "unregistered-contract": "payload_contract not in the memory-kind registry",
-  "dotted-contract-version": "durable-record token pattern forbids minor versions",
-  "stream-without-scope": "stream must be <role>.<scope>",
-  "revision-two-without-supersedes": "durable-record: revision > 1 requires supersedes",
-  "payload-and-body": "payload XOR body",
-  "payload-shape-mismatch": "payload must validate against its kind schema",
-  "sensitivity-below-floor": "cred-ref floor is 3-proprietary",
-  "retention-below-floor": "decision-note floor is long",
-  "blob-unknown-classification": "blob classification is required at write; unknown is not a value",
-  "agent-writes-maintainer-kind": "identity is maintainer-class; an agent claim fails closed",
-  "secret-shaped-member": "no secret-shaped member names in any payload",
-  "nested-secret-shaped-member": "secret-shaped names rejected at any depth",
-  "blob-over-cap": "blob body exceeds the registry cap",
-  "handoff-open-with-ack-time": "open handoff must not carry acknowledged_at"
+  "unknown-envelope-field": {
+    "code": "schema",
+    "why": "the profile adds no envelope fields"
+  },
+  "unregistered-contract": {
+    "code": "unregistered-contract",
+    "why": "payload_contract is not in the memory-kind registry"
+  },
+  "dotted-contract-version": {
+    "code": "schema",
+    "why": "durable-record token pattern forbids minor versions"
+  },
+  "stream-without-scope": {
+    "code": "schema",
+    "why": "stream must be <role>.<scope>"
+  },
+  "stream-over-128": {
+    "code": "schema",
+    "why": "stream is at most 128 characters"
+  },
+  "revision-two-without-supersedes": {
+    "code": "schema",
+    "why": "durable-record requires supersedes above revision 1"
+  },
+  "payload-and-body": {
+    "code": "schema",
+    "why": "payload XOR body"
+  },
+  "payload-shape-mismatch": {
+    "code": "payload-schema",
+    "why": "the payload must validate against its kind schema"
+  },
+  "sensitivity-below-floor": {
+    "code": "sensitivity-floor",
+    "why": "cred-ref floor is 3-proprietary"
+  },
+  "retention-below-floor": {
+    "code": "retention-floor",
+    "why": "decision-note floor is long"
+  },
+  "blob-unknown-classification": {
+    "code": "classification-at-write",
+    "why": "blob classification is required at write"
+  },
+  "blob-media-type": {
+    "code": "body-media-type",
+    "why": "blob body media type is not accepted"
+  },
+  "blob-over-cap": {
+    "code": "body-over-cap",
+    "why": "blob body exceeds the registry cap"
+  },
+  "agent-writes-maintainer-kind": {
+    "code": "writer-class",
+    "why": "identity is maintainer-class; an agent claim fails closed"
+  },
+  "secret-shaped-member": {
+    "code": "secret-shaped-member",
+    "why": "a secret-shaped member name is rejected even where a kind schema would also reject it"
+  },
+  "handoff-open-with-ack-time": {
+    "code": "payload-schema",
+    "why": "open handoff must not carry acknowledged_at"
+  },
+  "handoff-foreign-rewrite": {
+    "code": "foreign-stream",
+    "why": "only the seat a handoff names may acknowledge it, and only by acknowledging"
+  },
+  "handoff-ack-by-wrong-seat": {
+    "code": "foreign-stream",
+    "why": "an acknowledgement is written by the seat named in to"
+  },
+  "handoff-ack-left-open": {
+    "code": "foreign-stream",
+    "why": "a cross-seat revision must acknowledge"
+  },
+  "foreign-scope-write": {
+    "code": "foreign-stream",
+    "why": "an actor writes only its own role and scope"
+  },
+  "single-kind-revised": {
+    "code": "single-revision",
+    "why": "decision-note is written at revision 1 only"
+  },
+  "supersedes-skips-revision": {
+    "code": "supersedes-gap",
+    "why": "supersedes names the immediately previous revision"
+  },
+  "identity-wrong-stream": {
+    "code": "identity-stream",
+    "why": "identity role and scope match the stream"
+  },
+  "week-out-of-range": {
+    "code": "payload-schema",
+    "why": "ISO week is 01 through 53"
+  },
+  "decision-without-evidence": {
+    "code": "payload-schema",
+    "why": "a decision note carries evidence"
+  }
 }

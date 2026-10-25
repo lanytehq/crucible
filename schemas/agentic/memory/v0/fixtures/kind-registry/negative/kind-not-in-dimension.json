@@ -20,7 +20,7 @@
       }
     },
     {
-      "kind": "memory",
+      "kind": "identity",
       "writer_class": "maintainer",
       "revision_policy": "revisioned",
       "carrier": "payload",
@@ -46,7 +46,7 @@
       "payload_contract": "contract: agent-charter/v0"
     },
     {
-      "kind": "week",
+      "kind": "memory",
       "writer_class": "agent",
       "revision_policy": "revisioned",
       "carrier": "payload",
@@ -158,6 +158,13 @@
         "wake",
         "export",
         "seed"
+      ],
+      "body_media_types": [
+        "text/plain",
+        "text/markdown",
+        "application/json",
+        "image/png",
+        "application/pdf"
       ]
     }
   ]

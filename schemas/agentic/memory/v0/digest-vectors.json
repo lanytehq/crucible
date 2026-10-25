@@ -1,16 +1,21 @@
 {
-  "description": "Revision digests for conforming entries: sha256 over the RFC 8785 (JCS) bytes of the whole entry. Produced by the vendored 3leaps canonicalizer; every implementation must reproduce these exact values.",
+  "description": "Revision digests for conforming entries: sha256 over the RFC 8785 (JCS) UTF-8 bytes of the whole entry, with no trailing newline. JCS sorts member names by UTF-16 code units; the unicode vector exercises that and non-ASCII string escaping. Every implementation must reproduce these exact values.",
   "canonicalization": "RFC 8785",
   "vectors": [
     {
       "entry": "fixtures/entry/conforming/learned-fact.json",
-      "canonical_length": 478,
-      "digest": "sha256:239918543536099cc62ca610f99a6e4a950316511b3a89fcd1ae46493e5eeeaf"
+      "canonical_length": 486,
+      "digest": "sha256:551650e7a9e671d79b7f54ed45c8edc6c28c46a2686ad81743ed226cfe1f29ab"
+    },
+    {
+      "entry": "fixtures/entry/conforming/learned-fact-unicode.json",
+      "canonical_length": 486,
+      "digest": "sha256:45d149946b74d147f2b56d59857d1c15d3fedbe35d17a02e69270dccaa52ded9"
     },
     {
       "entry": "fixtures/entry/conforming/handoff-acknowledged.json",
-      "canonical_length": 598,
-      "digest": "sha256:6578907650c8fd7261a51744a94080e0c4b3d2bbbf4b116f90df8513f76c06eb"
+      "canonical_length": 606,
+      "digest": "sha256:fad5c32a5766827441fa50c694fad900a41ec0edc268d3eeae3297d60d865e5f"
     },
     {
       "entry": "fixtures/entry/conforming/cred-ref.json",
@@ -19,8 +24,8 @@
     },
     {
       "entry": "fixtures/entry/conforming/blob.json",
-      "canonical_length": 453,
-      "digest": "sha256:8c96ec005db480ae1f8ba482c8594871ac5149a765ca6d15af57534811c9785a"
+      "canonical_length": 514,
+      "digest": "sha256:a0278b034bfe42f30c0b875caddb03e1b7f3ec96b7b0026eb24d2c945cd51f42"
     }
   ]
 }

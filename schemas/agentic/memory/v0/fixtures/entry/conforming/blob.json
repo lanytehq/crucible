@@ -11,7 +11,7 @@
   },
   "provenance": {
     "actor_kind": "agent",
-    "actor": "devlead",
+    "actor": "devlead.example",
     "supervisor": "maintainer",
     "model": "example-model",
     "tool": "example-tool"
@@ -19,5 +19,9 @@
   "classification": {
     "retention": "short",
     "sensitivity": "1-confidential"
-  }
+  },
+  "labels": [
+    "title:session-transcript",
+    "topic:review"
+  ]
 }

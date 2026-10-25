@@ -20,15 +20,18 @@
       "properties": {
         "role": {
           "type": "string",
-          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "maxLength": 64
         },
         "scope": {
           "type": "string",
-          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "maxLength": 64
         },
         "team": {
           "type": "string",
-          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "maxLength": 64
         },
         "display_name": {
           "type": "string",
@@ -37,7 +40,8 @@
         },
         "bot_username": {
           "type": "string",
-          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
+          "maxLength": 64
         }
       }
     },
@@ -50,15 +54,17 @@
       "properties": {
         "org": {
           "type": "string",
-          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "maxLength": 64
         },
         "coordination_team": {
           "type": "string",
-          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$",
+          "maxLength": 64
         },
         "home_channels": {
           "type": "array",
-          "maxItems": 16,
+          "maxItems": 6,
           "items": {
             "type": "string",
             "minLength": 1,

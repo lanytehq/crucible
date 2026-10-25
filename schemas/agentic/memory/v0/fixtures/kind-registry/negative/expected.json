@@ -1,7 +1,22 @@
 {
-  "access-tier-below-sensitivity-floor": "3-proprietary requires access-tier >= restricted",
-  "duplicate-kind": "each kind appears once",
-  "dimension-value-unregistered": "every memory-kind value except unknown has a registry entry",
-  "kind-not-in-dimension": "registry kinds must be memory-kind dimension values",
-  "legacy-and-contract": "payload_contract XOR legacy"
+  "access-tier-below-sensitivity-floor": {
+    "code": "access-tier-floor",
+    "why": "3-proprietary requires access-tier at least restricted"
+  },
+  "duplicate-kind": {
+    "code": "duplicate-kind",
+    "why": "each kind appears once"
+  },
+  "dimension-value-unregistered": {
+    "code": "dimension-value-unregistered",
+    "why": "every memory-kind value except unknown has a registry entry"
+  },
+  "kind-not-in-dimension": {
+    "code": "kind-not-in-dimension",
+    "why": "registry kinds are memory-kind dimension values"
+  },
+  "legacy-and-contract": {
+    "code": "schema",
+    "why": "payload_contract XOR legacy"
+  }
 }

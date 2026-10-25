@@ -31,13 +31,15 @@
         },
         "rev": {
           "type": "string",
-          "pattern": "^[0-9a-f]{7,64}$"
+          "pattern": "^[0-9a-f]{7,64}$",
+          "maxLength": 64
         }
       }
     },
     "digest": {
       "type": "string",
-      "pattern": "^sha256:[0-9a-f]{64}$"
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "maxLength": 71
     },
     "summary": {
       "type": "string",

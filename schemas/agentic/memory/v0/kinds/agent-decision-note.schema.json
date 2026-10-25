@@ -8,18 +8,19 @@
   "required": [
     "decision",
     "rationale",
-    "decided_at"
+    "decided_at",
+    "evidence"
   ],
   "properties": {
     "decision": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 512
+      "maxLength": 200
     },
     "rationale": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 2048
+      "maxLength": 600
     },
     "decided_at": {
       "type": "string",
@@ -33,7 +34,7 @@
     },
     "evidence": {
       "type": "array",
-      "maxItems": 16,
+      "maxItems": 8,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -48,18 +49,20 @@
           },
           "digest": {
             "type": "string",
-            "pattern": "^sha256:[0-9a-f]{64}$"
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "maxLength": 71
           }
         }
-      }
+      },
+      "minItems": 1
     },
     "alternatives": {
       "type": "array",
-      "maxItems": 8,
+      "maxItems": 4,
       "items": {
         "type": "string",
         "minLength": 1,
-        "maxLength": 256
+        "maxLength": 120
       }
     }
   }

@@ -200,31 +200,33 @@ for prop, dimension_key in (
 
 sensitivity_rank = dimension_order(VENDOR_DIMENSIONS / "dimensions/sensitivity.dimension.json")
 tier_rank = dimension_order(VENDOR_DIMENSIONS / "dimensions/access-tier.dimension.json")
-retention_rank = {
-    key: index
-    for index, key in enumerate(
-        ["unknown", "transient", "short", "standard", "long", "legal-hold"]
-    )
-}
+retention_rank = dimension_order(
+    VENDOR_DIMENSIONS / "dimensions/retention-lifecycle.dimension.json"
+)
+tier_by_rank = {rank: tier for tier, rank in tier_rank.items()}
 
 # --- registry semantics ------------------------------------------------------
+#
+# Every violation carries a reason code. Negative fixtures name the code they
+# must be rejected for in expected.json, so a fixture rejected for some other
+# reason fails the gate instead of passing vacuously.
 
 
-def registry_violations(document: dict) -> list[str]:
-    violations: list[str] = []
+def registry_violations(document: dict) -> list[tuple[str, str]]:
+    violations: list[tuple[str, str]] = []
     kinds = document.get("kinds", [])
     names = [entry.get("kind") for entry in kinds]
     if len(names) != len(set(names)):
-        violations.append("duplicate kind")
+        violations.append(("duplicate-kind", "a kind appears more than once"))
     for name in names:
         if name not in kind_values or name == "unknown":
-            violations.append(f"kind {name!r} is not a memory-kind value")
+            violations.append(("kind-not-in-dimension", f"{name!r} is not a memory-kind value"))
     for value in kind_values:
         if value != "unknown" and value not in names:
-            violations.append(f"memory-kind value {value!r} has no registry entry")
+            violations.append(("dimension-value-unregistered", f"{value!r} has no registry entry"))
     contracts = [e["payload_contract"] for e in kinds if "payload_contract" in e]
     if len(contracts) != len(set(contracts)):
-        violations.append("payload_contract used by more than one kind")
+        violations.append(("duplicate-contract", "payload_contract used by more than one kind"))
     for entry in kinds:
         cls = entry.get("classification", {})
         sensitivity = cls.get("sensitivity")
@@ -232,41 +234,85 @@ def registry_violations(document: dict) -> list[str]:
         if sensitivity in ACCESS_FLOOR and tier in tier_rank:
             if tier_rank[tier] < tier_rank[ACCESS_FLOOR[sensitivity]]:
                 violations.append(
-                    f"{entry.get('kind')}: access-tier {tier} below floor for {sensitivity}"
+                    ("access-tier-floor", f"{entry.get('kind')}: {tier} below floor for {sensitivity}")
                 )
         if sensitivity == "unknown" and entry.get("classification_at_write") != "required":
             violations.append(
-                f"{entry.get('kind')}: unknown sensitivity needs classification_at_write"
+                ("unknown-default", f"{entry.get('kind')}: unknown sensitivity needs classification_at_write")
             )
         if (sensitivity == "unknown") != (tier == "unknown"):
-            violations.append(f"{entry.get('kind')}: unknown must be paired")
+            violations.append(("unknown-unpaired", f"{entry.get('kind')}: unknown must be paired"))
+        contract = entry.get("payload_contract")
+        has_schema = contract in kind_validators
+        if entry.get("carrier") == "payload" and contract and not has_schema:
+            violations.append(("payload-schema-missing", f"{entry.get('kind')}: no payload schema"))
+        if entry.get("carrier") == "body" and has_schema:
+            violations.append(("body-kind-has-payload-schema", f"{entry.get('kind')}: body kinds have no payload schema"))
     return violations
 
 
+def schema_codes(validator: Draft202012Validator, instance) -> list[tuple[str, str]]:
+    return [("schema", error.message) for error in validator.iter_errors(instance)]
+
+
+def check_negatives(group: str, directory: pathlib.Path, judge) -> None:
+    expected = load(directory / "expected.json")
+    present = {f.stem for f in directory.glob("*.json")} - {"expected"}
+    if set(expected) != present:
+        fail(f"{group} negative expected.json out of step: {sorted(set(expected) ^ present)}")
+    for name in sorted(present):
+        codes = {code for code, _ in judge(load(directory / f"{name}.json"))}
+        want = expected.get(name, {}).get("code")
+        if not codes:
+            fail(f"{group} negative {name}.json: expected rejection, got pass")
+        elif want not in codes:
+            fail(f"{group} negative {name}.json: rejected for {sorted(codes)}, expected {want}")
+        else:
+            ok(f"{group} negative {name}.json ({want})")
+
+
 kind_registry = load(REGISTRY_FILE)
-errors = list(registry_validator.iter_errors(kind_registry))
-violations = registry_violations(kind_registry)
-if errors:
-    fail(f"registry kinds.json: {errors[0].message}")
-elif violations:
-    fail(f"registry kinds.json: {violations[0]}")
+problems = schema_codes(registry_validator, kind_registry) + registry_violations(kind_registry)
+if problems:
+    fail(f"registry kinds.json: {problems[0][1]}")
 else:
     ok("registry kinds.json")
 
-for fixture in sorted((FIXTURES / "kind-registry/negative").glob("*.json")):
-    if fixture.name == "expected.json":
-        continue
-    instance = load(fixture)
-    if list(registry_validator.iter_errors(instance)) or registry_violations(instance):
-        ok(f"kind-registry negative {fixture.name}")
-    else:
-        fail(f"kind-registry negative {fixture.name}: expected rejection, got pass")
+check_negatives(
+    "kind-registry",
+    FIXTURES / "kind-registry/negative",
+    lambda doc: schema_codes(registry_validator, doc) + registry_violations(doc),
+)
 
 by_contract = {
     entry["payload_contract"]: entry
     for entry in kind_registry["kinds"]
     if "payload_contract" in entry
 }
+
+# --- bounds: every payload field has a stated maximum -------------------------
+
+
+def unbounded(node: dict, path: str) -> list[str]:
+    found: list[str] = []
+    kind = node.get("type")
+    if kind == "string" and not ({"maxLength", "enum", "const"} & node.keys()):
+        found.append(path)
+    if kind == "array":
+        if "maxItems" not in node:
+            found.append(path + "[]")
+        found.extend(unbounded(node["items"], path + "[]"))
+    for name, child in node.get("properties", {}).items():
+        found.extend(unbounded(child, f"{path}.{name}"))
+    return found
+
+
+for contract, validator in kind_validators.items():
+    gaps = unbounded(validator.schema, "$")
+    if gaps:
+        fail(f"bounds {contract}: unbounded {gaps}")
+    else:
+        ok(f"bounds {contract}")
 
 # --- entry semantics ---------------------------------------------------------
 
@@ -298,85 +344,118 @@ for probe, expected_paths in (
         ok(f"secret walk self-test {sorted(probe)}")
 
 
-def entry_violations(entry: dict) -> list[str]:
-    violations: list[str] = []
+def reader_tier(entry: dict, policy: dict) -> str:
+    """Access tier a reader needs: the kind's tier or the entry's sensitivity floor, whichever is higher."""
+    kind_tier = policy["classification"]["access-tier"]
+    floor = ACCESS_FLOOR.get(entry.get("classification", {}).get("sensitivity"), "unknown")
+    return tier_by_rank[max(tier_rank[kind_tier], tier_rank[floor])]
+
+
+def entry_violations(entry: dict) -> list[tuple[str, str]]:
+    violations: list[tuple[str, str]] = []
     if not record_validator.is_valid(entry):
-        violations.append("not a valid durable-record/v1 record")
+        violations.append(("not-durable-record", "not a valid durable-record/v1 record"))
     policy = by_contract.get(entry.get("payload_contract"))
     if policy is None:
-        return violations + ["payload_contract not registered"]
+        return violations + [("unregistered-contract", "payload_contract not registered")]
     kind = policy["kind"]
+    payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
 
-    if "payload" in entry:
-        payload_errors = list(
-            kind_validators[entry["payload_contract"]].iter_errors(entry["payload"])
-        )
-        if payload_errors:
-            violations.append(f"{kind} payload: {payload_errors[0].message}")
-        for path in secret_paths(entry["payload"]):
-            violations.append(f"secret-shaped member at {path}")
+    # Carrier and content.
     if (policy["carrier"] == "body") != ("body" in entry):
-        violations.append(f"{kind} must carry a {policy['carrier']}")
+        violations.append(("carrier", f"{kind} must carry a {policy['carrier']}"))
+    if "payload" in entry and entry["payload_contract"] in kind_validators:
+        for error in kind_validators[entry["payload_contract"]].iter_errors(entry["payload"]):
+            violations.append(("payload-schema", f"{kind} payload: {error.message}"))
+    if "payload" in entry:
+        for path in secret_paths(entry["payload"]):
+            violations.append(("secret-shaped-member", f"secret-shaped member at {path}"))
+    body = entry.get("body", {})
     cap = policy.get("limits", {}).get("max_body_bytes")
-    if cap is not None and entry.get("body", {}).get("length", 0) > cap:
-        violations.append(f"{kind} body exceeds {cap} bytes")
+    if cap is not None and body.get("length", 0) > cap:
+        violations.append(("body-over-cap", f"{kind} body exceeds {cap} bytes"))
+    media_types = policy.get("body_media_types")
+    if media_types is not None and "body" in entry and body.get("media_type") not in media_types:
+        violations.append(("body-media-type", f"{kind} body media type {body.get('media_type')!r} not accepted"))
 
+    # Revision policy.
+    revision = entry.get("revision", 1)
+    if policy["revision_policy"] == "single" and revision != 1:
+        violations.append(("single-revision", f"{kind} is written at revision 1 only"))
+    supersedes = entry.get("supersedes")
+    if isinstance(supersedes, dict) and supersedes.get("revision") != revision - 1:
+        violations.append(("supersedes-gap", "supersedes must name the immediately previous revision"))
+
+    # Classification floors.
     cls = entry.get("classification", {})
     floor = policy["classification"]
     if cls.get("sensitivity") == "unknown" or cls.get("retention") == "unknown":
         if policy.get("classification_at_write") == "required":
-            violations.append(f"{kind} requires classification at write")
+            violations.append(("classification-at-write", f"{kind} requires classification at write"))
     if sensitivity_rank.get(cls.get("sensitivity"), -1) < sensitivity_rank[floor["sensitivity"]]:
-        violations.append(f"{kind} sensitivity below floor {floor['sensitivity']}")
+        violations.append(("sensitivity-floor", f"{kind} sensitivity below floor {floor['sensitivity']}"))
     if retention_rank.get(cls.get("retention"), -1) < retention_rank[floor["retention-lifecycle"]]:
-        violations.append(f"{kind} retention below floor {floor['retention-lifecycle']}")
+        violations.append(("retention-floor", f"{kind} retention below floor {floor['retention-lifecycle']}"))
 
-    claims = WRITER_CLAIMS[policy["writer_class"]]
-    actor_kind = entry.get("provenance", {}).get("actor_kind")
-    owner = entry.get("stream", "").split(".", 1)[0]
-    actor = entry.get("provenance", {}).get("actor")
-    cross_role_ack = (
-        policy.get("cross_role_write") == "ack"
-        and entry.get("revision", 1) > 1
-        and actor_kind == "agent"
-    )
-    if actor_kind not in claims:
-        violations.append(f"{kind} is {policy['writer_class']}-class; {actor_kind} claim rejected")
-    elif policy["writer_class"] == "agent" and actor != owner and not cross_role_ack:
-        violations.append(f"{actor} may not write into {owner}'s stream")
+    # Authority. The actor is the writing seat as <role>.<scope>; a stream is
+    # written by its owner except for a handoff acknowledgement by the seat
+    # the handoff names.
+    provenance = entry.get("provenance", {})
+    actor_kind = provenance.get("actor_kind")
+    actor = provenance.get("actor")
+    stream = entry.get("stream", "")
+    if actor_kind not in WRITER_CLAIMS[policy["writer_class"]]:
+        violations.append(
+            ("writer-class", f"{kind} is {policy['writer_class']}-class; {actor_kind} claim rejected")
+        )
+    elif policy["writer_class"] == "agent" and actor != stream:
+        handoff_ack = (
+            policy.get("cross_role_write") == "ack"
+            and revision > 1
+            and payload.get("state") == "acknowledged"
+            and actor == payload.get("to")
+        )
+        if not handoff_ack:
+            violations.append(("foreign-stream", f"{actor} may not write into stream {stream}"))
+    if kind == "identity":
+        agent = payload.get("agent", {})
+        if f"{agent.get('role')}.{agent.get('scope')}" != stream:
+            violations.append(("identity-stream", "identity role and scope must match the stream"))
     return violations
 
 
-for disposition in ("conforming", "negative"):
-    fixtures = sorted((FIXTURES / "entry" / disposition).glob("*.json"))
-    fixtures = [f for f in fixtures if f.name != "expected.json"]
-    if not fixtures:
-        fail(f"entry {disposition}: fixture set is empty")
-    for fixture in fixtures:
-        instance = load(fixture)
-        errors = list(entry_validator.iter_errors(instance))
-        violations = entry_violations(instance)
-        if disposition == "conforming":
-            if errors:
-                fail(f"entry conforming {fixture.name}: {errors[0].message}")
-            elif violations:
-                fail(f"entry conforming {fixture.name}: {violations[0]}")
-            else:
-                ok(f"entry conforming {fixture.name}")
-        elif errors or violations:
-            ok(f"entry negative {fixture.name}")
-        else:
-            fail(f"entry negative {fixture.name}: expected rejection, got pass")
+def entry_judge(instance) -> list[tuple[str, str]]:
+    return schema_codes(entry_validator, instance) + entry_violations(instance)
 
-expected = load(FIXTURES / "entry/negative/expected.json")
-present = {f.stem for f in (FIXTURES / "entry/negative").glob("*.json")} - {"expected"}
-if set(expected) != present:
-    fail(f"entry negative expected.json out of step: {sorted(set(expected) ^ present)}")
 
-covered = {load(f)["payload_contract"] for f in (FIXTURES / "entry/conforming").glob("*.json")}
+conforming = sorted((FIXTURES / "entry/conforming").glob("*.json"))
+if not conforming:
+    fail("entry conforming: fixture set is empty")
+for fixture in conforming:
+    problems = entry_judge(load(fixture))
+    if problems:
+        fail(f"entry conforming {fixture.name}: {problems[0][1]}")
+    else:
+        ok(f"entry conforming {fixture.name}")
+
+check_negatives("entry", FIXTURES / "entry/negative", entry_judge)
+
+covered = {load(f)["payload_contract"] for f in conforming}
 for contract in by_contract:
     if contract not in covered:
         fail(f"entry conforming: no fixture for {contract}")
+
+# Reader tier: raising an entry's sensitivity raises the tier a reader needs.
+for fixture, want in load(FIXTURES / "reader-tier.json").items():
+    entry = load(FIXTURES / "entry/conforming" / fixture)
+    for sensitivity, tier in want.items():
+        probe = json.loads(json.dumps(entry))
+        probe["classification"]["sensitivity"] = sensitivity
+        got = reader_tier(probe, by_contract[probe["payload_contract"]])
+        if got != tier:
+            fail(f"reader tier {fixture} at {sensitivity}: {got}, expected {tier}")
+        else:
+            ok(f"reader tier {fixture} at {sensitivity} -> {tier}")
 
 # --- digest vectors (RFC 8785 JCS, sha256) -----------------------------------
 
