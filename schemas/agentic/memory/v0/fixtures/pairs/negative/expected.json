@@ -62,5 +62,9 @@
   "close-adds-labels": {
     "code": "acknowledged-handoff-changed",
     "why": "closing keeps the acknowledged labels"
+  },
+  "supersedes-wrong-predecessor": {
+    "code": "supersedes-revision",
+    "why": "supersedes.revision names the predecessor actually presented"
   }
 }

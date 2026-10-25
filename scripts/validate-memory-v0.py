@@ -85,13 +85,13 @@ REASON_CODES = {
 }
 # Codes no fixture can reach on its own; each has a self-test below.
 SELF_TESTED = {
-    "not-durable-record",   # the entry schema rejects first; record schema is a subset
-    "unregistered-contract",  # registry self-test
+    "not-durable-record",   # record self-test; the entry schema rejects such input first
+    "unregistered-contract",  # registry self-test; the entry enum rejects first
     "not-canonicalizable",  # canonicalizability self-test
-    "supersedes-revision",  # entry-level supersedes-gap rejects first
 }
 seen_codes: set[str] = set()
 proven_codes: set[str] = set()
+self_test_proven: set[str] = set()
 
 
 def _strict_object(pairs: list[tuple[str, object]]) -> dict:
@@ -792,7 +792,20 @@ if not canonical_problems({**probe, "revision": float("nan")}):
 elif not any(code == "unregistered-contract" for code, _ in entry_violations({**probe, "payload_contract": "contract: agent-unlisted/v0"})):
     fail("registry self-test: unregistered payload_contract was not rejected")
 else:
+    self_test_proven.update({"not-canonicalizable", "unregistered-contract"})
     ok("canonicalizability and registry self-tests")
+
+# The entry schema contains the durable-record record schema, so a fixture
+# that fails the record fails the entry schema first. Call both record
+# checks directly with an entry that breaks only the record envelope.
+_not_record = {**probe, "v": 1}
+if not any(code == "not-durable-record" for code, _ in entry_violations(_not_record)):
+    fail("record self-test: entry_violations accepted a non-record")
+elif entry_judge(_not_record) == [] or not any(code in {"schema", "not-durable-record"} for code, _ in entry_judge(_not_record)):
+    fail("record self-test: entry_judge accepted a non-record")
+else:
+    self_test_proven.add("not-durable-record")
+    ok("record self-test: non-records are rejected")
 
 # The handoff schema already ties acknowledged_at to a non-open state, so a
 # fixture cannot reach the "revision 1 is open" half alone. Check it directly
@@ -893,7 +906,9 @@ for vector in vectors["vectors"]:
         ok(f"digest {vector['entry']}")
 
 # Reason-code coverage: every declared code is proven, and no proof is stale.
-unproven = REASON_CODES - proven_codes - SELF_TESTED
+unproven = REASON_CODES - proven_codes - (SELF_TESTED & self_test_proven)
+if SELF_TESTED - self_test_proven:
+    fail(f"SELF_TESTED codes whose self-test did not run and pass: {sorted(SELF_TESTED - self_test_proven)}")
 if unproven:
     fail(f"reason codes without a negative fixture or self-test: {sorted(unproven)}")
 else:
