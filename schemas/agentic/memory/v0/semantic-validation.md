@@ -77,7 +77,10 @@ those errors alone.
    stream, even one that names itself. **(gate)** `acknowledged_at` is set
    only by an acknowledgement and never changes afterwards, so the owner can
    close an acknowledged handoff but cannot forge or move its
-   acknowledgement. **(gate, pairs)** Relative to the revision it supersedes,
+   acknowledgement. **(gate, pairs)** A new handoff carries no
+   `acknowledged_at`. **(gate)** Once acknowledged, a handoff keeps its
+   recipient and content; later revisions change only its state.
+   **(gate, pairs)** Relative to the revision it supersedes,
    the predecessor is `open`, and the acknowledgement keeps
    `classification`, `labels`, `links`, and every payload member other than
    `state` and `acknowledged_at`. **(gate, pairs)**
@@ -113,7 +116,10 @@ those errors alone.
 
 1. Entries are I-JSON: unique member names, well-formed Unicode, and numbers
    exact in IEEE 754 binary64. Numbers are checked from their decimal text,
-   before any conversion, so a value that would round is rejected. An entry
+   before any conversion, so a value that would round is rejected. An
+   integral value is an integer however it is written (`2`, `2.0`, `2e0`).
+   Revisions are integers from 1 to 2^53 − 1, the range every JSON peer
+   holds exactly. **(gate)** An entry
    that cannot be canonicalized is rejected. **(gate)**
 2. No string anywhere in an entry, envelope included, contains a control
    character (U+0000–U+001F, U+007F) or a line or paragraph separator.
@@ -122,8 +128,10 @@ those errors alone.
    engine. **(gate)**
 3. Every `format` is asserted. `date-time` is RFC 3339 with an offset in
    range and no leap second (stored instants stay totally ordered),
-   `date` is an RFC 3339 full-date, and `uri` is absolute and uses only
-   RFC 3986 characters and well-formed escapes. Dimension definitions are
+   `date` is an RFC 3339 full-date. `uri` holds schema identifiers, so it is
+   held to the RFC 3986 subset they use: `https`, a registered host, an
+   optional numeric port, and an absolute path, with no userinfo, query, or
+   fragment. Dimension definitions are
    checked with the same formats. A schema that uses
    a format the gate has no checker for fails the gate. **(gate)**
 4. A `week` names an ISO week that exists in its year: week 53 only in years

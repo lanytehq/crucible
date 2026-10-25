@@ -42,5 +42,13 @@
   "ack-time-moved-on-close": {
     "code": "ack-time-changed",
     "why": "acknowledged_at does not change once set"
+  },
+  "close-rewrites-acknowledged-content": {
+    "code": "acknowledged-handoff-changed",
+    "why": "an acknowledged handoff keeps its recipient and content"
+  },
+  "float-revision-skip": {
+    "code": "predecessor-invalid",
+    "why": "a revision of 2^53 written as a float is outside the exact range every JSON peer holds"
   }
 }

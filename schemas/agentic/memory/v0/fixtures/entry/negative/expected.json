@@ -202,5 +202,13 @@
   "decided-at-leap-second": {
     "code": "payload-schema",
     "why": "leap seconds are not accepted; stored instants stay totally ordered"
+  },
+  "handoff-created-with-ack-time": {
+    "code": "ack-time-at-creation",
+    "why": "a new handoff carries no acknowledgement"
+  },
+  "revision-above-safe-integer": {
+    "code": "revision-range",
+    "why": "revisions stay at or below 2^53 - 1"
   }
 }

@@ -11,7 +11,6 @@ import math
 import pathlib
 import re
 import sys
-import urllib.parse
 
 try:
     from jsonschema import Draft202012Validator, FormatChecker
@@ -93,7 +92,9 @@ def _exact_number(token: str):
     as_float = float(exact)
     if not math.isfinite(as_float) or decimal.Decimal(as_float) != exact:
         raise ValueError(f"number {token} is not exact in IEEE 754 binary64")
-    if exact == exact.to_integral_value() and "." not in token and "e" not in token.lower():
+    if exact == exact.to_integral_value():
+        # Integral values are integers whatever their spelling (2, 2.0, 2e0),
+        # so later arithmetic on them is exact.
         return int(exact)
     return as_float
 
@@ -240,6 +241,13 @@ registry = Registry().with_resources(resources)
 RFC3339 = re.compile(
     r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])"
 )
+PCHAR = r"(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})"
+URI = re.compile(
+    r"https://"
+    r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*"
+    r"(?::[0-9]{1,5})?"
+    rf"(?:/{PCHAR}*)+"
+)
 format_checker = FormatChecker(formats=())
 
 
@@ -267,12 +275,12 @@ def is_date(value) -> bool:
 def is_uri(value) -> bool:
     if not isinstance(value, str):
         return True
-    # RFC 3986 characters only, with every % starting a two-digit escape.
-    if not re.fullmatch(r"(?:[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=]|%[0-9A-Fa-f]{2})+", value):
-        raise ValueError("URI has characters outside RFC 3986 or a bad escape")
-    parts = urllib.parse.urlsplit(value)
-    if not re.fullmatch(r"[A-Za-z][A-Za-z0-9+.-]*", parts.scheme) or not (parts.netloc or parts.path):
-        raise ValueError("not an absolute URI")
+    # The URIs this family carries are schema identifiers, so the format is
+    # held to the RFC 3986 subset they use: an https URL with a registered
+    # host, an optional numeric port, an absolute path of pchars, and no
+    # userinfo, query, or fragment.
+    if not URI.fullmatch(value):
+        raise ValueError("not an https URL with host, optional port, and path")
     return True
 
 
@@ -555,6 +563,7 @@ for probe, expected_paths in (
         ok(f"secret walk self-test {sorted(probe)}")
 
 
+MAX_SAFE_INTEGER = 2**53 - 1
 CONTROL = re.compile(r"[\x00-\x1f\x7f\u2028\u2029]")
 
 
@@ -610,8 +619,12 @@ def entry_violations(entry: dict) -> list[tuple[str, str]]:
     if media_types is not None and "body" in entry and body.get("media_type") not in media_types:
         violations.append(("body-media-type", f"{kind} body media type {body.get('media_type')!r} not accepted"))
 
-    # Revision policy.
+    # Revision policy. Revisions stay within the range every JSON peer
+    # (including ECMAScript) holds exactly.
     revision = entry.get("revision", 1)
+    if not isinstance(revision, int) or not 1 <= revision <= MAX_SAFE_INTEGER:
+        violations.append(("revision-range", f"revision must be an integer from 1 to {MAX_SAFE_INTEGER}"))
+        return violations
     if policy["revision_policy"] == "single" and revision != 1:
         violations.append(("single-revision", f"{kind} is written at revision 1 only"))
     supersedes = entry.get("supersedes")
@@ -649,6 +662,8 @@ def entry_violations(entry: dict) -> list[tuple[str, str]]:
         )
         if not handoff_ack:
             violations.append(("foreign-stream", f"{actor} may not write into stream {stream}"))
+    if kind == "handoff" and revision == 1 and "acknowledged_at" in payload:
+        violations.append(("ack-time-at-creation", "a new handoff carries no acknowledgement"))
     if kind == "handoff" and payload.get("state") == "acknowledged":
         # The recipient acknowledges, in the sender's stream. A seat never
         # acknowledges a handoff in its own stream, even one naming itself.
@@ -767,6 +782,12 @@ def pair_violations(pair: dict) -> list[tuple[str, str]]:
             violations.append(("ack-time-without-ack", "acknowledged_at is set only by an acknowledgement"))
         if was is not None and now != was:
             violations.append(("ack-time-changed", "acknowledged_at does not change once set"))
+        if was is not None:
+            # After acknowledgement the handoff is fixed: only its state may move on.
+            before_rest = {k: v for k, v in before.get("payload", {}).items() if k != "state"}
+            after_rest = {k: v for k, v in after.get("payload", {}).items() if k != "state"}
+            if before_rest != after_rest:
+                violations.append(("acknowledged-handoff-changed", "an acknowledged handoff keeps its recipient and content"))
     cross_seat = provenance.get("actor_kind") == "agent" and provenance.get("actor") != after.get("stream")
     acknowledging = after.get("payload", {}).get("state") == "acknowledged"
     if cross_seat or acknowledging:

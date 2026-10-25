@@ -1,0 +1,27 @@
+{
+  "v": 0,
+  "stream": "devlead.example",
+  "record_id": "handoff:2026-10-25:01",
+  "revision": 1,
+  "payload_contract": "contract: agent-handoff/v0",
+  "payload": {
+    "to": "devrev.example",
+    "summary": "Review the frozen tip.",
+    "state": "closed",
+    "acknowledged_at": "2026-10-25T14:00:00Z"
+  },
+  "provenance": {
+    "actor_kind": "agent",
+    "actor": "devlead.example",
+    "supervisor": "maintainer",
+    "model": "example-model",
+    "tool": "example-tool"
+  },
+  "classification": {
+    "retention": "standard",
+    "sensitivity": "1-confidential"
+  },
+  "labels": [
+    "tag:example"
+  ]
+}

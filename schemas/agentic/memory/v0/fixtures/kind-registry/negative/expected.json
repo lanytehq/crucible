@@ -30,5 +30,21 @@
   "legacy-schema-backslash": {
     "code": "schema",
     "why": "a URI has no backslash"
+  },
+  "legacy-schema-bad-port": {
+    "code": "schema",
+    "why": "a port is digits"
+  },
+  "legacy-schema-bracket-path": {
+    "code": "schema",
+    "why": "brackets are not path characters"
+  },
+  "legacy-schema-double-userinfo": {
+    "code": "schema",
+    "why": "schema identifiers carry no userinfo"
+  },
+  "legacy-schema-two-fragments": {
+    "code": "schema",
+    "why": "schema identifiers carry no fragment"
   }
 }
