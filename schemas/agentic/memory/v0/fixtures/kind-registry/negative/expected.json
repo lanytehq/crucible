@@ -18,5 +18,9 @@
   "legacy-and-contract": {
     "code": "schema",
     "why": "payload_contract XOR legacy"
+  },
+  "legacy-schema-not-uri": {
+    "code": "schema",
+    "why": "legacy.schema is an absolute URI"
   }
 }

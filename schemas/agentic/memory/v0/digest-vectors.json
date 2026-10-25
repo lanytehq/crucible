@@ -1,5 +1,5 @@
 {
-  "description": "Revision digests for conforming entries: sha256 over the RFC 8785 (JCS) UTF-8 bytes of the whole entry, with no trailing newline. JCS sorts member names by UTF-16 code units; the unicode vector exercises that and non-ASCII string escaping. Every implementation must reproduce these exact values.",
+  "description": "Revision digests for conforming entries: sha256 over the RFC 8785 (JCS) UTF-8 bytes of the whole entry, with no trailing newline. JCS sorts member names by UTF-16 code units and emits non-ASCII characters as unescaped UTF-8. Every implementation must reproduce these exact values.",
   "canonicalization": "RFC 8785",
   "vectors": [
     {
@@ -26,6 +26,21 @@
       "entry": "fixtures/entry/conforming/blob.json",
       "canonical_length": 514,
       "digest": "sha256:a0278b034bfe42f30c0b875caddb03e1b7f3ec96b7b0026eb24d2c945cd51f42"
+    }
+  ],
+  "canonicalization_vectors": [
+    {
+      "name": "utf16-member-order",
+      "description": "Member names outside the BMP sort by UTF-16 code units: U+10000 (surrogate pair D800 DC00) before U+E000. A code-point sort gets this wrong.",
+      "value": {
+        "": "private-use",
+        "𐀀": "linear-b",
+        "a": "ascii",
+        "é": "latin",
+        "名": "cjk"
+      },
+      "canonical_utf8_hex": "7b2261223a226173636969222c22c3a9223a226c6174696e222c22e5908d223a22636a6b222c22f0908080223a226c696e6561722d62222c22ee8080223a22707269766174652d757365227d",
+      "digest": "sha256:bcf1c14571c484a29729af7f02cb07171e9e687a47d8b8c17c66d67f729f89ed"
     }
   ]
 }

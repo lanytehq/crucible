@@ -3,10 +3,13 @@
 
 from __future__ import annotations
 
+import datetime
 import hashlib
 import json
 import pathlib
+import re
 import sys
+import urllib.parse
 
 try:
     from jsonschema import Draft202012Validator, FormatChecker
@@ -212,9 +215,69 @@ for path in schema_paths:
 registry = Registry().with_resources(resources)
 
 
+# Formats this family uses, checked with the standard library. jsonschema
+# treats a format with no registered checker as valid, so the gate registers
+# its own and refuses any format it has no checker for.
+RFC3339 = re.compile(
+    r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?(Z|[+-][0-9]{2}:[0-9]{2})"
+)
+format_checker = FormatChecker(formats=())
+
+
+@format_checker.checks("date-time", raises=ValueError)
+def is_date_time(value) -> bool:
+    if not isinstance(value, str):
+        return True
+    if not RFC3339.fullmatch(value):
+        raise ValueError("not an RFC 3339 date-time")
+    datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
+    return True
+
+
+@format_checker.checks("date", raises=ValueError)
+def is_date(value) -> bool:
+    if not isinstance(value, str):
+        return True
+    if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value):
+        raise ValueError("not a full-date")
+    datetime.date.fromisoformat(value)
+    return True
+
+
+@format_checker.checks("uri", raises=ValueError)
+def is_uri(value) -> bool:
+    if not isinstance(value, str):
+        return True
+    parts = urllib.parse.urlsplit(value)
+    if not re.fullmatch(r"[A-Za-z][A-Za-z0-9+.-]*", parts.scheme) or not (parts.netloc or parts.path):
+        raise ValueError("not an absolute URI")
+    if any(c.isspace() for c in value):
+        raise ValueError("URI contains whitespace")
+    return True
+
+
+def formats_used(node) -> set[str]:
+    found: set[str] = set()
+    if isinstance(node, dict):
+        if isinstance(node.get("format"), str):
+            found.add(node["format"])
+        for child in node.values():
+            found |= formats_used(child)
+    elif isinstance(node, list):
+        for child in node:
+            found |= formats_used(child)
+    return found
+
+
+for schema_id, schema in schemas.items():
+    missing = formats_used(schema) - set(format_checker.checkers)
+    if missing:
+        fail(f"formats {schema_id.rsplit('/', 1)[-1]}: no checker for {sorted(missing)}")
+
+
 def validator_for(schema_id: str) -> Draft202012Validator:
     return Draft202012Validator(
-        schemas[schema_id], registry=registry, format_checker=FormatChecker()
+        schemas[schema_id], registry=registry, format_checker=format_checker
     )
 
 
@@ -531,6 +594,17 @@ def entry_violations(entry: dict) -> list[tuple[str, str]]:
         )
         if not handoff_ack:
             violations.append(("foreign-stream", f"{actor} may not write into stream {stream}"))
+    if kind == "handoff" and payload.get("state") == "acknowledged":
+        if revision < 2 or actor != payload.get("to"):
+            violations.append(
+                ("ack-not-by-recipient", "a handoff is acknowledged only by the seat named in to, in a later revision")
+            )
+    if kind == "week" and isinstance(payload.get("week"), str):
+        try:
+            year, week = payload["week"].split("-W")
+            datetime.date.fromisocalendar(int(year), int(week), 1)
+        except ValueError:
+            violations.append(("week-not-in-year", f"{payload['week']} is not an ISO week"))
     if kind == "identity":
         agent = payload.get("agent", {})
         if f"{agent.get('role')}.{agent.get('scope')}" != stream:
@@ -640,6 +714,15 @@ for vector in vectors["vectors"]:
         fail(f"digest {vector['entry']}: canonical length {len(canonical)}")
     else:
         ok(f"digest {vector['entry']}")
+
+for vector in vectors.get("canonicalization_vectors", []):
+    canonical = jcs["jcs_dumps"](vector["value"]).encode("utf-8")
+    if canonical.hex() != vector["canonical_utf8_hex"]:
+        fail(f"canonicalization {vector['name']}: bytes differ")
+    elif "sha256:" + hashlib.sha256(canonical).hexdigest() != vector["digest"]:
+        fail(f"canonicalization {vector['name']}: digest differs")
+    else:
+        ok(f"canonicalization {vector['name']}")
 
 if failures:
     print(f"\n{len(failures)} failure(s)")

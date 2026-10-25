@@ -122,5 +122,41 @@
   "cred-ref-token-recipient": {
     "code": "payload-schema",
     "why": "recipient is a public key or a name"
+  },
+  "decided-at-not-a-time": {
+    "code": "payload-schema",
+    "why": "decided_at is an RFC 3339 date-time"
+  },
+  "decided-at-month-13": {
+    "code": "payload-schema",
+    "why": "an RFC 3339 date-time is a real instant"
+  },
+  "ack-time-out-of-range": {
+    "code": "payload-schema",
+    "why": "acknowledged_at is a real instant"
+  },
+  "review-by-feb-31": {
+    "code": "payload-schema",
+    "why": "review_by is a real date"
+  },
+  "handoff-acknowledged-at-revision-one": {
+    "code": "ack-not-by-recipient",
+    "why": "an acknowledgement is a later revision"
+  },
+  "handoff-acknowledged-by-owner": {
+    "code": "ack-not-by-recipient",
+    "why": "the owner cannot acknowledge its own handoff"
+  },
+  "week-53-in-short-year": {
+    "code": "week-not-in-year",
+    "why": "2021 has 52 ISO weeks"
+  },
+  "decided-at-no-offset": {
+    "code": "payload-schema",
+    "why": "an RFC 3339 date-time carries an offset"
+  },
+  "decided-at-space-separator": {
+    "code": "payload-schema",
+    "why": "an RFC 3339 date-time uses T between date and time"
   }
 }

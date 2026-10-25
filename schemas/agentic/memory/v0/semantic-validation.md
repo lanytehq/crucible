@@ -66,7 +66,9 @@ fixtures cannot carry.
    **(gate)**
 5. The one exception is a handoff acknowledgement. A revision above 1 of a
    handoff may be written by the seat named in `payload.to`, and only with
-   `state: acknowledged`. **(gate)** Relative to the revision it supersedes,
+   `state: acknowledged`. **(gate)** A handoff in state `acknowledged` is
+   always a revision above 1 written by the seat named in `payload.to`; the
+   stream owner cannot acknowledge its own handoff. **(gate)** Relative to the revision it supersedes,
    the predecessor is `open`, and the acknowledgement keeps
    `classification`, `labels`, `links`, and every payload member other than
    `state` and `acknowledged_at`. **(gate, pairs)**
@@ -103,6 +105,11 @@ fixtures cannot carry.
 1. Entries are I-JSON: unique member names, well-formed Unicode, and numbers
    exact in IEEE 754 binary64. An entry that cannot be canonicalized is
    rejected. **(gate)**
+2. Every `format` is asserted. `date-time` is RFC 3339 with an offset,
+   `date` is an RFC 3339 full-date, and `uri` is absolute. A schema that uses
+   a format the gate has no checker for fails the gate. **(gate)**
+3. A `week` names an ISO week that exists in its year: week 53 only in years
+   that have one. **(gate)**
 
 ## Rendering rules
 
