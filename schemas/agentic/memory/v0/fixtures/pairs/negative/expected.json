@@ -50,5 +50,17 @@
   "pair-missing-revision": {
     "code": "pair-shape",
     "why": "a pair has both entries"
+  },
+  "close-lowers-classification": {
+    "code": "acknowledged-handoff-changed",
+    "why": "closing keeps the acknowledged classification"
+  },
+  "close-changes-links": {
+    "code": "acknowledged-handoff-changed",
+    "why": "closing keeps the acknowledged links"
+  },
+  "close-adds-labels": {
+    "code": "acknowledged-handoff-changed",
+    "why": "closing keeps the acknowledged labels"
   }
 }

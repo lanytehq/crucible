@@ -79,8 +79,7 @@ valid, and registry rules only on a registry that passes its schema.
    only by an acknowledgement and never changes afterwards, so the owner can
    close an acknowledged handoff but cannot forge or move its
    acknowledgement. **(gate, pairs)** A new handoff (revision 1) is `open` and
-   carries no `acknowledged_at`. **(gate)** Once acknowledged, a handoff keeps its
-   recipient and content; later revisions change only its state.
+   carries no `acknowledged_at`. **(gate)** Once acknowledged, a handoff keeps its recipient, content, classification, labels, and links; later revisions change only its state.
    **(gate, pairs)** Relative to the revision it supersedes,
    the predecessor is `open`, and the acknowledgement keeps
    `classification`, `labels`, `links`, and every payload member other than

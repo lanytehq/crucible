@@ -811,6 +811,9 @@ def pair_violations(pair: dict) -> list[tuple[str, str]]:
             after_rest = {k: v for k, v in after.get("payload", {}).items() if k != "state"}
             if before_rest != after_rest:
                 violations.append(("acknowledged-handoff-changed", "an acknowledged handoff keeps its recipient and content"))
+            for member in ("classification", "labels", "links"):
+                if before.get(member) != after.get(member):
+                    violations.append(("acknowledged-handoff-changed", f"an acknowledged handoff keeps its {member}"))
     cross_seat = provenance.get("actor_kind") == "agent" and provenance.get("actor") != after.get("stream")
     acknowledging = after.get("payload", {}).get("state") == "acknowledged"
     if cross_seat or acknowledging:
