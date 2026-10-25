@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/agentic/content/v0/kinds/agent-charter.schema.json",
+  "title": "Agent Charter",
+  "description": "A seat's standing mandate, scope, and orientation for new sessions. Maintainer-authored.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "mandate"
+  ],
+  "properties": {
+    "mandate": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 400
+    },
+    "in_scope": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      }
+    },
+    "out_of_scope": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      }
+    },
+    "first_commands": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      }
+    },
+    "reference_ids": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+        "maxLength": 128
+      }
+    }
+  }
+}

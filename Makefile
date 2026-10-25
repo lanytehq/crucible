@@ -23,7 +23,7 @@ clean: ## Remove build artifacts (placeholder)
 	@echo "[ok] nothing to clean"
 
 .PHONY: check
-check: guard-no-submodules guard-version-file check-ipc-schemas check-dispatch-v0 check-mission-v0 check-mission-v0.1 check-chanvoy-daemon-rpc-v0 check-chanvoy-runtime-control-v1 check-gearwit-interrupt-v0 check-mail-v0 check-memory-v0 test-epilogue fmt-check ## Repo guards + schema family gates + format honesty
+check: guard-no-submodules guard-version-file check-ipc-schemas check-dispatch-v0 check-mission-v0 check-mission-v0.1 check-chanvoy-daemon-rpc-v0 check-chanvoy-runtime-control-v1 check-gearwit-interrupt-v0 check-mail-v0 check-content-v0 test-epilogue fmt-check ## Repo guards + schema family gates + format honesty
 	@echo "OK"
 
 .PHONY: check-ipc-schemas
@@ -109,14 +109,14 @@ check-mail-v0: ## Validate the mail policy v0 schemas and fixtures
 		exit 1; \
 	fi
 
-.PHONY: check-memory-v0
-check-memory-v0: ## Validate the agentic/memory v0 family, memory-kind dimension, and vendored 3leaps files
+.PHONY: check-content-v0
+check-content-v0: ## Validate the agentic/content v0 family, content-kind dimension, and vendored 3leaps files
 	@if python3 -c 'import jsonschema' >/dev/null 2>&1; then \
-		python3 scripts/validate-memory-v0.py; \
+		python3 scripts/validate-content-v0.py; \
 	elif command -v uv >/dev/null 2>&1; then \
-		uv run --with jsonschema scripts/validate-memory-v0.py; \
+		uv run --with jsonschema scripts/validate-content-v0.py; \
 	else \
-		echo "[!!] the agentic/memory v0 family gate REQUIRES the python 'jsonschema' package"; \
+		echo "[!!] the agentic/content v0 family gate REQUIRES the python 'jsonschema' package"; \
 		echo "[!!] install it (pip install jsonschema) or install uv — this gate never soft-skips"; \
 		exit 1; \
 	fi

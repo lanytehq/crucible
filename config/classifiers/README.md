@@ -23,10 +23,10 @@ the definition format follow the 3leaps/crucible classifiers framework.
 
 ## Dimensions
 
-| Key                   | Owner             | Status | Used by                     |
-| --------------------- | ----------------- | ------ | --------------------------- |
-| `memory-kind`         | lanytehq          | draft  | `schemas/agentic/memory/v0` |
-| `sensitivity`         | 3leaps (vendored) | stable | `schemas/agentic/memory/v0` |
-| `access-tier`         | 3leaps (vendored) | stable | `schemas/agentic/memory/v0` |
-| `retention-lifecycle` | 3leaps (vendored) | stable | `schemas/agentic/memory/v0` |
-| `volatility`          | 3leaps (vendored) | stable | `schemas/agentic/memory/v0` |
+| Key                   | Owner             | Status | Used by                      |
+| --------------------- | ----------------- | ------ | ---------------------------- |
+| `content-kind`        | lanytehq          | draft  | `schemas/agentic/content/v0` |
+| `sensitivity`         | 3leaps (vendored) | stable | `schemas/agentic/content/v0` |
+| `access-tier`         | 3leaps (vendored) | stable | `schemas/agentic/content/v0` |
+| `retention-lifecycle` | 3leaps (vendored) | stable | `schemas/agentic/content/v0` |
+| `volatility`          | 3leaps (vendored) | stable | `schemas/agentic/content/v0` |

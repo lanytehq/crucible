@@ -1,9 +1,0 @@
-{
-  "$schema": "https://schemas.lanyte.dev/agentic/memory/v0/kind-registry.schema.json",
-  "registry_version": "0.1.0",
-  "dimension": "memory-kind",
-  "kinds": [
-    "identity",
-    "charter"
-  ]
-}
