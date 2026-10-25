@@ -6,7 +6,8 @@ registry. Writers and readers must also enforce these rules. Rules marked
 names the rule it must be rejected for. The gate also fails if any rule
 it declares has neither a negative fixture nor a self-test. **(gate, pairs)** rules relate a
 revision to the revision it supersedes and are checked on
-`fixtures/pairs/`. The others need runtime state the
+`fixtures/pairs/`; **(gate, parents)** rules relate a goal to the entry
+that holds its parent and are checked on `fixtures/parents/`. The others need runtime state the
 fixtures cannot carry.
 
 ## Envelope rules
@@ -141,6 +142,30 @@ valid, and registry rules only on a registry that passes its schema.
    a format the gate has no checker for fails the gate. **(gate)**
 4. A `week` names an ISO week that exists in its year: week 53 only in years
    that have one. **(gate)**
+
+## Goal rules
+
+Week `goals` and `commitments`, and day `plan`, `outcomes`, and
+`carry_over`, hold goal items (`kinds/common/goal-item.schema.json`). An item
+is plain text or a goal object; plain text stays valid on its own.
+
+1. A goal object needs an `outcome`. `status` and `priority` use the
+   contract: project-work/v0 values, so a goal can become a ready packet
+   without translation. **(gate)**
+2. Order: list position is the order. A goal's optional `rank` overrides
+   it, lower rank first; ties break by list position, then `id`. Lower
+   `priority` (`p0`) is more urgent. An unordered set gives every item the
+   same rank. **(gate for the value rules below)**
+3. `rank` is a number within ±2^31 with at most four decimal places, so a
+   writer can insert between two goals (1 and 2, then 1.5). When no value
+   with four decimal places fits, the writer renumbers the list instead of
+   adding precision. **(gate)**
+4. Goal `id`s are unique within an entry. **(gate)**
+5. `parent` names the goal a goal serves, as `<record_id>#<goal id>` in the
+   same stream, and must resolve to an existing goal. **(gate, parents)**
+6. Stored weeks are ISO 8601 (Monday start). A reader that shows weeks
+   another way converts at display time using the `week-start` dimension;
+   stored values never change.
 
 ## Rendering rules
 

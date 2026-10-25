@@ -222,5 +222,41 @@
   "decided-at-hour-24": {
     "code": "payload-schema",
     "why": "clock hours are 00 to 23 on every Python version"
+  },
+  "goal-id-duplicate": {
+    "code": "goal-id-duplicate",
+    "why": "goal ids are unique within an entry"
+  },
+  "goal-rank-too-precise": {
+    "code": "goal-rank-precision",
+    "why": "a rank has at most four decimal places; renumber instead"
+  },
+  "goal-rank-out-of-range": {
+    "code": "payload-schema",
+    "why": "a rank is within plus or minus 2^31"
+  },
+  "goal-status-not-lifecycle": {
+    "code": "payload-schema",
+    "why": "status is a project-work lifecycle class"
+  },
+  "goal-priority-not-pn": {
+    "code": "payload-schema",
+    "why": "priority is p0 through p3"
+  },
+  "goal-without-outcome": {
+    "code": "payload-schema",
+    "why": "a goal object has an outcome"
+  },
+  "goal-parent-malformed": {
+    "code": "payload-schema",
+    "why": "parent is <record_id>#<goal id>"
+  },
+  "goal-unknown-member": {
+    "code": "payload-schema",
+    "why": "a goal object has no other members"
+  },
+  "goal-outcome-too-long": {
+    "code": "payload-schema",
+    "why": "an outcome fits one line, like plain text"
   }
 }

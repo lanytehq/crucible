@@ -15,6 +15,7 @@ entry stays valid wherever a durable-record record is expected.
 | ---------------------------------------------------- | ----------------------------------------------------------- |
 | Entry envelope (profile of durable-record/v1 record) | `entry.schema.json`                                         |
 | Payload contract per payload-carrier kind            | `kinds/agent-<kind>.schema.json`                            |
+| Goal item shared by week and day lists               | `kinds/common/goal-item.schema.json`                        |
 | Kind registry schema                                 | `kind-registry.schema.json`                                 |
 | Kind registry instance                               | `config/agentic/content/v0/kinds.json`                      |
 | Kind vocabulary (classifier dimension)               | `config/classifiers/dimensions/content-kind.dimension.json` |

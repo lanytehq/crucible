@@ -1,0 +1,33 @@
+{
+  "v": 0,
+  "stream": "devlead.example",
+  "record_id": "day:2026-10-28",
+  "revision": 1,
+  "payload_contract": "contract: agent-day/v0",
+  "payload": {
+    "date": "2026-10-28",
+    "plan": [
+      {
+        "id": "a",
+        "outcome": "Answer review comments",
+        "rank": 0
+      },
+      {
+        "id": "b",
+        "outcome": "Update the release notes",
+        "rank": 0
+      }
+    ]
+  },
+  "provenance": {
+    "actor_kind": "agent",
+    "actor": "devlead.example",
+    "supervisor": "maintainer",
+    "model": "example-model",
+    "tool": "example-tool"
+  },
+  "classification": {
+    "retention": "short",
+    "sensitivity": "1-confidential"
+  }
+}

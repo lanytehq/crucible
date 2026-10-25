@@ -1,0 +1,14 @@
+{
+  "parent-goal-missing": {
+    "code": "goal-parent-missing",
+    "why": "a parent names an existing goal"
+  },
+  "parent-in-other-stream": {
+    "code": "goal-parent-missing",
+    "why": "a parent is a goal in the same stream"
+  },
+  "child-entry-invalid": {
+    "code": "child-invalid",
+    "why": "parent rules run only on valid entries"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "$schema": "https://schemas.3leaps.dev/classifiers/v0/dimension-definition.schema.json",
+  "key": "week-start",
+  "name": "Week Start",
+  "version": "0.1.0",
+  "status": "draft",
+  "type": "categorical",
+  "cardinality": "single",
+  "description": "The first day of the week a reader uses for display. Stored week values are always ISO 8601 (Monday start, YYYY-Www); this dimension describes a reader's convention and never changes stored data.",
+  "categorical": {
+    "values": [
+      {
+        "key": "unknown",
+        "label": "Unknown",
+        "description": "The reader's week convention has not been set; display ISO 8601 weeks unchanged.",
+        "order": 0,
+        "is_none": false
+      },
+      {
+        "key": "monday",
+        "label": "Monday",
+        "description": "Weeks start on Monday. This is ISO 8601 and matches stored week values.",
+        "order": 1,
+        "is_none": false
+      },
+      {
+        "key": "sunday",
+        "label": "Sunday",
+        "description": "Weeks start on Sunday. A reader shifts the displayed week boundary one day earlier.",
+        "order": 2,
+        "is_none": false
+      },
+      {
+        "key": "saturday",
+        "label": "Saturday",
+        "description": "Weeks start on Saturday. A reader shifts the displayed week boundary two days earlier.",
+        "order": 3,
+        "is_none": false
+      }
+    ],
+    "index_strategy": {
+      "default_order": [
+        "unknown",
+        "monday",
+        "sunday",
+        "saturday"
+      ],
+      "missing_handling": "error"
+    }
+  },
+  "governance": {
+    "owner": "lanytehq-core",
+    "reviewers": [
+      "platform"
+    ],
+    "review_cycle": "quarterly",
+    "last_updated": "2026-10-25"
+  },
+  "examples": [
+    {
+      "dataset": "a reader in a region whose calendars start on Sunday",
+      "value": "sunday"
+    },
+    {
+      "dataset": "a reader using ISO 8601 weeks",
+      "value": "monday"
+    }
+  ]
+}

@@ -26,6 +26,7 @@ the definition format follow the 3leaps/crucible classifiers framework.
 | Key                   | Owner             | Status | Used by                      |
 | --------------------- | ----------------- | ------ | ---------------------------- |
 | `content-kind`        | lanytehq          | draft  | `schemas/agentic/content/v0` |
+| `week-start`          | lanytehq          | draft  | reader display convention    |
 | `sensitivity`         | 3leaps (vendored) | stable | `schemas/agentic/content/v0` |
 | `access-tier`         | 3leaps (vendored) | stable | `schemas/agentic/content/v0` |
 | `retention-lifecycle` | 3leaps (vendored) | stable | `schemas/agentic/content/v0` |
