@@ -1,0 +1,164 @@
+{
+  "$schema": "https://schemas.lanyte.dev/agentic/memory/v0/kind-registry.schema.json",
+  "registry_version": "0.1.0",
+  "dimension": "memory-kind",
+  "kinds": [
+    {
+      "kind": "checkpoint",
+      "writer_class": "agent",
+      "revision_policy": "append",
+      "carrier": "payload",
+      "classification": {
+        "sensitivity": "1-confidential",
+        "access-tier": "internal",
+        "retention-lifecycle": "standard"
+      },
+      "stream_volatility": "hourly",
+      "legacy": {
+        "schema": "https://schemas.3leaps.dev/agentic/v0.1/agent-state.schema.json",
+        "note": "Stored outside the memory entry envelope; lane hash chain unchanged."
+      }
+    },
+    {
+      "kind": "identity",
+      "writer_class": "maintainer",
+      "revision_policy": "revisioned",
+      "carrier": "payload",
+      "classification": {
+        "sensitivity": "1-confidential",
+        "access-tier": "internal",
+        "retention-lifecycle": "long"
+      },
+      "stream_volatility": "static",
+      "payload_contract": "contract: agent-identity/v0"
+    },
+    {
+      "kind": "charter",
+      "writer_class": "maintainer",
+      "revision_policy": "revisioned",
+      "carrier": "payload",
+      "classification": {
+        "sensitivity": "1-confidential",
+        "access-tier": "internal",
+        "retention-lifecycle": "long"
+      },
+      "stream_volatility": "static",
+      "payload_contract": "contract: agent-charter/v0"
+    },
+    {
+      "kind": "week",
+      "writer_class": "agent",
+      "revision_policy": "revisioned",
+      "carrier": "payload",
+      "classification": {
+        "sensitivity": "1-confidential",
+        "access-tier": "internal",
+        "retention-lifecycle": "short"
+      },
+      "stream_volatility": "weekly",
+      "payload_contract": "contract: agent-week/v0"
+    },
+    {
+      "kind": "day",
+      "writer_class": "agent",
+      "revision_policy": "revisioned",
+      "carrier": "payload",
+      "classification": {
+        "sensitivity": "1-confidential",
+        "access-tier": "internal",
+        "retention-lifecycle": "short"
+      },
+      "stream_volatility": "daily",
+      "payload_contract": "contract: agent-day/v0"
+    },
+    {
+      "kind": "handoff",
+      "writer_class": "agent",
+      "revision_policy": "revisioned",
+      "carrier": "payload",
+      "classification": {
+        "sensitivity": "1-confidential",
+        "access-tier": "internal",
+        "retention-lifecycle": "standard"
+      },
+      "stream_volatility": "daily",
+      "payload_contract": "contract: agent-handoff/v0",
+      "cross_role_write": "ack"
+    },
+    {
+      "kind": "decision-note",
+      "writer_class": "agent",
+      "revision_policy": "single",
+      "carrier": "payload",
+      "classification": {
+        "sensitivity": "1-confidential",
+        "access-tier": "internal",
+        "retention-lifecycle": "long"
+      },
+      "stream_volatility": "static",
+      "payload_contract": "contract: agent-decision-note/v0",
+      "attestation": "required"
+    },
+    {
+      "kind": "learned-fact",
+      "writer_class": "agent",
+      "revision_policy": "revisioned",
+      "carrier": "payload",
+      "classification": {
+        "sensitivity": "1-confidential",
+        "access-tier": "internal",
+        "retention-lifecycle": "standard"
+      },
+      "stream_volatility": "static",
+      "payload_contract": "contract: agent-learned-fact/v0"
+    },
+    {
+      "kind": "reference",
+      "writer_class": "agent",
+      "revision_policy": "revisioned",
+      "carrier": "payload",
+      "classification": {
+        "sensitivity": "1-confidential",
+        "access-tier": "internal",
+        "retention-lifecycle": "standard"
+      },
+      "stream_volatility": "static",
+      "payload_contract": "contract: agent-reference/v0"
+    },
+    {
+      "kind": "cred-ref",
+      "writer_class": "maintainer",
+      "revision_policy": "revisioned",
+      "carrier": "payload",
+      "classification": {
+        "sensitivity": "3-proprietary",
+        "access-tier": "internal",
+        "retention-lifecycle": "standard"
+      },
+      "stream_volatility": "static",
+      "payload_contract": "contract: agent-cred-ref/v0"
+    },
+    {
+      "kind": "blob",
+      "writer_class": "agent",
+      "revision_policy": "single",
+      "carrier": "body",
+      "classification": {
+        "sensitivity": "unknown",
+        "access-tier": "unknown",
+        "retention-lifecycle": "short"
+      },
+      "stream_volatility": "static",
+      "payload_contract": "contract: agent-blob/v0",
+      "classification_at_write": "required",
+      "limits": {
+        "max_body_bytes": 262144
+      },
+      "excluded_from": [
+        "wake",
+        "export",
+        "seed"
+      ]
+    }
+  ]
+}

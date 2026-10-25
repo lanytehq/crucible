@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/agentic/memory/v0/kinds/agent-week.schema.json",
+  "title": "Agent Week",
+  "description": "Goals and commitments for one ISO week.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "week",
+    "goals"
+  ],
+  "properties": {
+    "week": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-W[0-9]{2}$"
+    },
+    "goals": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      }
+    },
+    "commitments": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      }
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "active",
+        "closed"
+      ]
+    }
+  }
+}

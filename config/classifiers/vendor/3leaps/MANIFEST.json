@@ -1,0 +1,27 @@
+{
+  "source": "https://github.com/3leaps/crucible",
+  "commit": "16e6abcb1ee498da60e98f0712a29087ba55bbee",
+  "note": "Verbatim copies. Do not edit; refresh with scripts/vendor-3leaps-contracts.sh and review the diff.",
+  "files": {
+    "dimensions/access-tier.dimension.json": {
+      "upstream": "config/classifiers/dimensions/access-tier.dimension.json",
+      "sha256": "11823a09c6eb9f02e310676b18a2135a3f0f3f6a378b628b4977b7a9b2953ea7"
+    },
+    "dimensions/retention-lifecycle.dimension.json": {
+      "upstream": "config/classifiers/dimensions/retention-lifecycle.dimension.json",
+      "sha256": "a743ec908b3974ade612932072e720bc916553fd616b430a5af11825d560346c"
+    },
+    "dimensions/sensitivity.dimension.json": {
+      "upstream": "config/classifiers/dimensions/sensitivity.dimension.json",
+      "sha256": "a18ed87775a8ec7b043a8744a9b61e2efaed13d21c366c4e4bac357df623687b"
+    },
+    "dimensions/volatility.dimension.json": {
+      "upstream": "config/classifiers/dimensions/volatility.dimension.json",
+      "sha256": "591f1740d7871f11211cf242f14131fde61f96c64ea1a73f2544952fecc3a53f"
+    },
+    "schemas/dimension-definition.schema.json": {
+      "upstream": "schemas/classifiers/v0/dimension-definition.schema.json",
+      "sha256": "da2c8228b1eaeb9f3902a2ee36da4abcb83348e6b2179fdaaad521e8e495df22"
+    }
+  }
+}

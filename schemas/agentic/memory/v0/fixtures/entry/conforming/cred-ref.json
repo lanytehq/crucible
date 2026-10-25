@@ -1,0 +1,22 @@
+{
+  "v": 0,
+  "stream": "devlead.example",
+  "record_id": "cred:org-token",
+  "revision": 1,
+  "payload_contract": "contract: agent-cred-ref/v0",
+  "payload": {
+    "store": "seclusor",
+    "locator": "org/example",
+    "env_names": [
+      "GH_TOKEN_EXAMPLE"
+    ]
+  },
+  "provenance": {
+    "actor_kind": "human",
+    "actor": "maintainer"
+  },
+  "classification": {
+    "retention": "standard",
+    "sensitivity": "3-proprietary"
+  }
+}

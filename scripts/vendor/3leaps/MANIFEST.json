@@ -1,0 +1,11 @@
+{
+  "source": "https://github.com/3leaps/crucible",
+  "commit": "16e6abcb1ee498da60e98f0712a29087ba55bbee",
+  "note": "Verbatim copy. Do not edit; refresh with scripts/vendor-3leaps-contracts.sh and review the diff.",
+  "files": {
+    "rfc8785-canonicalize.py": {
+      "upstream": "scripts/rfc8785-canonicalize.py",
+      "sha256": "b3121736b69544c354164041818f007727e32326bbc6d01180dd8a907e044807"
+    }
+  }
+}

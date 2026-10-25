@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/agentic/memory/v0/kinds/agent-blob.schema.json",
+  "title": "Agent Blob",
+  "description": "Descriptive metadata for a blob entry. The bytes travel as the entry's durable-record body reference, never inline.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "title"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "tags": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+      }
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "maxLength": 40
+    }
+  }
+}

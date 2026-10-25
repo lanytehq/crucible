@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/agentic/memory/v0/kinds/agent-cred-ref.schema.json",
+  "title": "Agent Credential Reference",
+  "description": "Where a credential lives and how to unlock it. Never holds the credential value; any member name matching the shared secret-key pattern rejects the entry.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "store",
+    "locator"
+  ],
+  "properties": {
+    "store": {
+      "enum": [
+        "seclusor",
+        "env",
+        "keychain",
+        "file"
+      ]
+    },
+    "locator": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "recipient": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "env_names": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]{0,63}$"
+      }
+    },
+    "unlock_reference_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    }
+  }
+}

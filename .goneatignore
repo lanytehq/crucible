@@ -1,0 +1,5 @@
+# Vendored upstream files are pinned by sha256 in their MANIFEST.json and
+# verified by check-memory-v0; text formatters must not touch them.
+config/classifiers/vendor/
+schemas/vendor/
+scripts/vendor/

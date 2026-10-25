@@ -1,0 +1,7 @@
+{
+  "access-tier-below-sensitivity-floor": "3-proprietary requires access-tier >= restricted",
+  "duplicate-kind": "each kind appears once",
+  "dimension-value-unregistered": "every memory-kind value except unknown has a registry entry",
+  "kind-not-in-dimension": "registry kinds must be memory-kind dimension values",
+  "legacy-and-contract": "payload_contract XOR legacy"
+}

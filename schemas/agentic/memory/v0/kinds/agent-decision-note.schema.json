@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/agentic/memory/v0/kinds/agent-decision-note.schema.json",
+  "title": "Agent Decision Note",
+  "description": "A decision taken, with its rationale and the evidence it rests on.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "decision",
+    "rationale",
+    "decided_at"
+  ],
+  "properties": {
+    "decision": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time",
+      "maxLength": 40
+    },
+    "decided_by": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ref"
+        ],
+        "properties": {
+          "ref": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "alternatives": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256
+      }
+    }
+  }
+}

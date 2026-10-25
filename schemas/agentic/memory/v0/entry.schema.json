@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/agentic/memory/v0/entry.schema.json",
+  "title": "Agent Memory Entry",
+  "description": "One agent memory entry: a durable-record/v1 record narrowed to the memory-kind registry. Every instance is also a valid durable-record/v1 record; this profile adds constraints and never adds fields. Cross-entry and registry rules live in semantic-validation.md.",
+  "allOf": [
+    {
+      "$ref": "contract:durable-record/v1/record.schema.json"
+    },
+    {
+      "type": "object",
+      "required": [
+        "payload_contract"
+      ],
+      "properties": {
+        "stream": {
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}\\.[a-z0-9][a-z0-9_-]{0,63}$",
+          "description": "<role>.<scope> of the seat that owns the stream."
+        },
+        "payload_contract": {
+          "enum": [
+            "contract: agent-identity/v0",
+            "contract: agent-charter/v0",
+            "contract: agent-week/v0",
+            "contract: agent-day/v0",
+            "contract: agent-handoff/v0",
+            "contract: agent-decision-note/v0",
+            "contract: agent-learned-fact/v0",
+            "contract: agent-reference/v0",
+            "contract: agent-cred-ref/v0",
+            "contract: agent-blob/v0"
+          ]
+        },
+        "labels": {
+          "items": {
+            "maxLength": 64
+          }
+        }
+      }
+    }
+  ]
+}

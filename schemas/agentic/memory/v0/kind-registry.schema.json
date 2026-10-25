@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/agentic/memory/v0/kind-registry.schema.json",
+  "title": "Agent Memory Kind Registry",
+  "description": "Per-kind policy for agent memory entries: payload contract, writer class, revision policy, and classification floor. Writer class and classification are registry properties; nothing in an entry payload changes them. Cross-entry rules live in semantic-validation.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "registry_version",
+    "dimension",
+    "kinds"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "https://schemas.lanyte.dev/agentic/memory/v0/kind-registry.schema.json"
+    },
+    "registry_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "dimension": {
+      "const": "memory-kind",
+      "description": "Key of the classifier dimension whose values are this registry's kinds."
+    },
+    "kinds": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/kind"
+      }
+    }
+  },
+  "$defs": {
+    "kind": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "writer_class",
+        "revision_policy",
+        "carrier",
+        "classification",
+        "stream_volatility"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "payload_contract"
+          ],
+          "not": {
+            "required": [
+              "legacy"
+            ]
+          }
+        },
+        {
+          "required": [
+            "legacy"
+          ],
+          "not": {
+            "required": [
+              "payload_contract"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$",
+          "maxLength": 32,
+          "description": "A value key of the memory-kind dimension, other than unknown."
+        },
+        "payload_contract": {
+          "type": "string",
+          "pattern": "^contract: [a-z0-9][a-z0-9-]*/v[0-9]+$",
+          "description": "durable-record payload_contract token for entries of this kind."
+        },
+        "legacy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "note"
+          ],
+          "description": "The kind is stored in an existing format outside the memory entry envelope.",
+          "properties": {
+            "schema": {
+              "type": "string",
+              "format": "uri",
+              "maxLength": 256
+            },
+            "note": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          }
+        },
+        "writer_class": {
+          "enum": [
+            "agent",
+            "maintainer",
+            "external"
+          ],
+          "description": "Who may write entries of this kind. Checked against the writer's credential; provenance.actor_kind is a claim, not the authority."
+        },
+        "revision_policy": {
+          "enum": [
+            "append",
+            "single",
+            "revisioned"
+          ],
+          "description": "append: lane history, no record revisions. single: revision 1 only; later corrections are new entries. revisioned: supersedes chains of one record_id."
+        },
+        "carrier": {
+          "enum": [
+            "payload",
+            "body"
+          ],
+          "description": "Whether entries carry an inline payload or a body reference."
+        },
+        "classification": {
+          "$ref": "#/$defs/classification"
+        },
+        "classification_at_write": {
+          "const": "required",
+          "description": "The writer must supply classification; the registry value is not a usable default."
+        },
+        "stream_volatility": {
+          "enum": [
+            "unknown",
+            "static",
+            "monthly",
+            "weekly",
+            "daily",
+            "hourly",
+            "streaming"
+          ],
+          "description": "Expected change rate of this kind within a stream (3leaps volatility dimension). Never set on an individual entry."
+        },
+        "attestation": {
+          "const": "required",
+          "description": "Writes must carry a verified attestation session reference."
+        },
+        "cross_role_write": {
+          "const": "ack",
+          "description": "A seat other than the stream owner may write an acknowledgement revision."
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "max_body_bytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1048576
+            }
+          }
+        },
+        "excluded_from": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 8,
+          "items": {
+            "enum": [
+              "wake",
+              "recall",
+              "export",
+              "seed"
+            ]
+          }
+        }
+      }
+    },
+    "classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sensitivity",
+        "access-tier",
+        "retention-lifecycle"
+      ],
+      "description": "Floor for entries of this kind, keyed by 3leaps classifier dimension. Writers may raise sensitivity and access-tier, never lower them below this floor.",
+      "properties": {
+        "sensitivity": {
+          "enum": [
+            "unknown",
+            "0-public",
+            "1-confidential",
+            "2-blinded",
+            "3-proprietary",
+            "4-personal",
+            "5-privileged",
+            "6-eyes-only"
+          ]
+        },
+        "access-tier": {
+          "enum": [
+            "unknown",
+            "public",
+            "internal",
+            "restricted",
+            "privileged",
+            "eyes-only"
+          ]
+        },
+        "retention-lifecycle": {
+          "enum": [
+            "unknown",
+            "transient",
+            "short",
+            "standard",
+            "long",
+            "legal-hold"
+          ]
+        }
+      }
+    }
+  }
+}

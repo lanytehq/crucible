@@ -1,0 +1,26 @@
+{
+  "description": "Revision digests for conforming entries: sha256 over the RFC 8785 (JCS) bytes of the whole entry. Produced by the vendored 3leaps canonicalizer; every implementation must reproduce these exact values.",
+  "canonicalization": "RFC 8785",
+  "vectors": [
+    {
+      "entry": "fixtures/entry/conforming/learned-fact.json",
+      "canonical_length": 478,
+      "digest": "sha256:239918543536099cc62ca610f99a6e4a950316511b3a89fcd1ae46493e5eeeaf"
+    },
+    {
+      "entry": "fixtures/entry/conforming/handoff-acknowledged.json",
+      "canonical_length": 598,
+      "digest": "sha256:6578907650c8fd7261a51744a94080e0c4b3d2bbbf4b116f90df8513f76c06eb"
+    },
+    {
+      "entry": "fixtures/entry/conforming/cred-ref.json",
+      "canonical_length": 342,
+      "digest": "sha256:b3bc9c083d01c8997edbc282ee222beab5f0307e602da844e0b89bfe74b7aadb"
+    },
+    {
+      "entry": "fixtures/entry/conforming/blob.json",
+      "canonical_length": 453,
+      "digest": "sha256:8c96ec005db480ae1f8ba482c8594871ac5149a765ca6d15af57534811c9785a"
+    }
+  ]
+}

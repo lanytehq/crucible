@@ -1,0 +1,138 @@
+{
+  "$schema": "https://schemas.3leaps.dev/classifiers/v0/dimension-definition.schema.json",
+  "key": "memory-kind",
+  "name": "Agent Memory Kind",
+  "version": "0.1.0",
+  "status": "draft",
+  "type": "categorical",
+  "cardinality": "single",
+  "description": "The class of information an agent memory entry carries: what an agent needs to store, retrieve, or search against across sessions. Classification describes the content; it does not establish who may write it or confer authority.",
+  "categorical": {
+    "values": [
+      {
+        "key": "unknown",
+        "label": "Unknown",
+        "description": "The kind has not been determined. Writers must not store an entry under this value; readers treat it as unclassified.",
+        "order": 0,
+        "is_none": false
+      },
+      {
+        "key": "checkpoint",
+        "label": "Checkpoint",
+        "description": "A seat's resumable working state at a point in time (agent-state). Append-only lane history.",
+        "order": 1,
+        "is_none": false
+      },
+      {
+        "key": "identity",
+        "label": "Identity",
+        "description": "Who a seat is and the estate it operates in. Maintainer-provisioned; read-only to agents.",
+        "order": 2,
+        "is_none": false
+      },
+      {
+        "key": "charter",
+        "label": "Charter",
+        "description": "A seat's standing mandate, scope, and orientation for new sessions. Maintainer-authored.",
+        "order": 3,
+        "is_none": false
+      },
+      {
+        "key": "week",
+        "label": "Week",
+        "description": "Goals and commitments for a calendar week.",
+        "order": 4,
+        "is_none": false
+      },
+      {
+        "key": "day",
+        "label": "Day",
+        "description": "Plan and outcomes for one working day.",
+        "order": 5,
+        "is_none": false
+      },
+      {
+        "key": "handoff",
+        "label": "Handoff",
+        "description": "Work passed from one seat or session to another, with its acknowledgement.",
+        "order": 6,
+        "is_none": false
+      },
+      {
+        "key": "decision-note",
+        "label": "Decision note",
+        "description": "A decision taken, with its rationale and evidence. Attestation required.",
+        "order": 7,
+        "is_none": false
+      },
+      {
+        "key": "learned-fact",
+        "label": "Learned fact",
+        "description": "One observed, told, or inferred fact a seat should carry forward, with confidence and a review date.",
+        "order": 8,
+        "is_none": false
+      },
+      {
+        "key": "reference",
+        "label": "Reference",
+        "description": "A pointer to an external document by location and content digest, with the actions it applies to. Never a copy.",
+        "order": 9,
+        "is_none": false
+      },
+      {
+        "key": "cred-ref",
+        "label": "Credential reference",
+        "description": "Where a credential lives and how to unlock it. Never holds the credential value.",
+        "order": 10,
+        "is_none": false
+      },
+      {
+        "key": "blob",
+        "label": "Blob",
+        "description": "An opaque, size-capped binary or text body referenced by digest.",
+        "order": 11,
+        "is_none": false
+      }
+    ],
+    "index_strategy": {
+      "default_order": [
+        "unknown",
+        "checkpoint",
+        "identity",
+        "charter",
+        "week",
+        "day",
+        "handoff",
+        "decision-note",
+        "learned-fact",
+        "reference",
+        "cred-ref",
+        "blob"
+      ],
+      "missing_handling": "error"
+    }
+  },
+  "governance": {
+    "owner": "lanytehq-core",
+    "reviewers": [
+      "platform",
+      "security"
+    ],
+    "review_cycle": "quarterly",
+    "last_updated": "2026-10-25"
+  },
+  "examples": [
+    {
+      "dataset": "a seat's resumable state written at session end",
+      "value": "checkpoint"
+    },
+    {
+      "dataset": "a note that a CI gate needs a clean tree",
+      "value": "learned-fact"
+    },
+    {
+      "dataset": "the location and unlock steps for an org access token",
+      "value": "cred-ref"
+    }
+  ]
+}
