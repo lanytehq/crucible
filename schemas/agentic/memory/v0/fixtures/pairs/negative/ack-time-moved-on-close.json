@@ -1,0 +1,64 @@
+{
+  "predecessor": {
+    "v": 0,
+    "stream": "devlead.example",
+    "record_id": "handoff:2026-10-25:01",
+    "revision": 2,
+    "payload_contract": "contract: agent-handoff/v0",
+    "payload": {
+      "to": "devrev.example",
+      "summary": "Review the frozen tip.",
+      "state": "acknowledged",
+      "acknowledged_at": "2026-10-25T14:00:00Z"
+    },
+    "provenance": {
+      "actor_kind": "agent",
+      "actor": "devrev.example",
+      "supervisor": "maintainer",
+      "model": "example-model",
+      "tool": "example-tool"
+    },
+    "classification": {
+      "retention": "standard",
+      "sensitivity": "1-confidential"
+    },
+    "labels": [
+      "tag:example"
+    ],
+    "supersedes": {
+      "revision": 1,
+      "digest": "sha256:899048c99b8eb8d08bdc4ce667cc6683470f2bea5297e8fb84690de8d23de932"
+    }
+  },
+  "revision": {
+    "v": 0,
+    "stream": "devlead.example",
+    "record_id": "handoff:2026-10-25:01",
+    "revision": 3,
+    "payload_contract": "contract: agent-handoff/v0",
+    "payload": {
+      "to": "devrev.example",
+      "summary": "Review the frozen tip.",
+      "state": "closed",
+      "acknowledged_at": "2026-10-25T15:00:00Z"
+    },
+    "provenance": {
+      "actor_kind": "agent",
+      "actor": "devlead.example",
+      "supervisor": "maintainer",
+      "model": "example-model",
+      "tool": "example-tool"
+    },
+    "classification": {
+      "retention": "standard",
+      "sensitivity": "1-confidential"
+    },
+    "labels": [
+      "tag:example"
+    ],
+    "supersedes": {
+      "revision": 2,
+      "digest": "sha256:5f32da8a211aa2357357130bde72a466188c47477536873321278bc4040de1fb"
+    }
+  }
+}

@@ -10,6 +10,10 @@ fixtures cannot carry.
 
 ## Envelope rules
 
+Semantic rules run only on entries that pass the envelope schema and the
+durable-record/v1 record schema; an entry that fails either is judged on
+those errors alone.
+
 1. Every entry is a durable-record/v1 record. The profile narrows the record;
    it never adds a field. **(gate)**
 2. `payload_contract` names exactly one registered kind. A payload-carrier
@@ -68,8 +72,12 @@ fixtures cannot carry.
    handoff may be written by the seat named in `payload.to`, and only with
    `state: acknowledged`. **(gate)** Every acknowledgement, whoever writes it,
    holds the predecessor rules below. A handoff in state `acknowledged` is
-   always a revision above 1 written by the seat named in `payload.to`; the
-   stream owner cannot acknowledge its own handoff. **(gate)** Relative to the revision it supersedes,
+   always a revision above 1 written by the seat named in `payload.to`, in
+   the sender's stream; a seat never acknowledges a handoff in its own
+   stream, even one that names itself. **(gate)** `acknowledged_at` is set
+   only by an acknowledgement and never changes afterwards, so the owner can
+   close an acknowledged handoff but cannot forge or move its
+   acknowledgement. **(gate, pairs)** Relative to the revision it supersedes,
    the predecessor is `open`, and the acknowledgement keeps
    `classification`, `labels`, `links`, and every payload member other than
    `state` and `acknowledged_at`. **(gate, pairs)**
@@ -113,7 +121,7 @@ fixtures cannot carry.
    match before a trailing newline; this rule closes that gap for every
    engine. **(gate)**
 3. Every `format` is asserted. `date-time` is RFC 3339 with an offset in
-   range,
+   range and no leap second (stored instants stay totally ordered),
    `date` is an RFC 3339 full-date, and `uri` is absolute and uses only
    RFC 3986 characters and well-formed escapes. Dimension definitions are
    checked with the same formats. A schema that uses

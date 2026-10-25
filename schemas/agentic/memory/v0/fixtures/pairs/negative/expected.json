@@ -30,5 +30,17 @@
   "owner-self-ack-rewrite": {
     "code": "ack-predecessor-not-open",
     "why": "a self-addressed acknowledgement still needs an open predecessor and may not rewrite the handoff"
+  },
+  "owner-retargets-and-acknowledges": {
+    "code": "ack-payload-changed",
+    "why": "an acknowledgement may not change to or summary"
+  },
+  "owner-closes-with-forged-ack-time": {
+    "code": "ack-time-without-ack",
+    "why": "acknowledged_at is set only by an acknowledgement"
+  },
+  "ack-time-moved-on-close": {
+    "code": "ack-time-changed",
+    "why": "acknowledged_at does not change once set"
   }
 }

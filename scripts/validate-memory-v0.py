@@ -650,9 +650,11 @@ def entry_violations(entry: dict) -> list[tuple[str, str]]:
         if not handoff_ack:
             violations.append(("foreign-stream", f"{actor} may not write into stream {stream}"))
     if kind == "handoff" and payload.get("state") == "acknowledged":
-        if revision < 2 or actor != payload.get("to"):
+        # The recipient acknowledges, in the sender's stream. A seat never
+        # acknowledges a handoff in its own stream, even one naming itself.
+        if revision < 2 or actor != payload.get("to") or actor == stream:
             violations.append(
-                ("ack-not-by-recipient", "a handoff is acknowledged only by the seat named in to, in a later revision")
+                ("ack-not-by-recipient", "a handoff is acknowledged only by the seat named in to, in a later revision of the sender's stream")
             )
     if kind == "week" and isinstance(payload.get("week"), str):
         try:
@@ -668,12 +670,23 @@ def entry_violations(entry: dict) -> list[tuple[str, str]]:
 
 
 def entry_judge(instance) -> list[tuple[str, str]]:
-    problems = schema_codes(entry_validator, instance) + entry_violations(instance)
+    # Semantic rules assume the shape the schemas guarantee. An entry that
+    # fails the envelope or the durable-record record is judged on those
+    # errors alone.
+    problems = schema_codes(entry_validator, instance)
+    if problems or not isinstance(instance, dict) or not record_validator.is_valid(instance):
+        return problems or [("not-durable-record", "not a valid durable-record/v1 record")]
+    problems += entry_violations(instance)
+    problems += canonical_problems(instance)
+    return problems
+
+
+def canonical_problems(instance) -> list[tuple[str, str]]:
     try:
         jcs["jcs_dumps"](instance)
     except (TypeError, ValueError) as error:
-        problems.append(("not-canonicalizable", f"entry is not I-JSON: {error}"))
-    return problems
+        return [("not-canonicalizable", f"entry is not I-JSON: {error}")]
+    return []
 
 
 conforming = sorted((FIXTURES / "entry/conforming").glob("*.json"))
@@ -713,10 +726,15 @@ for fixture, want in load(FIXTURES / "reader-tier.json").items():
 
 # The decoder rejects inexact numbers, so no fixture reaches the
 # canonicalizability check through a number. Exercise it directly.
-if not any(code == "not-canonicalizable" for code, _ in entry_judge({**load(FIXTURES / "entry/conforming/learned-fact.json"), "revision": float("nan")})):
-    fail("canonicalizability self-test: NaN revision was not rejected")
+# Likewise the registry lookup: the entry enum and the registry list the
+# same tokens today, so only a drift between them could reach it.
+probe = load(FIXTURES / "entry/conforming/learned-fact.json")
+if not canonical_problems({**probe, "revision": float("nan")}):
+    fail("canonicalizability self-test: NaN was not rejected")
+elif not any(code == "unregistered-contract" for code, _ in entry_violations({**probe, "payload_contract": "contract: agent-unlisted/v0"})):
+    fail("registry self-test: unregistered payload_contract was not rejected")
 else:
-    ok("canonicalizability self-test")
+    ok("canonicalizability and registry self-tests")
 
 
 def entry_digest(entry: dict) -> str:
@@ -742,6 +760,13 @@ def pair_violations(pair: dict) -> list[tuple[str, str]]:
     if supersedes.get("digest") != entry_digest(before):
         violations.append(("supersedes-digest", "supersedes.digest is not the predecessor's digest"))
     provenance = after.get("provenance", {})
+    if after.get("payload_contract") == "contract: agent-handoff/v0":
+        was = before.get("payload", {}).get("acknowledged_at")
+        now = after.get("payload", {}).get("acknowledged_at")
+        if was is None and now is not None and after.get("payload", {}).get("state") != "acknowledged":
+            violations.append(("ack-time-without-ack", "acknowledged_at is set only by an acknowledgement"))
+        if was is not None and now != was:
+            violations.append(("ack-time-changed", "acknowledged_at does not change once set"))
     cross_seat = provenance.get("actor_kind") == "agent" and provenance.get("actor") != after.get("stream")
     acknowledging = after.get("payload", {}).get("state") == "acknowledged"
     if cross_seat or acknowledging:

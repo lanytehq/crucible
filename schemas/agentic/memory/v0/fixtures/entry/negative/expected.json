@@ -4,8 +4,8 @@
     "why": "the profile adds no envelope fields"
   },
   "unregistered-contract": {
-    "code": "unregistered-contract",
-    "why": "payload_contract is not in the memory-kind registry"
+    "code": "schema",
+    "why": "payload_contract is not in the registered set"
   },
   "dotted-contract-version": {
     "code": "schema",
@@ -178,5 +178,29 @@
   "credential-in-key-ref": {
     "code": "credential-in-envelope",
     "why": "key_ref names a key-custody record, never key material"
+  },
+  "owner-retargets-and-acknowledges": {
+    "code": "ack-not-by-recipient",
+    "why": "a seat never acknowledges a handoff in its own stream"
+  },
+  "classification-not-object": {
+    "code": "schema",
+    "why": "classification is an object"
+  },
+  "provenance-not-object": {
+    "code": "schema",
+    "why": "provenance is an object"
+  },
+  "revision-as-string": {
+    "code": "schema",
+    "why": "revision is an integer"
+  },
+  "body-not-object": {
+    "code": "schema",
+    "why": "body is an object"
+  },
+  "decided-at-leap-second": {
+    "code": "payload-schema",
+    "why": "leap seconds are not accepted; stored instants stay totally ordered"
   }
 }
