@@ -66,7 +66,8 @@ fixtures cannot carry.
    **(gate)**
 5. The one exception is a handoff acknowledgement. A revision above 1 of a
    handoff may be written by the seat named in `payload.to`, and only with
-   `state: acknowledged`. **(gate)** A handoff in state `acknowledged` is
+   `state: acknowledged`. **(gate)** Every acknowledgement, whoever writes it,
+   holds the predecessor rules below. A handoff in state `acknowledged` is
    always a revision above 1 written by the seat named in `payload.to`; the
    stream owner cannot acknowledge its own handoff. **(gate)** Relative to the revision it supersedes,
    the predecessor is `open`, and the acknowledgement keeps
@@ -103,12 +104,21 @@ fixtures cannot carry.
 ## Input rules
 
 1. Entries are I-JSON: unique member names, well-formed Unicode, and numbers
-   exact in IEEE 754 binary64. An entry that cannot be canonicalized is
-   rejected. **(gate)**
-2. Every `format` is asserted. `date-time` is RFC 3339 with an offset,
-   `date` is an RFC 3339 full-date, and `uri` is absolute. A schema that uses
+   exact in IEEE 754 binary64. Numbers are checked from their decimal text,
+   before any conversion, so a value that would round is rejected. An entry
+   that cannot be canonicalized is rejected. **(gate)**
+2. No string anywhere in an entry, envelope included, contains a control
+   character (U+0000–U+001F, U+007F) or a line or paragraph separator.
+   Inherited durable-record patterns end in `$`, which some regex engines let
+   match before a trailing newline; this rule closes that gap for every
+   engine. **(gate)**
+3. Every `format` is asserted. `date-time` is RFC 3339 with an offset in
+   range,
+   `date` is an RFC 3339 full-date, and `uri` is absolute and uses only
+   RFC 3986 characters and well-formed escapes. Dimension definitions are
+   checked with the same formats. A schema that uses
    a format the gate has no checker for fails the gate. **(gate)**
-3. A `week` names an ISO week that exists in its year: week 53 only in years
+4. A `week` names an ISO week that exists in its year: week 53 only in years
    that have one. **(gate)**
 
 ## Rendering rules
@@ -122,7 +132,9 @@ fixtures cannot carry.
 1. No payload carries a secret value. At any depth, a member name that fails
    `common/v0/secret-keys.schema.json#/$defs/memberName` or matches
    `secretShapedName`, and a string value that matches
-   `credentialShapedValue`, rejects the entry. **(gate)** The value check is a
+   `credentialShapedValue`, rejects the entry. Values are also checked in the
+   envelope (for example a body's `encryption.key_ref`). **(gate)** The value
+   check is a
    backstop for recognisable credentials; it cannot prove a string holds no
    secret.
 2. A credential reference names where a credential lives and how to unlock

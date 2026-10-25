@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import datetime
+import decimal
 import hashlib
 import json
+import math
 import pathlib
 import re
 import sys
@@ -85,11 +87,24 @@ def _check_text(value) -> None:
             _check_text(child)
 
 
+def _exact_number(token: str):
+    """Convert a JSON number token, refusing any value binary64 cannot hold exactly."""
+    exact = decimal.Decimal(token)
+    as_float = float(exact)
+    if not math.isfinite(as_float) or decimal.Decimal(as_float) != exact:
+        raise ValueError(f"number {token} is not exact in IEEE 754 binary64")
+    if exact == exact.to_integral_value() and "." not in token and "e" not in token.lower():
+        return int(exact)
+    return as_float
+
+
 def parse_ijson(raw: str):
-    """Decode I-JSON: unique member names, well-formed Unicode, finite numbers."""
+    """Decode I-JSON: unique member names, well-formed Unicode, exact binary64 numbers."""
     value = json.loads(
         raw,
         object_pairs_hook=_strict_object,
+        parse_float=_exact_number,
+        parse_int=_exact_number,
         parse_constant=lambda name: (_ for _ in ()).throw(ValueError(name)),
     )
     _check_text(value)
@@ -145,6 +160,10 @@ VENDOR_INVENTORY = {
     VENDOR_RECORD: {"record.schema.json"},
     VENDOR_JCS: {"rfc8785-canonicalize.py"},
 }
+def commit_id_ok(commit) -> bool:
+    return isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None
+
+
 for directory, inventory in VENDOR_INVENTORY.items():
     label = directory.relative_to(REPO)
     try:
@@ -154,7 +173,7 @@ for directory, inventory in VENDOR_INVENTORY.items():
         continue
     files = manifest.get("files") if isinstance(manifest, dict) else None
     commit = manifest.get("commit") if isinstance(manifest, dict) else None
-    if not isinstance(commit, str) or len(commit) != 40:
+    if not commit_id_ok(commit):
         fail(f"vendor {label}: MANIFEST.json commit is not a full sha")
     if not isinstance(files, dict) or set(files) != inventory:
         fail(f"vendor {label}: MANIFEST.json must list exactly {sorted(inventory)}")
@@ -219,7 +238,7 @@ registry = Registry().with_resources(resources)
 # treats a format with no registered checker as valid, so the gate registers
 # its own and refuses any format it has no checker for.
 RFC3339 = re.compile(
-    r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?(Z|[+-][0-9]{2}:[0-9]{2})"
+    r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])"
 )
 format_checker = FormatChecker(formats=())
 
@@ -248,11 +267,12 @@ def is_date(value) -> bool:
 def is_uri(value) -> bool:
     if not isinstance(value, str):
         return True
+    # RFC 3986 characters only, with every % starting a two-digit escape.
+    if not re.fullmatch(r"(?:[A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=]|%[0-9A-Fa-f]{2})+", value):
+        raise ValueError("URI has characters outside RFC 3986 or a bad escape")
     parts = urllib.parse.urlsplit(value)
     if not re.fullmatch(r"[A-Za-z][A-Za-z0-9+.-]*", parts.scheme) or not (parts.netloc or parts.path):
         raise ValueError("not an absolute URI")
-    if any(c.isspace() for c in value):
-        raise ValueError("URI contains whitespace")
     return True
 
 
@@ -301,7 +321,8 @@ kind_validators = {
 # --- the memory-kind dimension -----------------------------------------------
 
 dimension_meta = Draft202012Validator(
-    load(VENDOR_DIMENSIONS / "schemas/dimension-definition.schema.json")
+    load(VENDOR_DIMENSIONS / "schemas/dimension-definition.schema.json"),
+    format_checker=format_checker,
 )
 dimension = load(DIMENSION_FILE)
 errors = list(dimension_meta.iter_errors(dimension))
@@ -310,6 +331,19 @@ if errors:
 else:
     ok("dimension memory-kind")
 kind_values = dimension_keys(DIMENSION_FILE)
+
+# Guards whose failing input cannot live in the tree (vendored files stay
+# byte-identical; the published dimension stays valid). Run them on copies.
+bad_date = json.loads(json.dumps(dimension))
+bad_date["governance"]["last_updated"] = "2026-02-31"
+if dimension_meta.is_valid(bad_date):
+    fail("dimension self-test: impossible governance date accepted")
+else:
+    ok("dimension self-test: impossible governance date rejected")
+if commit_id_ok("z" * 40) or commit_id_ok("A" * 40) or not commit_id_ok("0" * 40):
+    fail("manifest self-test: commit id check is wrong")
+else:
+    ok("manifest self-test: commit id must be 40 lowercase hex")
 
 # --- classifier drift: inlined enums == vendored 3leaps dimensions -----------
 
@@ -521,6 +555,20 @@ for probe, expected_paths in (
         ok(f"secret walk self-test {sorted(probe)}")
 
 
+CONTROL = re.compile(r"[\x00-\x1f\x7f\u2028\u2029]")
+
+
+def strings_in(value, path: str = "$"):
+    if isinstance(value, str):
+        yield path, value
+    elif isinstance(value, dict):
+        for name, child in value.items():
+            yield from strings_in(child, f"{path}.{name}")
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            yield from strings_in(child, f"{path}[{index}]")
+
+
 def reader_tier(entry: dict, policy: dict) -> str:
     """Access tier a reader needs: the kind's tier or the entry's sensitivity floor, whichever is higher."""
     kind_tier = policy["classification"]["access-tier"]
@@ -547,6 +595,13 @@ def entry_violations(entry: dict) -> list[tuple[str, str]]:
     if "payload" in entry:
         for path in secret_paths(entry["payload"]):
             violations.append(("secret-shaped-member", f"secret-shaped member at {path}"))
+    # Whole entry, envelope included: inherited durable-record patterns end in
+    # $, which some engines let match before a trailing newline.
+    for path, text in strings_in(entry):
+        if CONTROL.search(text):
+            violations.append(("control-character", f"control character in {path}"))
+        if credential_value.is_valid(text) and not path.startswith("$.payload"):
+            violations.append(("credential-in-envelope", f"credential-shaped value at {path}"))
     body = entry.get("body", {})
     cap = policy.get("limits", {}).get("max_body_bytes")
     if cap is not None and body.get("length", 0) > cap:
@@ -656,6 +711,14 @@ for fixture, want in load(FIXTURES / "reader-tier.json").items():
 # holds {"predecessor": entry, "revision": entry}.
 
 
+# The decoder rejects inexact numbers, so no fixture reaches the
+# canonicalizability check through a number. Exercise it directly.
+if not any(code == "not-canonicalizable" for code, _ in entry_judge({**load(FIXTURES / "entry/conforming/learned-fact.json"), "revision": float("nan")})):
+    fail("canonicalizability self-test: NaN revision was not rejected")
+else:
+    ok("canonicalizability self-test")
+
+
 def entry_digest(entry: dict) -> str:
     canonical = jcs["jcs_dumps"](entry).encode("utf-8")
     return "sha256:" + hashlib.sha256(canonical).hexdigest()
@@ -679,8 +742,11 @@ def pair_violations(pair: dict) -> list[tuple[str, str]]:
     if supersedes.get("digest") != entry_digest(before):
         violations.append(("supersedes-digest", "supersedes.digest is not the predecessor's digest"))
     provenance = after.get("provenance", {})
-    if provenance.get("actor_kind") == "agent" and provenance.get("actor") != after.get("stream"):
-        # An agent writing outside its own stream is only ever acknowledging a handoff.
+    cross_seat = provenance.get("actor_kind") == "agent" and provenance.get("actor") != after.get("stream")
+    acknowledging = after.get("payload", {}).get("state") == "acknowledged"
+    if cross_seat or acknowledging:
+        # Any acknowledgement, and any agent write outside its own stream,
+        # holds the acknowledgement invariants against the predecessor.
         if before.get("payload", {}).get("state") != "open":
             violations.append(("ack-predecessor-not-open", "only an open handoff can be acknowledged"))
         for member in ("classification", "labels", "links"):

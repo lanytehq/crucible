@@ -108,8 +108,8 @@
     "why": "strings are well-formed Unicode"
   },
   "revision-beyond-binary64": {
-    "code": "not-canonicalizable",
-    "why": "integers must be exact in binary64 to canonicalize"
+    "code": "ijson",
+    "why": "numbers must be exact in IEEE 754 binary64"
   },
   "cred-ref-bearer-locator": {
     "code": "payload-schema",
@@ -158,5 +158,25 @@
   "decided-at-space-separator": {
     "code": "payload-schema",
     "why": "an RFC 3339 date-time uses T between date and time"
+  },
+  "stream-trailing-newline": {
+    "code": "control-character",
+    "why": "no control characters anywhere in an entry, including inherited envelope fields"
+  },
+  "record-id-trailing-newline": {
+    "code": "control-character",
+    "why": "record_id carries no control characters"
+  },
+  "label-with-newline": {
+    "code": "control-character",
+    "why": "labels carry no control characters"
+  },
+  "decided-at-offset-minutes-99": {
+    "code": "payload-schema",
+    "why": "offset minutes are 00 to 59"
+  },
+  "credential-in-key-ref": {
+    "code": "credential-in-envelope",
+    "why": "key_ref names a key-custody record, never key material"
   }
 }

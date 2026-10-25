@@ -26,5 +26,9 @@
   "ack-of-closed-handoff": {
     "code": "ack-predecessor-not-open",
     "why": "only an open handoff can be acknowledged"
+  },
+  "owner-self-ack-rewrite": {
+    "code": "ack-predecessor-not-open",
+    "why": "a self-addressed acknowledgement still needs an open predecessor and may not rewrite the handoff"
   }
 }

@@ -22,5 +22,13 @@
   "legacy-schema-not-uri": {
     "code": "schema",
     "why": "legacy.schema is an absolute URI"
+  },
+  "legacy-schema-bad-escape": {
+    "code": "schema",
+    "why": "a % starts a two-digit escape"
+  },
+  "legacy-schema-backslash": {
+    "code": "schema",
+    "why": "a URI has no backslash"
   }
 }
