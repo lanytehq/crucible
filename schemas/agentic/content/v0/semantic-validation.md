@@ -6,8 +6,9 @@ registry. Writers and readers must also enforce these rules. Rules marked
 names the rule it must be rejected for. The gate also fails if any rule
 it declares has neither a negative fixture nor a self-test. **(gate, pairs)** rules relate a
 revision to the revision it supersedes and are checked on
-`fixtures/pairs/`; **(gate, parents)** rules relate a goal to the entry
-that holds its parent and are checked on `fixtures/parents/`. The others need runtime state the
+`fixtures/pairs/`; **(gate, parents)** rules judge goal parent links over a
+snapshot of one stream (one current revision per record) and are checked
+on `fixtures/parents/`. The others need runtime state the
 fixtures cannot carry.
 
 ## Envelope rules
@@ -164,8 +165,11 @@ is plain text or a goal object; plain text stays valid on its own.
 4. Goal `id`s are unique within an entry. **(gate)**
 5. `parent` names the goal a goal serves, as `<record_id>#<goal id>` in the
    same stream, and must resolve to an existing goal. A goal is never its
-   own parent **(gate)**, and parent links form a forest: no cycles across
-   entries. **(gate, parents)**
+   own parent **(gate)**. Parent rules are judged over a snapshot: one
+   current revision per record, so the result does not depend on entry
+   order. In that snapshot every goal's parent resolves, not only the
+   newest entry's, and the links form a forest with no cycles.
+   **(gate, parents)**
 6. Stored weeks are ISO 8601 (Monday start). A reader that shows weeks
    another way converts at display time using the `week-start` dimension;
    stored values never change.

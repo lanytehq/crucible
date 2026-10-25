@@ -83,7 +83,7 @@ REASON_CODES = {
     "retention-floor", "writer-class", "foreign-stream", "ack-time-at-creation",
     "ack-not-by-recipient", "week-not-in-year", "identity-stream",
     "goal-id-duplicate", "goal-rank-precision", "goal-parent-missing",
-    "goal-parent-self", "goal-parent-cycle", "schema-ref-cycle",
+    "goal-parent-self", "goal-parent-cycle", "schema-ref-cycle", "snapshot-duplicate",
     "not-canonicalizable",
     # pairs
     "identity-changed", "supersedes-revision", "supersedes-digest",
@@ -982,49 +982,53 @@ check_negatives("pair", FIXTURES / "pairs/negative", pair_violations)
 
 
 def parent_violations(case: dict) -> list[tuple[str, str]]:
+    """Check goal parent links over a snapshot: one current entry per record.
+
+    A case is {"parents": [entry, ...], "child": entry}. The entries form a
+    snapshot of one stream: each (stream, record_id) appears once. Every
+    goal's parent, in the child and in every parent entry, must resolve to
+    a goal in that snapshot, and the links must not form a cycle.
+    """
     if not isinstance(case, dict) or not isinstance(case.get("child"), dict) or not isinstance(case.get("parents"), list):
         return [("pair-shape", "a parent case has parents and a child")]
-    violations = [(f"child-invalid", message) for _, message in entry_judge(case["child"])]
+    violations = [("child-invalid", message) for _, message in entry_judge(case["child"])]
     for entry in case["parents"]:
         violations += [("predecessor-invalid", message) for _, message in entry_judge(entry)]
     if violations:
         return violations
-    known = set()
-    for entry in case["parents"]:
-        if entry["stream"] != case["child"]["stream"]:
-            continue
-        kind = by_contract[entry["payload_contract"]]["kind"]
-        for name in GOAL_LISTS.get(kind, ()):
-            for item in entry["payload"].get(name, []):
-                if isinstance(item, dict) and "id" in item:
-                    known.add(f"{entry['record_id']}#{item['id']}")
     child = case["child"]
-    kind = by_contract[child["payload_contract"]]["kind"]
-    for name in GOAL_LISTS.get(kind, ()):
-        for item in child["payload"].get(name, []):
-            if isinstance(item, dict) and "parent" in item and item["parent"] not in known:
-                violations.append(("goal-parent-missing", f"parent {item['parent']} is not a goal in this stream"))
-    # Parent links across every entry in the case form a forest: no cycles.
-    edges: dict[str, str] = {}
+    snapshot: dict[str, dict] = {}
     for entry in [*case["parents"], child]:
         if entry["stream"] != child["stream"]:
             continue
+        if entry["record_id"] in snapshot:
+            return [("snapshot-duplicate", f"{entry['record_id']} appears more than once; a snapshot holds one current revision per record")]
+        snapshot[entry["record_id"]] = entry
+
+    def goals_of(entry: dict):
         entry_kind = by_contract[entry["payload_contract"]]["kind"]
         for name in GOAL_LISTS.get(entry_kind, ()):
             for item in entry["payload"].get(name, []):
-                if isinstance(item, dict) and "id" in item and "parent" in item:
-                    edges[f"{entry['record_id']}#{item['id']}"] = item["parent"]
-    for start in edges:
+                if isinstance(item, dict):
+                    yield item
+
+    known = {f"{rid}#{goal['id']}" for rid, entry in snapshot.items() for goal in goals_of(entry) if "id" in goal}
+    edges: dict[str, str] = {}
+    for rid, entry in snapshot.items():
+        for goal in goals_of(entry):
+            if "parent" not in goal:
+                continue
+            if goal["parent"] not in known:
+                violations.append(("goal-parent-missing", f"parent {goal['parent']} of {rid} is not a goal in this stream"))
+            if "id" in goal:
+                edges[f"{rid}#{goal['id']}"] = goal["parent"]
+    for start in sorted(edges):
         seen, node = set(), start
         while node in edges:
             if node in seen:
-                violations.append(("goal-parent-cycle", f"parent links from {start} form a cycle"))
-                break
+                return violations + [("goal-parent-cycle", f"parent links from {start} form a cycle")]
             seen.add(node)
             node = edges[node]
-        else:
-            continue
-        break
     return violations
 
 

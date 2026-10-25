@@ -14,5 +14,29 @@
   "parent-cycle": {
     "code": "goal-parent-cycle",
     "why": "parent links form a forest; a day goal and a week goal cannot be each other's parents"
+  },
+  "snapshot-two-revisions": {
+    "code": "snapshot-duplicate",
+    "why": "a snapshot holds one current revision per record"
+  },
+  "snapshot-two-revisions-reversed": {
+    "code": "snapshot-duplicate",
+    "why": "the result does not depend on entry order"
+  },
+  "parent-removed-in-current-revision": {
+    "code": "goal-parent-missing",
+    "why": "a parent resolves only against the current revision"
+  },
+  "ancestor-parent-missing": {
+    "code": "goal-parent-missing",
+    "why": "every goal's parent in the snapshot resolves, not only the child's"
+  },
+  "ancestor-parent-is-charter": {
+    "code": "goal-parent-missing",
+    "why": "a charter holds no goals, so it cannot be a parent"
+  },
+  "ancestor-parent-in-other-stream": {
+    "code": "goal-parent-missing",
+    "why": "parents resolve within one stream"
   }
 }
