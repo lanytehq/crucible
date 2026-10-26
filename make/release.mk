@@ -4,7 +4,10 @@
 #
 # Environment variables (full details in the scripts/release-*.sh headers):
 #   LANYTE_CRUCIBLE_RELEASE_TAG      the release tag (required; never derived from VERSION or git)
-#   LANYTE_CRUCIBLE_GPG_HOMEDIR      dedicated signing keyring directory
+#   LANYTE_CRUCIBLE_DECERNOR_BIN     absolute path to decernor >= 0.1.8 (required for
+#                                    anchor and tag verification; no PATH fallback)
+#   LANYTE_CRUCIBLE_GPG_HOMEDIR      dedicated signing keyring (required to sign; never the
+#                                    default keyring)
 #   LANYTE_CRUCIBLE_PGP_KEY_ID       key id/email/fingerprint for signing
 #   LANYTE_CRUCIBLE_TAGGER_NAME      tagger name stamped on the tag object
 #   LANYTE_CRUCIBLE_TAGGER_EMAIL     tagger email stamped on the tag object
@@ -18,8 +21,12 @@ release-tag: ## Create signed release tag with safety checks
 	@./scripts/release-tag.sh
 
 .PHONY: release-verify-tag
-release-verify-tag: ## Verify signed tag signature
+release-verify-tag: ## Verify the tag against the committed pin in a throwaway keyring
 	@./scripts/release-verify-tag.sh
+
+.PHONY: release-check-anchors
+release-check-anchors: ## Re-derive the fingerprint anchors with decernor and compare
+	@./scripts/release-derive-anchors.sh --check
 
 .PHONY: release-guard-tag-version
 release-guard-tag-version: ## Verify release tag matches VERSION file
