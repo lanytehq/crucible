@@ -14,7 +14,11 @@ drafts the GitHub Release, but never signs. Signing keys never touch CI.
 - `LANYTE_CRUCIBLE_RELEASE_TAG`: the release tag (e.g., `v0.3.1`). **Required** for
   every release target; it is never derived from `VERSION`, `git describe`, or the
   branch. It must match `VERSION`.
-- `LANYTE_CRUCIBLE_GPG_HOMEDIR`: dedicated signing keyring directory (recommended)
+- `LANYTE_CRUCIBLE_GPG_HOMEDIR`: dedicated signing keyring directory. **Required**
+  to sign; the default GPG keyring is refused, as are an inherited `GNUPGHOME`
+  naming a different directory and a `gpg.program` other than `gpg`.
+- `LANYTE_CRUCIBLE_DECERNOR_BIN`: absolute path to decernor 0.1.8 or newer.
+  **Required** to verify a tag or check the anchors; there is no `PATH` lookup.
 - `LANYTE_CRUCIBLE_PGP_KEY_ID`: key id for signing. Set this to the
   **dedicated signing subkey** — the entry carrying the `[S]` usage flag in
   `gpg --list-secret-keys --keyid-format LONG` — suffixed with `!` to force
@@ -62,6 +66,15 @@ Note: These are not secrets and typically aren't stored in encrypted env bundles
   export LANYTE_CRUCIBLE_RELEASE_TAG=vX.Y.Z   # the tag you intend to create
   make release-guard-tag-version
   ```
+- [ ] Committed pins match their anchors:
+  ```bash
+  export LANYTE_CRUCIBLE_DECERNOR_BIN=/absolute/path/to/decernor
+  make release-check-anchors
+  ```
+- [ ] Version-tag ruleset is the full policy (bypass actors included):
+  ```bash
+  direnv exec . make release-guard-tag-ruleset
+  ```
 
 ## Tagging (Signed Tag Required)
 
@@ -72,7 +85,7 @@ Note: These are not secrets and typically aren't stored in encrypted env bundles
 export GPG_TTY="$(tty)"
 gpg-connect-agent updatestartuptty /bye
 
-# Point to dedicated signing keyring (recommended)
+# Dedicated signing keyring (required; never the default keyring)
 export LANYTE_CRUCIBLE_GPG_HOMEDIR="/path/to/signing-keyring"
 export LANYTE_CRUCIBLE_PGP_KEY_ID="your-key-id"
 
@@ -100,21 +113,19 @@ The script performs these safety checks before creating the tag:
 - Clean working tree required
 - Must be on `main` branch (set `LANYTE_CRUCIBLE_ALLOW_NON_MAIN=1` to override)
 - Tag must not already exist
+- Dedicated signing keyring and plain `gpg` required
 - GPG signing key availability verified
 - Automatic signature verification after creation
 
-### 3. Verify the signed tag (optional manual check)
+### 3. Verify the signed tag against the committed pin
 
 ```bash
 make release-verify-tag
-# or:
-git tag -v "${LANYTE_CRUCIBLE_RELEASE_TAG}"
 ```
 
-Expected output includes:
-
-- `gpg: Signature made ...`
-- `gpg: Good signature from ...`
+This imports `docs/security/release-signing-keys.asc` from the tagged commit
+into a throwaway keyring and requires one good signature by the pinned signing
+subkey, with the committed tagger identity. Your own keyring is not consulted.
 
 ### 4. Push
 
@@ -131,8 +142,9 @@ direnv exec . git -c credential.helper= -c 'credential.helper=!gh auth git-crede
 
 - [ ] Verify tag appears on GitHub: https://github.com/lanytehq/crucible/tags
 - [ ] Verify the `release` workflow (`.github/workflows/release.yml`) runs on the tag
-      push: it re-checks tag/VERSION consistency, release notes, CHANGELOG entry, and
-      quality gates, then creates a **draft** GitHub Release from
+      push: it verifies the tag against the pin in the tagged commit (decernor and
+      goneat installed by digest), re-checks tag/VERSION consistency, release notes,
+      CHANGELOG entry, and quality gates, then creates a **draft** GitHub Release from
       `docs/releases/vX.Y.Z.md`
 - [ ] Review the draft release, then publish it:
   ```bash
@@ -142,12 +154,15 @@ direnv exec . git -c credential.helper= -c 'credential.helper=!gh auth git-crede
 
 ### Verify tag signature (optional)
 
-**Local git** (most reliable):
+**Against the committed pin** (independent check, from a separate clone):
 
 ```bash
-git fetch --tags origin
-git tag -v "${LANYTE_CRUCIBLE_RELEASE_TAG}"
+export LANYTE_CRUCIBLE_DECERNOR_BIN=/absolute/path/to/decernor
+./scripts/verify-pinned-tag.sh "${LANYTE_CRUCIBLE_RELEASE_TAG}"
 ```
+
+Tags up to and including `v0.3.0` predate the pins; verify those with the
+scripts in their own commit.
 
 **GitHub API** (CI-friendly):
 
@@ -185,11 +200,14 @@ git revert <commit-hash>
 
 ### Make Targets
 
-| Target                           | Purpose                                       |
-| -------------------------------- | --------------------------------------------- |
-| `make release-tag`               | Create signed git tag with all safety checks  |
-| `make release-verify-tag`        | Verify an existing signed tag                 |
-| `make release-guard-tag-version` | Verify tag matches VERSION file (CI-friendly) |
+| Target                           | Purpose                                                     |
+| -------------------------------- | ----------------------------------------------------------- |
+| `make release-tag`               | Create signed git tag with all safety checks                |
+| `make release-verify-tag`        | Verify a tag against the committed pin                      |
+| `make release-guard-tag-version` | Verify tag matches VERSION file (CI-friendly)               |
+| `make release-check-anchors`     | Re-derive the fingerprint anchors with decernor and compare |
+| `make release-guard-tag-ruleset` | Verify the live version-tag ruleset, full policy only       |
+| `make release-check-goneat-pin`  | Admit goneat CI digests against goneat's signed checksums   |
 
 ### Scripts
 
@@ -216,8 +234,12 @@ All scripts are in `scripts/` and can be run directly if needed.
 
 **`scripts/release-verify-tag.sh`** - Signature verification:
 
-- Verifies the GPG signature on `LANYTE_CRUCIBLE_RELEASE_TAG` (required)
-- Respects `LANYTE_CRUCIBLE_GPG_HOMEDIR` for dedicated keyrings
+- Verifies `LANYTE_CRUCIBLE_RELEASE_TAG` (required) with
+  `scripts/verify-pinned-tag.sh`: pins, anchors, and tagger identity from the
+  tagged commit, a throwaway keyring, and the checker from
+  `LANYTE_CRUCIBLE_DECERNOR_BIN`
+
+Adoption choices and deviations: [ADR-0020](docs/decisions/adr-0020-release-identity-adoption.md).
 
 ---
 

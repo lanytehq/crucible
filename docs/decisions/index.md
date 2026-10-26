@@ -9,24 +9,25 @@ Decisions are recorded as ADRs when they are hard to reverse or when multiple vi
 
 ## ADR Index
 
-| ID       | Decision                                                                   | Status              |
-| -------- | -------------------------------------------------------------------------- | ------------------- |
-| ADR-0004 | Repo layout for kitsites                                                   | Proposed            |
-| ADR-0005 | GitHub governance and templates                                            | Proposed            |
-| ADR-0006 | IPC schema design patterns (naming, bidirectional union, strict mode)      | Accepted            |
-| ADR-0007 | Autonomy gate architecture (gate_token flow via ADMIN channel)             | Accepted            |
-| ADR-0008 | Audit event integrity via wire-level hash chain                            | Accepted            |
-| ADR-0009 | Agent memory store v1 strategy (SQLite + app-enforced INSERT-only)         | Accepted            |
-| ADR-0010 | LLM adapter design (direct-to-frontier-model, no abstraction intermediary) | Accepted + Addendum |
-| ADR-0011 | Provenance and blockchain strategy (Sigstore v1, blockchain Sprint 5+)     | Accepted            |
-| ADR-0012 | CLI stdout purity policy (stdout for data, stderr for diagnostics)         | Accepted            |
-| ADR-0013 | Feature-gated test support in workspace crates                             | Accepted            |
-| ADR-0014 | Transport reliability policy                                               | Accepted            |
-| ADR-0015 | Grant phase must produce instantiate-ready artifacts                       | Accepted            |
-| ADR-0016 | Agent-critical file input symlink policy                                   | Accepted            |
-| ADR-0017 | Out-of-band planning root                                                  | Proposed            |
-| ADR-0018 | Explicit local runtime-control contracts                                   | Proposed            |
-| ADR-0019 | Ordering ranks on a binary grid (multiples of 1/16)                        | Proposed            |
+| ID       | Decision                                                                        | Status              |
+| -------- | ------------------------------------------------------------------------------- | ------------------- |
+| ADR-0004 | Repo layout for kitsites                                                        | Proposed            |
+| ADR-0005 | GitHub governance and templates                                                 | Proposed            |
+| ADR-0006 | IPC schema design patterns (naming, bidirectional union, strict mode)           | Accepted            |
+| ADR-0007 | Autonomy gate architecture (gate_token flow via ADMIN channel)                  | Accepted            |
+| ADR-0008 | Audit event integrity via wire-level hash chain                                 | Accepted            |
+| ADR-0009 | Agent memory store v1 strategy (SQLite + app-enforced INSERT-only)              | Accepted            |
+| ADR-0010 | LLM adapter design (direct-to-frontier-model, no abstraction intermediary)      | Accepted + Addendum |
+| ADR-0011 | Provenance and blockchain strategy (Sigstore v1, blockchain Sprint 5+)          | Accepted            |
+| ADR-0012 | CLI stdout purity policy (stdout for data, stderr for diagnostics)              | Accepted            |
+| ADR-0013 | Feature-gated test support in workspace crates                                  | Accepted            |
+| ADR-0014 | Transport reliability policy                                                    | Accepted            |
+| ADR-0015 | Grant phase must produce instantiate-ready artifacts                            | Accepted            |
+| ADR-0016 | Agent-critical file input symlink policy                                        | Accepted            |
+| ADR-0017 | Out-of-band planning root                                                       | Proposed            |
+| ADR-0018 | Explicit local runtime-control contracts                                        | Proposed            |
+| ADR-0019 | Ordering ranks on a binary grid (multiples of 1/16)                             | Proposed            |
+| ADR-0020 | Release identity adoption (PDR-0008 pins, explicit inputs, CI tag verification) | Proposed            |
 
 ## DDR Index
 
