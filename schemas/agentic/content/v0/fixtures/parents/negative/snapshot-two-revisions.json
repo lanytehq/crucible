@@ -1,0 +1,125 @@
+{
+  "parents": [
+    {
+      "v": 0,
+      "stream": "devlead.example",
+      "record_id": "week:2026-W44",
+      "revision": 1,
+      "payload_contract": "contract: agent-week/v0",
+      "payload": {
+        "week": "2026-W44",
+        "status": "active",
+        "goals": [
+          {
+            "id": "g1",
+            "outcome": "Merge the content contract and cut v0.3.0",
+            "rank": 1,
+            "priority": "p1",
+            "status": "active",
+            "acceptance": [
+              "Release tag signed"
+            ]
+          },
+          {
+            "id": "g2",
+            "outcome": "Land the content store seam",
+            "rank": 2,
+            "priority": "p2",
+            "status": "ready"
+          }
+        ]
+      },
+      "provenance": {
+        "actor_kind": "agent",
+        "actor": "devlead.example",
+        "supervisor": "maintainer",
+        "model": "example-model",
+        "tool": "example-tool"
+      },
+      "classification": {
+        "retention": "short",
+        "sensitivity": "1-confidential"
+      }
+    },
+    {
+      "v": 0,
+      "stream": "devlead.example",
+      "record_id": "week:2026-W44",
+      "revision": 2,
+      "payload_contract": "contract: agent-week/v0",
+      "payload": {
+        "week": "2026-W44",
+        "status": "active",
+        "goals": [
+          {
+            "id": "g1",
+            "outcome": "Merge the content contract and cut v0.3.0",
+            "rank": 1,
+            "priority": "p1",
+            "status": "active",
+            "acceptance": [
+              "Release tag signed"
+            ]
+          }
+        ]
+      },
+      "provenance": {
+        "actor_kind": "agent",
+        "actor": "devlead.example",
+        "supervisor": "maintainer",
+        "model": "example-model",
+        "tool": "example-tool"
+      },
+      "classification": {
+        "retention": "short",
+        "sensitivity": "1-confidential"
+      },
+      "supersedes": {
+        "revision": 1,
+        "digest": "sha256:4919b3172e087099d5fb4620c560142944c6cee63d5eefe4e08e1c00adc0085d"
+      }
+    }
+  ],
+  "child": {
+    "v": 0,
+    "stream": "devlead.example",
+    "record_id": "day:2026-10-27",
+    "revision": 1,
+    "payload_contract": "contract: agent-day/v0",
+    "payload": {
+      "date": "2026-10-27",
+      "plan": [
+        "Read the review notes",
+        {
+          "id": "d1",
+          "outcome": "Open the prepare-v0.3.0 PR",
+          "rank": 1,
+          "parent": "week:2026-W44#g1"
+        },
+        {
+          "id": "d2",
+          "outcome": "Draft the store trait",
+          "rank": 1.5,
+          "parent": "week:2026-W44#g2"
+        },
+        {
+          "id": "d3",
+          "outcome": "Run the post-merge epilogue",
+          "rank": 2,
+          "status": "done"
+        }
+      ]
+    },
+    "provenance": {
+      "actor_kind": "agent",
+      "actor": "devlead.example",
+      "supervisor": "maintainer",
+      "model": "example-model",
+      "tool": "example-tool"
+    },
+    "classification": {
+      "retention": "short",
+      "sensitivity": "1-confidential"
+    }
+  }
+}

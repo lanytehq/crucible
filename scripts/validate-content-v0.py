@@ -3,14 +3,19 @@
 
 from __future__ import annotations
 
+import sys
+
+# Never leave bytecode caches beside the validator or vendored files.
+sys.dont_write_bytecode = True
+
 import datetime
 import decimal
+import fractions
 import hashlib
 import json
 import math
 import pathlib
 import re
-import sys
 
 try:
     from jsonschema import Draft202012Validator, FormatChecker
@@ -65,7 +70,7 @@ failures: list[str] = []
 # fixture that names it, or by a self-test listed in SELF_TESTED, so no
 # rejection rule can be deleted without the gate noticing.
 REASON_CODES = {
-    "schema", "ijson", "pair-shape", "predecessor-invalid", "revision-invalid",
+    "schema", "ijson", "pair-shape", "predecessor-invalid", "revision-invalid", "child-invalid",
     # registry
     "duplicate-kind", "kind-not-in-dimension", "dimension-value-unregistered",
     "duplicate-contract", "access-tier-floor", "unknown-default", "unknown-unpaired",
@@ -77,6 +82,8 @@ REASON_CODES = {
     "supersedes-gap", "classification-at-write", "sensitivity-floor",
     "retention-floor", "writer-class", "foreign-stream", "ack-time-at-creation",
     "ack-not-by-recipient", "week-not-in-year", "identity-stream",
+    "goal-id-duplicate", "goal-rank-precision", "goal-parent-missing",
+    "goal-parent-self", "goal-parent-cycle", "schema-ref-cycle", "snapshot-duplicate",
     "not-canonicalizable",
     # pairs
     "identity-changed", "supersedes-revision", "supersedes-digest",
@@ -85,6 +92,7 @@ REASON_CODES = {
 }
 # Codes no fixture can reach on its own; each has a self-test below.
 SELF_TESTED = {
+    "schema-ref-cycle",     # bounds self-test; shipped schemas are acyclic
     "not-durable-record",   # record self-test; the entry schema rejects such input first
     "unregistered-contract",  # registry self-test; the entry enum rejects first
     "not-canonicalizable",  # canonicalizability self-test
@@ -246,6 +254,7 @@ jcs = load_jcs()
 schema_paths = (
     [FAMILY / "entry.schema.json", FAMILY / "kind-registry.schema.json"]
     + sorted((FAMILY / "kinds").glob("*.schema.json"))
+    + sorted((FAMILY / "kinds/common").glob("*.schema.json"))
     + [SECRET_KEYS, VENDOR_RECORD / "record.schema.json"]
 )
 resources = []
@@ -370,11 +379,17 @@ dimension_meta = Draft202012Validator(
     format_checker=format_checker,
 )
 dimension = load(DIMENSION_FILE)
-errors = list(dimension_meta.iter_errors(dimension))
-if errors:
-    fail(f"dimension content-kind: {errors[0].message}")
-else:
-    ok("dimension content-kind")
+# Every Lanyte-owned dimension validates against the vendored meta-schema.
+for path in sorted((REPO / "config/classifiers/dimensions").glob("*.dimension.json")):
+    definition = load(path)
+    errors = list(dimension_meta.iter_errors(definition))
+    key = path.name.removesuffix(".dimension.json")
+    if errors:
+        fail(f"dimension {key}: {errors[0].message}")
+    elif definition.get("key") != key:
+        fail(f"dimension {key}: key {definition.get('key')!r} does not match its file name")
+    else:
+        ok(f"dimension {key}")
 kind_values = dimension_keys(DIMENSION_FILE)
 
 # Guards whose failing input cannot live in the tree (vendored files stay
@@ -525,22 +540,66 @@ by_contract = {
 # --- bounds: every payload field has a stated maximum -------------------------
 
 
-def unbounded(node: dict, path: str) -> list[str]:
+class RefCycle(Exception):
+    pass
+
+
+def resolve(node: dict, base: str, trail: frozenset = frozenset()) -> tuple[dict, str]:
+    """Follow $ref within the loaded schemas; return the target and its document id."""
+    ref = node.get("$ref")
+    if not ref:
+        return node, base
+    doc, _, pointer = ref.partition("#")
+    doc = doc or base
+    key = f"{doc}#{pointer}"
+    if key in trail:
+        raise RefCycle(key)
+    target = schemas[doc]
+    for part in [p for p in pointer.split("/") if p]:
+        target = target[part.replace("~1", "/").replace("~0", "~")]
+    return resolve(target, doc, trail | {key})
+
+
+def unbounded(node: dict, path: str, base: str, trail: frozenset = frozenset()) -> list[str]:
     found: list[str] = []
+    if id(node) in trail:
+        raise RefCycle(path)
+    trail = trail | {id(node)}
+    node, base = resolve(node, base)
+    for keyword in ("oneOf", "anyOf", "allOf"):
+        for index, branch in enumerate(node.get(keyword, [])):
+            found.extend(unbounded(branch, f"{path}<{keyword}{index}>", base, trail))
     kind = node.get("type")
     if kind == "string" and not ({"maxLength", "enum", "const"} & node.keys()):
         found.append(path)
     if kind == "array":
         if "maxItems" not in node:
             found.append(path + "[]")
-        found.extend(unbounded(node["items"], path + "[]"))
+        found.extend(unbounded(node["items"], path + "[]", base, trail))
     for name, child in node.get("properties", {}).items():
-        found.extend(unbounded(child, f"{path}.{name}"))
+        found.extend(unbounded(child, f"{path}.{name}", base, trail))
     return found
 
 
+# The shipped schemas have no $ref cycle; prove the walker would stop on one.
+_loop = "https://schemas.lanyte.dev/agentic/content/v0/self-test-loop.schema.json"
+schemas[_loop] = {"$id": _loop, "$defs": {"a": {"$ref": "#/$defs/b"}, "b": {"$ref": "#/$defs/a"}}}
+try:
+    unbounded({"$ref": f"{_loop}#/$defs/a"}, "$", _loop)
+except RefCycle:
+    self_test_proven.add("schema-ref-cycle")
+    ok("bounds self-test: a $ref cycle is reported")
+else:
+    fail("bounds self-test: a $ref cycle was not reported")
+finally:
+    del schemas[_loop]
+
 for contract, validator in kind_validators.items():
-    gaps = unbounded(validator.schema, "$")
+    try:
+        gaps = unbounded(validator.schema, "$", validator.schema["$id"])
+    except RefCycle as cycle:
+        fail(f"bounds {contract}: $ref cycle at {cycle}")
+        continue
     if gaps:
         fail(f"bounds {contract}: unbounded {gaps}")
     else:
@@ -607,6 +666,10 @@ for probe, expected_paths in (
 
 
 MAX_SAFE_INTEGER = 2**53 - 1
+# Lists that hold goal items, by kind. A rank is a multiple of 1/RANK_GRID so
+# every value is exact in binary64 and every language compares it the same way.
+GOAL_LISTS = {"week": ("goals", "commitments"), "day": ("plan", "outcomes", "carry_over")}
+RANK_GRID = 16
 CONTROL = re.compile(r"[\x00-\x1f\x7f\u2028\u2029]")
 
 
@@ -644,6 +707,9 @@ def entry_violations(entry: dict) -> list[tuple[str, str]]:
     if "payload" in entry and entry["payload_contract"] in kind_validators:
         for error in kind_validators[entry["payload_contract"]].iter_errors(entry["payload"]):
             violations.append(("payload-schema", f"{kind} payload: {error.message}"))
+        # Payload rules below assume the shape the kind schema guarantees.
+        if violations:
+            return violations
     if "payload" in entry:
         for path in secret_paths(entry["payload"]):
             violations.append(("secret-shaped-member", f"secret-shaped member at {path}"))
@@ -720,6 +786,23 @@ def entry_violations(entry: dict) -> list[tuple[str, str]]:
             datetime.date.fromisocalendar(int(year), int(week), 1)
         except ValueError:
             violations.append(("week-not-in-year", f"{payload['week']} is not an ISO week"))
+    # Goal objects in week and day lists.
+    goals = [
+        item
+        for name in GOAL_LISTS.get(kind, ())
+        for item in payload.get(name, [])
+        if isinstance(item, dict)
+    ]
+    ids = [goal["id"] for goal in goals if "id" in goal]
+    if len(ids) != len(set(ids)):
+        violations.append(("goal-id-duplicate", "goal ids are unique within an entry"))
+    for goal in goals:
+        rank = goal.get("rank")
+        if isinstance(rank, (int, float)) and (fractions.Fraction(rank) * RANK_GRID).denominator != 1:
+            violations.append(("goal-rank-precision", f"rank is not a multiple of 1/{RANK_GRID}"))
+        parent = goal.get("parent")
+        if isinstance(parent, str) and parent == f"{entry.get('record_id')}#{goal.get('id')}":
+            violations.append(("goal-parent-self", "a goal is not its own parent"))
     if kind == "identity":
         agent = payload.get("agent", {})
         if f"{agent.get('role')}.{agent.get('scope')}" != stream:
@@ -891,6 +974,72 @@ for fixture in sorted((FIXTURES / "pairs/conforming").glob("*.json")):
         ok(f"pair conforming {fixture.name}")
 check_negatives("pair", FIXTURES / "pairs/negative", pair_violations)
 
+# --- goal parents ------------------------------------------------------------
+#
+# A goal's parent names <record_id>#<goal id> in the same stream. Each file in
+# fixtures/parents holds {"parents": [entry, ...], "child": entry}: the child's
+# parent references must resolve to a goal id in one of the parent entries.
+
+
+def parent_violations(case: dict) -> list[tuple[str, str]]:
+    """Check goal parent links over a snapshot: one current entry per record.
+
+    A case is {"parents": [entry, ...], "child": entry}. The entries form a
+    snapshot of one stream: each (stream, record_id) appears once. Every
+    goal's parent, in the child and in every parent entry, must resolve to
+    a goal in that snapshot, and the links must not form a cycle.
+    """
+    if not isinstance(case, dict) or not isinstance(case.get("child"), dict) or not isinstance(case.get("parents"), list):
+        return [("pair-shape", "a parent case has parents and a child")]
+    violations = [("child-invalid", message) for _, message in entry_judge(case["child"])]
+    for entry in case["parents"]:
+        violations += [("predecessor-invalid", message) for _, message in entry_judge(entry)]
+    if violations:
+        return violations
+    child = case["child"]
+    snapshot: dict[str, dict] = {}
+    for entry in [*case["parents"], child]:
+        if entry["stream"] != child["stream"]:
+            continue
+        if entry["record_id"] in snapshot:
+            return [("snapshot-duplicate", f"{entry['record_id']} appears more than once; a snapshot holds one current revision per record")]
+        snapshot[entry["record_id"]] = entry
+
+    def goals_of(entry: dict):
+        entry_kind = by_contract[entry["payload_contract"]]["kind"]
+        for name in GOAL_LISTS.get(entry_kind, ()):
+            for item in entry["payload"].get(name, []):
+                if isinstance(item, dict):
+                    yield item
+
+    known = {f"{rid}#{goal['id']}" for rid, entry in snapshot.items() for goal in goals_of(entry) if "id" in goal}
+    edges: dict[str, str] = {}
+    for rid, entry in snapshot.items():
+        for goal in goals_of(entry):
+            if "parent" not in goal:
+                continue
+            if goal["parent"] not in known:
+                violations.append(("goal-parent-missing", f"parent {goal['parent']} of {rid} is not a goal in this stream"))
+            if "id" in goal:
+                edges[f"{rid}#{goal['id']}"] = goal["parent"]
+    for start in sorted(edges):
+        seen, node = set(), start
+        while node in edges:
+            if node in seen:
+                return violations + [("goal-parent-cycle", f"parent links from {start} form a cycle")]
+            seen.add(node)
+            node = edges[node]
+    return violations
+
+
+for fixture in sorted((FIXTURES / "parents/conforming").glob("*.json")):
+    problems = parent_violations(load(fixture))
+    if problems:
+        fail(f"parent conforming {fixture.name}: {problems[0][1]}")
+    else:
+        ok(f"parent conforming {fixture.name}")
+check_negatives("parent", FIXTURES / "parents/negative", parent_violations)
+
 # --- digest vectors (RFC 8785 JCS, sha256) -----------------------------------
 
 vectors = load(VECTORS)
@@ -904,6 +1053,25 @@ for vector in vectors["vectors"]:
         fail(f"digest {vector['entry']}: canonical length {len(canonical)}")
     else:
         ok(f"digest {vector['entry']}")
+
+# Sort vectors: the documented order is executable, not only described.
+
+
+def goal_order(items: list) -> list[int]:
+    def key(pair):
+        index, item = pair
+        rank = item.get("rank") if isinstance(item, dict) else None
+        return (index if rank is None else rank, index)
+    return [index for index, _ in sorted(enumerate(items), key=key)]
+
+
+for case in load(FAMILY / "sort-vectors.json")["cases"]:
+    items = case["value"] if "value" in case else load(FAMILY / case["entry"])["payload"][case["list"]]
+    got = goal_order(items)
+    if got != case["order"]:
+        fail(f"sort {case['name']}: {got}, expected {case['order']}")
+    else:
+        ok(f"sort {case['name']}")
 
 # Reason-code coverage: every declared code is proven, and no proof is stale.
 unproven = REASON_CODES - proven_codes - (SELF_TESTED & self_test_proven)

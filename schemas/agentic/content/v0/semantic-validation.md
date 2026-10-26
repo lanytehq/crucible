@@ -6,7 +6,9 @@ registry. Writers and readers must also enforce these rules. Rules marked
 names the rule it must be rejected for. The gate also fails if any rule
 it declares has neither a negative fixture nor a self-test. **(gate, pairs)** rules relate a
 revision to the revision it supersedes and are checked on
-`fixtures/pairs/`. The others need runtime state the
+`fixtures/pairs/`; **(gate, parents)** rules judge goal parent links over a
+snapshot of one stream (one current revision per record) and are checked
+on `fixtures/parents/`. The others need runtime state the
 fixtures cannot carry.
 
 ## Envelope rules
@@ -141,6 +143,37 @@ valid, and registry rules only on a registry that passes its schema.
    a format the gate has no checker for fails the gate. **(gate)**
 4. A `week` names an ISO week that exists in its year: week 53 only in years
    that have one. **(gate)**
+
+## Goal rules
+
+Week `goals` and `commitments`, and day `plan`, `outcomes`, and
+`carry_over`, hold goal items (`kinds/common/goal-item.schema.json`). An item
+is plain text or a goal object; plain text stays valid on its own.
+
+1. A goal object needs an `outcome`. `status` and `priority` use the
+   contract: project-work/v0 values, so a goal can become a ready packet
+   without translation. **(gate)**
+2. Order: each item's sort key is its effective rank, then its list index.
+   The effective rank is the item's `rank`, or its list index when it has
+   none, so plain-text items sort by position. Lower rank sorts first. An
+   unordered set is goal objects that share one rank. `priority` (`p0`
+   most urgent) is a separate field and does not change order. `sort-vectors.json` pins the expected order for representative lists;
+   every implementation must reproduce it. **(gate)**
+3. `rank` is a number within ±2^31 that is a multiple of 1/16, so every
+   implementation stores and compares it exactly. A writer inserts by
+   halving (1.5, 1.25, …) and renumbers the list when no multiple of 1/16
+   fits. See ADR-0019. **(gate)**
+4. Goal `id`s are unique within an entry. **(gate)**
+5. `parent` names the goal a goal serves, as `<record_id>#<goal id>` in the
+   same stream, and must resolve to an existing goal. A goal is never its
+   own parent **(gate)**. Parent rules are judged over a snapshot: one
+   current revision per record, so the result does not depend on entry
+   order. In that snapshot every goal's parent resolves, not only the
+   newest entry's, and the links form a forest with no cycles.
+   **(gate, parents)**
+6. Stored weeks are ISO 8601 (Monday start). A reader that shows weeks
+   another way converts at display time using the `week-start` dimension;
+   stored values never change.
 
 ## Rendering rules
 

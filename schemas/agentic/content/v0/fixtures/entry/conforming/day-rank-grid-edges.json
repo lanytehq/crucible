@@ -1,0 +1,38 @@
+{
+  "v": 0,
+  "stream": "devlead.example",
+  "record_id": "day:2026-10-29",
+  "revision": 1,
+  "payload_contract": "contract: agent-day/v0",
+  "payload": {
+    "date": "2026-10-29",
+    "plan": [
+      {
+        "id": "a",
+        "outcome": "Insert at the finest grid step",
+        "rank": 1.0625
+      },
+      {
+        "id": "b",
+        "outcome": "Negative ranks sort first",
+        "rank": -0.5
+      },
+      {
+        "id": "c",
+        "outcome": "Largest allowed rank",
+        "rank": 2147483648
+      }
+    ]
+  },
+  "provenance": {
+    "actor_kind": "agent",
+    "actor": "devlead.example",
+    "supervisor": "maintainer",
+    "model": "example-model",
+    "tool": "example-tool"
+  },
+  "classification": {
+    "retention": "short",
+    "sensitivity": "1-confidential"
+  }
+}

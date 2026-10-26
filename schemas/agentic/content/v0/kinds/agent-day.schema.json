@@ -15,31 +15,13 @@
       "maxLength": 10
     },
     "plan": {
-      "type": "array",
-      "maxItems": 6,
-      "items": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 120
-      }
+      "$ref": "https://schemas.lanyte.dev/agentic/content/v0/kinds/goal-item.schema.json#/$defs/goalList"
     },
     "outcomes": {
-      "type": "array",
-      "maxItems": 6,
-      "items": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 120
-      }
+      "$ref": "https://schemas.lanyte.dev/agentic/content/v0/kinds/goal-item.schema.json#/$defs/goalList"
     },
     "carry_over": {
-      "type": "array",
-      "maxItems": 6,
-      "items": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 120
-      }
+      "$ref": "https://schemas.lanyte.dev/agentic/content/v0/kinds/goal-item.schema.json#/$defs/goalList"
     }
   }
 }

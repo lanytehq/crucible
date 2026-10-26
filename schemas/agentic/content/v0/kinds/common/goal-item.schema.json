@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lanyte.dev/agentic/content/v0/kinds/goal-item.schema.json",
+  "title": "Goal Item",
+  "description": "One item in a week or day list: plain text, or a goal object with optional structure. Sort key is the effective rank (rank, or list index when absent), then list index; lower first. Lifecycle and priority values follow contract: project-work/v0 so a goal can be lifted into a ready packet without translation.",
+  "$defs": {
+    "goalList": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "$ref": "#/$defs/goalItem"
+      }
+    },
+    "goalItem": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/goalText"
+        },
+        {
+          "$ref": "#/$defs/goal"
+        }
+      ]
+    },
+    "goalText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome"
+      ],
+      "properties": {
+        "outcome": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "The desired result in one breath (project-work outcome)."
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
+          "maxLength": 64,
+          "description": "Unique within its entry. Referenced as <record_id>#<id>."
+        },
+        "rank": {
+          "type": "number",
+          "minimum": -2147483648,
+          "maximum": 2147483648,
+          "description": "Lower rank first. A multiple of 1/16 within \u00b12^31 (ADR-0019); renumber rather than add precision."
+        },
+        "priority": {
+          "enum": [
+            "p0",
+            "p1",
+            "p2",
+            "p3"
+          ],
+          "description": "Coarse priority, p0 highest (project-work priority)."
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "ready",
+            "active",
+            "blocked",
+            "review",
+            "done",
+            "cancelled"
+          ],
+          "description": "Semantic lifecycle class (project-work lifecycle_class)."
+        },
+        "acceptance": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "description": "Checkable completion criteria."
+        },
+        "parent": {
+          "type": "string",
+          "maxLength": 193,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}#[a-z0-9][a-z0-9._-]{0,63}$",
+          "description": "The goal this one serves, as <record_id>#<goal id> in the same stream."
+        }
+      }
+    }
+  }
+}

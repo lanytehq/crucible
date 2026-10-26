@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.lanyte.dev/agentic/content/v0/kinds/agent-week.schema.json",
   "title": "Agent Week",
-  "description": "Goals and commitments for one ISO week.",
+  "description": "Goals and commitments for one ISO 8601 week (YYYY-Www, Monday start). Display in another week convention is a reader concern.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -16,22 +16,10 @@
       "maxLength": 8
     },
     "goals": {
-      "type": "array",
-      "maxItems": 6,
-      "items": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 120
-      }
+      "$ref": "https://schemas.lanyte.dev/agentic/content/v0/kinds/goal-item.schema.json#/$defs/goalList"
     },
     "commitments": {
-      "type": "array",
-      "maxItems": 6,
-      "items": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 120
-      }
+      "$ref": "https://schemas.lanyte.dev/agentic/content/v0/kinds/goal-item.schema.json#/$defs/goalList"
     },
     "status": {
       "enum": [

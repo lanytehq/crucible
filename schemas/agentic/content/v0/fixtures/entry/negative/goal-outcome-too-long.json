@@ -1,0 +1,42 @@
+{
+  "v": 0,
+  "stream": "devlead.example",
+  "record_id": "day:2026-10-27",
+  "revision": 1,
+  "payload_contract": "contract: agent-day/v0",
+  "payload": {
+    "date": "2026-10-27",
+    "plan": [
+      "Read the review notes",
+      {
+        "id": "d1",
+        "outcome": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "rank": 1,
+        "parent": "week:2026-W44#g1"
+      },
+      {
+        "id": "d2",
+        "outcome": "Draft the store trait",
+        "rank": 1.5,
+        "parent": "week:2026-W44#g2"
+      },
+      {
+        "id": "d3",
+        "outcome": "Run the post-merge epilogue",
+        "rank": 2,
+        "status": "done"
+      }
+    ]
+  },
+  "provenance": {
+    "actor_kind": "agent",
+    "actor": "devlead.example",
+    "supervisor": "maintainer",
+    "model": "example-model",
+    "tool": "example-tool"
+  },
+  "classification": {
+    "retention": "short",
+    "sensitivity": "1-confidential"
+  }
+}
