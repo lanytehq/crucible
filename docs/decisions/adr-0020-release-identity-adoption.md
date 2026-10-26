@@ -106,6 +106,15 @@ other credential helpers cleared. They are not pushed through the clone's
 land under the same identity CI verifies, and the organization token is that
 identity on every clone, SSH or HTTPS.
 
+The explicit URL is only explicit if nothing between the script and the
+wire rewrites it. `make release-push-tag` therefore runs git with global and
+system config ignored and injected configuration removed, which clears both
+credential helpers and `url.*.insteadOf` for the invocation. It refuses
+repository config that sets either. gh sees only `GH_TOKEN`, never its stored
+logins, and a missing token stops the push. Deleting a tag goes through the
+same checks (`make release-delete-remote-tag`), since deletion is in the
+ruleset too.
+
 Bypass evidence, recorded 2026-10-26 by a read of
 `repos/lanytehq/crucible/rulesets/25903946` with that token, with no tag
 pushed: `current_user_can_bypass` is `"always"`. This is GitHub's own rule

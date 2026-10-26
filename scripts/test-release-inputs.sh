@@ -133,6 +133,28 @@ fi
 assert_refuses "keyring: GNUPGHOME names a different directory" release-tag.sh \
   "GNUPGHOME is set to a different directory" "$OK_TAG" \
   LANYTE_CRUCIBLE_GPG_HOMEDIR="$DED" GNUPGHOME="$WORK/fakehome"
+# GNUPGHOME equal to the dedicated keyring is allowed, and the default is
+# resolved with GNUPGHOME unset. Were it not scrubbed, gpgconf would report the
+# dedicated keyring as the default and refuse it. The run fails later (no key),
+# so the control asserts only that no keyring refusal was the reason.
+keyring_accepted_with_gnupghome() {
+  local repo
+  repo="$(new_repo "$pass-$fail")"
+  run_scrubbed "$repo" release-tag.sh "$OK_TAG" LANYTE_CRUCIBLE_GPG_HOMEDIR="$DED" GNUPGHOME="$DED" \
+    >"$WORK/out" 2>"$WORK/err" || true
+  if grep -qE "LANYTE_CRUCIBLE_GPG_HOMEDIR|GNUPGHOME|default GPG keyring" "$WORK/err"; then
+    echo "[FAIL] keyring: GNUPGHOME equal to the dedicated keyring was refused" >&2
+    sed 's/^/       /' "$WORK/err" >&2
+    fail=$((fail + 1))
+  elif [[ -n "$(git -C "$repo" tag -l)" ]]; then
+    echo "[FAIL] keyring: GNUPGHOME control created a tag" >&2
+    fail=$((fail + 1))
+  else
+    echo "[ok] accepts: keyring: GNUPGHOME equal to the dedicated keyring (default resolved without it)"
+    pass=$((pass + 1))
+  fi
+}
+keyring_accepted_with_gnupghome
 assert_refuses "keyring: other repository's keyring variable" release-tag.sh \
   "retired, unprefixed, or other-repository release variable set" "$OK_TAG" \
   LANYTE_CRUCIBLE_GPG_HOMEDIR="$DED" THREELEAPS_CRUCIBLE_GPG_HOMEDIR="$DED"

@@ -129,14 +129,26 @@ subkey, with the committed tagger identity. Your own keyring is not consulted.
 
 ### 4. Push
 
-Push the tag ref only, over HTTPS with the org token, so the push does not
-depend on the clone's `origin` URL (an SSH remote is common on maintainer
-clones):
-
 ```bash
-direnv exec . git -c credential.helper= -c 'credential.helper=!gh auth git-credential' \
-  push https://github.com/lanytehq/crucible.git "refs/tags/${LANYTE_CRUCIBLE_RELEASE_TAG}"
+direnv exec . make release-push-tag
 ```
+
+The target pushes only the tag ref to `https://github.com/lanytehq/crucible.git`,
+never the clone's `origin` (an SSH remote is common on maintainer clones). Before
+the push it requires:
+
+- `GH_TOKEN` from the org root's direnv; gh's stored logins and other token
+  variables are not used, and a missing token stops the push
+- git with global and system config ignored, so no `url.*.insteadOf` rewrite or
+  credential helper outside the repository applies; repository config that
+  rewrites URLs or sets credentials is refused
+- the version-tag ruleset is the full policy, and a fresh read reports
+  `current_user_can_bypass: "always"` for this credential
+- the local annotated tag verifies against the committed pin, its commit is on
+  `main` at that URL, and the remote tag does not already exist
+
+After the push it requires the remote tag object to equal the local one, then
+reads GitHub's verified flag. Do not push the tag by hand.
 
 ## Post-Release
 
@@ -186,8 +198,8 @@ If issues are discovered after release:
 # Delete the draft/published GitHub release (if created)
 gh release delete v<VERSION> --repo lanytehq/crucible
 
-# Delete remote tag
-git push origin --delete v<VERSION>
+# Delete remote tag: same credential, transport, and ruleset checks as the push
+LANYTE_CRUCIBLE_RELEASE_TAG=v<VERSION> direnv exec . make release-delete-remote-tag
 
 # Delete local tag
 git tag -d v<VERSION>
@@ -200,14 +212,16 @@ git revert <commit-hash>
 
 ### Make Targets
 
-| Target                           | Purpose                                                     |
-| -------------------------------- | ----------------------------------------------------------- |
-| `make release-tag`               | Create signed git tag with all safety checks                |
-| `make release-verify-tag`        | Verify a tag against the committed pin                      |
-| `make release-guard-tag-version` | Verify tag matches VERSION file (CI-friendly)               |
-| `make release-check-anchors`     | Re-derive the fingerprint anchors with decernor and compare |
-| `make release-guard-tag-ruleset` | Verify the live version-tag ruleset, full policy only       |
-| `make release-check-goneat-pin`  | Admit goneat CI digests against goneat's signed checksums   |
+| Target                           | Purpose                                                      |
+| -------------------------------- | ------------------------------------------------------------ |
+| `make release-tag`               | Create signed git tag with all safety checks                 |
+| `make release-verify-tag`        | Verify a tag against the committed pin                       |
+| `make release-guard-tag-version` | Verify tag matches VERSION file (CI-friendly)                |
+| `make release-check-anchors`     | Re-derive the fingerprint anchors with decernor and compare  |
+| `make release-guard-tag-ruleset` | Verify the live version-tag ruleset, full policy only        |
+| `make release-push-tag`          | Verify and push the signed tag over HTTPS with the org token |
+| `make release-delete-remote-tag` | Rollback: delete the remote tag through the same checks      |
+| `make release-check-goneat-pin`  | Admit goneat CI digests against goneat's signed checksums    |
 
 ### Scripts
 

@@ -39,3 +39,11 @@ release-check-goneat-pin: ## Admit goneat CI digests: check them against goneat'
 .PHONY: release-guard-tag-ruleset
 release-guard-tag-ruleset: ## Verify the live version-tag ruleset, bypass actors included (gh via org-root direnv)
 	@./scripts/release-guard-tag-ruleset.sh
+
+.PHONY: release-push-tag
+release-push-tag: ## Verify and push the signed tag over HTTPS with the org token (direnv exec the org root)
+	@./scripts/release-push-tag.sh
+
+.PHONY: release-delete-remote-tag
+release-delete-remote-tag: ## Rollback: delete the remote tag with the same credential and transport checks
+	@./scripts/release-push-tag.sh --delete
