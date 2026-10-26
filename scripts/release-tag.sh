@@ -10,7 +10,7 @@
 # - Automatic signature verification after creation
 #
 # Environment variables:
-# - LANYTE_CRUCIBLE_RELEASE_TAG: override tag (default: v$(cat VERSION))
+# - LANYTE_CRUCIBLE_RELEASE_TAG: the tag to create (required; never derived)
 # - LANYTE_CRUCIBLE_GPG_HOMEDIR: dedicated signing keyring directory
 # - LANYTE_CRUCIBLE_PGP_KEY_ID: specific key id/email/fingerprint
 # - LANYTE_CRUCIBLE_TAGGER_EMAIL: tagger email stamped on the tag object
@@ -104,14 +104,18 @@ main() {
   root="$(repo_root)"
   cd "$root"
 
+  # shellcheck source=scripts/release-env.sh
+  source scripts/release-env.sh
+  refuse_legacy_release_env
+
+  local tag
+  tag="$(require_release_tag)"
+
+  # The tag must agree with VERSION; VERSION never supplies it.
   local version
   version="$(read_version)"
-
-  local tag="${LANYTE_CRUCIBLE_RELEASE_TAG:-v${version}}"
-
-  # Validate tag format
-  if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "error: invalid release tag '$tag' (expected vMAJOR.MINOR.PATCH)" >&2
+  if [[ "$tag" != "v${version}" ]]; then
+    echo "error: LANYTE_CRUCIBLE_RELEASE_TAG ($tag) does not match VERSION ($version)" >&2
     exit 1
   fi
 

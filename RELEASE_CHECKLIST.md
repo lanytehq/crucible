@@ -11,7 +11,9 @@ drafts the GitHub Release, but never signs. Signing keys never touch CI.
 
 ## Variables (Quick Reference)
 
-- `LANYTE_CRUCIBLE_RELEASE_TAG`: optional override tag (e.g., `v0.0.1`)
+- `LANYTE_CRUCIBLE_RELEASE_TAG`: the release tag (e.g., `v0.3.1`). **Required** for
+  every release target; it is never derived from `VERSION`, `git describe`, or the
+  branch. It must match `VERSION`.
 - `LANYTE_CRUCIBLE_GPG_HOMEDIR`: dedicated signing keyring directory (recommended)
 - `LANYTE_CRUCIBLE_PGP_KEY_ID`: key id for signing. Set this to the
   **dedicated signing subkey** — the entry carrying the `[S]` usage flag in
@@ -23,8 +25,9 @@ drafts the GitHub Release, but never signs. Signing keys never touch CI.
 - `LANYTE_CRUCIBLE_TAGGER_NAME`: tagger name stamped on signed tag objects
 - `LANYTE_CRUCIBLE_TAGGER_EMAIL`: tagger email stamped on signed tag objects
 - `LANYTE_CRUCIBLE_ALLOW_NON_MAIN`: set to `1` to allow tagging from non-main branch
-- `LANYTE_CRUCIBLE_REQUIRE_TAG`: set to `1` to make the tag/VERSION guard fail when
-  HEAD carries no tag (used in CI)
+- Retired, unprefixed, and 3leaps (`THREELEAPS_CRUCIBLE_*`) release variables are
+  **refused**, not ignored, including the former `LANYTE_CRUCIBLE_REQUIRE_TAG`
+  (see `scripts/release-env.sh`).
 
 > **Why `LANYTE_CRUCIBLE_`?** The prefix disambiguates this repository's release
 > environment from other Crucible-style repositories and avoids generic environment
@@ -56,6 +59,7 @@ Note: These are not secrets and typically aren't stored in encrypted env bundles
 - [ ] CI (`check` workflow) passes on `main`
 - [ ] Guard: ensure tag/version match:
   ```bash
+  export LANYTE_CRUCIBLE_RELEASE_TAG=vX.Y.Z   # the tag you intend to create
   make release-guard-tag-version
   ```
 
@@ -84,11 +88,14 @@ GNUPGHOME="${LANYTE_CRUCIBLE_GPG_HOMEDIR}" gpg --list-secret-keys --keyid-format
 ### 2. Create the signed tag (with safety checks)
 
 ```bash
+export LANYTE_CRUCIBLE_RELEASE_TAG=vX.Y.Z   # required; must match VERSION
 make release-tag
 ```
 
 The script performs these safety checks before creating the tag:
 
+- `LANYTE_CRUCIBLE_RELEASE_TAG` is set (never derived) and matches `VERSION`;
+  retired or unprefixed release variables are refused
 - Tag format validation (`vMAJOR.MINOR.PATCH`)
 - Clean working tree required
 - Must be on `main` branch (set `LANYTE_CRUCIBLE_ALLOW_NON_MAIN=1` to override)
@@ -101,7 +108,7 @@ The script performs these safety checks before creating the tag:
 ```bash
 make release-verify-tag
 # or:
-git tag -v v$(cat VERSION)
+git tag -v "${LANYTE_CRUCIBLE_RELEASE_TAG}"
 ```
 
 Expected output includes:
@@ -111,9 +118,13 @@ Expected output includes:
 
 ### 4. Push
 
+Push the tag ref only, over HTTPS with the org token, so the push does not
+depend on the clone's `origin` URL (an SSH remote is common on maintainer
+clones):
+
 ```bash
-git push origin main
-git push origin v$(cat VERSION)
+direnv exec . git -c credential.helper= -c 'credential.helper=!gh auth git-credential' \
+  push https://github.com/lanytehq/crucible.git "refs/tags/${LANYTE_CRUCIBLE_RELEASE_TAG}"
 ```
 
 ## Post-Release
@@ -125,7 +136,7 @@ git push origin v$(cat VERSION)
       `docs/releases/vX.Y.Z.md`
 - [ ] Review the draft release, then publish it:
   ```bash
-  gh release edit v$(cat VERSION) --repo lanytehq/crucible --draft=false
+  gh release edit "${LANYTE_CRUCIBLE_RELEASE_TAG}" --repo lanytehq/crucible --draft=false
   ```
 - [ ] Spot-check release notes render correctly
 
@@ -135,13 +146,13 @@ git push origin v$(cat VERSION)
 
 ```bash
 git fetch --tags origin
-git tag -v v$(cat VERSION)
+git tag -v "${LANYTE_CRUCIBLE_RELEASE_TAG}"
 ```
 
 **GitHub API** (CI-friendly):
 
 ```bash
-TAG_SHA=$(gh api repos/lanytehq/crucible/git/ref/tags/v$(cat VERSION) --jq .object.sha)
+TAG_SHA=$(gh api repos/lanytehq/crucible/git/ref/tags/"${LANYTE_CRUCIBLE_RELEASE_TAG}" --jq .object.sha)
 gh api repos/lanytehq/crucible/git/tags/$TAG_SHA --jq .verification
 ```
 
@@ -186,7 +197,9 @@ All scripts are in `scripts/` and can be run directly if needed.
 
 **`scripts/release-tag.sh`** - The primary release script. Safety checks:
 
-1. Validates tag format (`vMAJOR.MINOR.PATCH`)
+1. Requires `LANYTE_CRUCIBLE_RELEASE_TAG` (never derived); refuses retired or
+   unprefixed release variables; validates `vMAJOR.MINOR.PATCH` and that it
+   matches `VERSION`
 2. Ensures working tree is clean (no uncommitted changes)
 3. Ensures on `main` branch (override with `LANYTE_CRUCIBLE_ALLOW_NON_MAIN=1`)
 4. Ensures tag doesn't already exist
@@ -196,13 +209,14 @@ All scripts are in `scripts/` and can be run directly if needed.
 
 **`scripts/release-guard-tag-version.sh`** - Version consistency check:
 
-- Compares current git tag (or `LANYTE_CRUCIBLE_RELEASE_TAG` env var) against `VERSION` file
-- Use in CI with `LANYTE_CRUCIBLE_REQUIRE_TAG=1` to enforce tag presence
-- Exits 0 if match, exits 1 if mismatch
+- Compares `LANYTE_CRUCIBLE_RELEASE_TAG` (required) against the `VERSION` file;
+  there is no `git describe` fallback
+- CI passes the pushed tag explicitly: `LANYTE_CRUCIBLE_RELEASE_TAG="${GITHUB_REF_NAME}"`
+- Exits 0 if match, exits 1 if mismatch or the tag is missing
 
 **`scripts/release-verify-tag.sh`** - Signature verification:
 
-- Verifies GPG signature on the tag for `VERSION` (or `LANYTE_CRUCIBLE_RELEASE_TAG`)
+- Verifies the GPG signature on `LANYTE_CRUCIBLE_RELEASE_TAG` (required)
 - Respects `LANYTE_CRUCIBLE_GPG_HOMEDIR` for dedicated keyrings
 
 ---

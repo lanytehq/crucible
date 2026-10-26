@@ -67,7 +67,7 @@ jobs:
           fi
           echo "CHANGELOG entry found for ${version}"
       - name: Release guard (tag/VERSION consistency)
-        run: LANYTE_CRUCIBLE_REQUIRE_TAG=1 make release-guard-tag-version
+        run: LANYTE_CRUCIBLE_RELEASE_TAG="${GITHUB_REF_NAME}" make release-guard-tag-version
       - name: Repo Checks
         run: |
           make check
