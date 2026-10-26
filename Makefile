@@ -23,7 +23,7 @@ clean: ## Remove build artifacts (placeholder)
 	@echo "[ok] nothing to clean"
 
 .PHONY: check
-check: guard-no-submodules guard-version-file check-ipc-schemas check-dispatch-v0 check-mission-v0 check-mission-v0.1 check-chanvoy-daemon-rpc-v0 check-chanvoy-runtime-control-v1 check-gearwit-interrupt-v0 check-mail-v0 check-content-v0 test-epilogue test-release-inputs fmt-check ## Repo guards + schema family gates + format honesty
+check: guard-no-submodules guard-version-file check-ipc-schemas check-dispatch-v0 check-mission-v0 check-mission-v0.1 check-chanvoy-daemon-rpc-v0 check-chanvoy-runtime-control-v1 check-gearwit-interrupt-v0 check-mail-v0 check-content-v0 test-epilogue test-release-inputs test-release-guard-tag-ruleset fmt-check ## Repo guards + schema family gates + format honesty
 	@echo "OK"
 
 .PHONY: check-ipc-schemas
@@ -38,6 +38,9 @@ test-epilogue: ## Fail-secure post-merge epilogue negative controls (no mutation
 .PHONY: test-release-inputs
 test-release-inputs: ## Explicit release-input controls (tag never derived; legacy names refused)
 	@bash scripts/test-release-inputs.sh
+.PHONY: test-release-guard-tag-ruleset
+test-release-guard-tag-ruleset: ## Version-tag ruleset guard controls (offline; full policy only)
+	@bash scripts/test-release-guard-tag-ruleset.sh
 
 # Post-merge cleanup. Dry-run by default.
 # Required: WORKTREE=/abs/path BRANCH=feature/name

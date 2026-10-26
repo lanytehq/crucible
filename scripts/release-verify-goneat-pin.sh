@@ -10,6 +10,10 @@
 # itself), and requires every pinned line to appear verbatim in the signed
 # file. Run it before committing a change to the goneat pins.
 #
+# In CI the trust root is the committed archive digest; GitHub's Ubuntu
+# runners carry no minisign. This signature check is defence in depth where
+# minisign exists. Do not drop the digest path to rely on it.
+#
 # Requires minisign on PATH. Usage: release-verify-goneat-pin.sh
 
 set -euo pipefail

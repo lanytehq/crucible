@@ -33,5 +33,9 @@ release-guard-tag-version: ## Verify release tag matches VERSION file
 	@./scripts/release-guard-tag-version.sh
 
 .PHONY: release-check-goneat-pin
-release-check-goneat-pin: ## Check the goneat CI digests against goneat's signed SHA256SUMS (needs minisign)
+release-check-goneat-pin: ## Admit goneat CI digests: check them against goneat's signed SHA256SUMS (needs minisign; CI trusts the digest)
 	@./scripts/release-verify-goneat-pin.sh
+
+.PHONY: release-guard-tag-ruleset
+release-guard-tag-ruleset: ## Verify the live version-tag ruleset, bypass actors included (gh via org-root direnv)
+	@./scripts/release-guard-tag-ruleset.sh
