@@ -201,6 +201,67 @@ check_decernor "checker: not decernor" "is not decernor" \
 check_decernor "checker: below minimum version" "decernor >= 0.1.8 required" \
   LANYTE_CRUCIBLE_DECERNOR_BIN="$WORK/old-decernor"
 
+# Digest-pinned tool install (release-fetch-tool.sh). A fake curl serves a
+# local archive, so no case touches the network; each repository commits the
+# pin file its case needs.
+mkdir -p "$WORK/fakebin" "$WORK/archive"
+cat >"$WORK/fakebin/curl" <<'FAKE'
+#!/bin/sh
+# Serve $FAKE_ARCHIVE for any URL; honor --output.
+while [ $# -gt 0 ]; do
+  if [ "$1" = "--output" ]; then cp "$FAKE_ARCHIVE" "$2"; exit 0; fi
+  shift
+done
+exit 1
+FAKE
+chmod +x "$WORK/fakebin/curl"
+printf '#!/bin/sh\necho "goneat v0.6.5"\n' >"$WORK/archive/goneat"
+chmod +x "$WORK/archive/goneat"
+tar -czf "$WORK/goneat_v0.6.5_linux_amd64.tar.gz" -C "$WORK/archive" goneat
+good_digest="$(cd "$WORK" && { sha256sum goneat_v0.6.5_linux_amd64.tar.gz 2>/dev/null || shasum -a 256 goneat_v0.6.5_linux_amd64.tar.gz; } | awk '{print $1}')"
+
+check_fetch() {
+  local label="$1" reason="$2" pins="$3"
+  local repo="$WORK/fetch-$pass-$fail"
+  mkdir -p "$repo/scripts" "$repo/config/release" "$repo/dest"
+  cp "$ROOT/scripts/release-fetch-tool.sh" "$ROOT/scripts/release-env.sh" "$repo/scripts/"
+  printf '%s' "$pins" >"$repo/config/release/goneat-ci-sha256.txt"
+  git -C "$repo" init -q -b main
+  if (cd "$repo" && env -i PATH="$WORK/fakebin:$PATH" HOME="$WORK/home" \
+    FAKE_ARCHIVE="$WORK/goneat_v0.6.5_linux_amd64.tar.gz" \
+    bash scripts/release-fetch-tool.sh goneat linux_amd64 "$repo/dest") >"$WORK/out" 2>"$WORK/err"; then
+    if [[ -z "$reason" ]]; then
+      echo "[ok] accepts: $label"
+      pass=$((pass + 1))
+    else
+      echo "[FAIL] expected refusal: $label" >&2
+      fail=$((fail + 1))
+    fi
+  elif [[ -n "$reason" ]] && grep -qF -- "$reason" "$WORK/err"; then
+    if [[ -e "$repo/dest/goneat" ]]; then
+      echo "[FAIL] $label: refused but left a binary installed" >&2
+      fail=$((fail + 1))
+    else
+      echo "[ok] refuses: $label"
+      pass=$((pass + 1))
+    fi
+  else
+    echo "[FAIL] $label: wrong outcome (wanted: ${reason:-success})" >&2
+    sed 's/^/       /' "$WORK/err" >&2
+    fail=$((fail + 1))
+  fi
+}
+check_fetch "fetch: pinned digest" "" \
+  "${good_digest}  goneat_v0.6.5_linux_amd64.tar.gz"$'\n'
+check_fetch "fetch: archive differs from the pinned digest" "does not match the pinned" \
+  "$(printf '0%.0s' {1..64})  goneat_v0.6.5_linux_amd64.tar.gz"$'\n'
+check_fetch "fetch: no pin for the platform" "expected exactly one pinned goneat archive" \
+  "${good_digest}  goneat_v0.6.5_darwin_arm64.tar.gz"$'\n'
+check_fetch "fetch: two pins for the platform" "expected exactly one pinned goneat archive" \
+  "${good_digest}  goneat_v0.6.5_linux_amd64.tar.gz"$'\n'"${good_digest}  goneat_v0.6.6_linux_amd64.tar.gz"$'\n'
+check_fetch "fetch: malformed digest" "malformed digest" \
+  "ABC  goneat_v0.6.5_linux_amd64.tar.gz"$'\n'
+
 echo
 echo "release input controls: ${pass} passed, ${fail} failed"
 ((fail == 0))

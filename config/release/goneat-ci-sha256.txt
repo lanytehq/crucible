@@ -1,0 +1,2 @@
+974de9a090c489a9a2def389175a3a29e21cea879cdcb3a9249a776fedab8571  goneat_v0.6.5_linux_amd64.tar.gz
+44be12d52717244c4328b60f9d74973e75d1ff0762ed561cf3297ed9c859bcaf  goneat_v0.6.5_darwin_arm64.tar.gz

@@ -32,15 +32,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Install goneat and format backends (fmt-check hard requirement of make check)
+      - name: Install goneat by digest and format backends (fmt-check hard requirement of make check)
+        run: ./scripts/ci-install-goneat.sh
+      - name: Install the digest-pinned checker
         run: |
-          go install github.com/fulmenhq/goneat@v0.5.16
-          go install github.com/google/yamlfmt/cmd/yamlfmt@v0.16.0
-          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
-          npm install -g prettier@3.9.6
-          goneat version
-          command -v yamlfmt
-          prettier --version
+          set -euo pipefail
+          tool_dir="$(mktemp -d "$RUNNER_TEMP/decernor.XXXXXX")"
+          bin="$(./scripts/release-fetch-tool.sh decernor linux_amd64 "$tool_dir")"
+          echo "LANYTE_CRUCIBLE_DECERNOR_BIN=${bin}" >> "$GITHUB_ENV"
+      - name: Verify the tag against the committed pin
+        # Pins, anchors and tagger identity are read from the tagged commit.
+        # A green run is a consistency signal, not release authorization.
+        env:
+          LANYTE_CRUCIBLE_RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          ./scripts/release-restore-tag-ref.sh
+          ./scripts/verify-pinned-tag.sh "$LANYTE_CRUCIBLE_RELEASE_TAG"
       - name: Verify VERSION file matches tag
         run: |
           file_version="$(cat VERSION)"

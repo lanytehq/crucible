@@ -24,13 +24,16 @@ is the only release signature.
 
 ## Files
 
-| File                                       | What it is                                                                                              |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| `release-signing-keys.asc`                 | Public OpenPGP export: the approved primary key and exactly one signing subkey. This key signs the tag. |
-| `crucible-minisign.pub`                    | Minisign public pin for lanytehq releases. It signs no crucible release file.                           |
-| `../../keys/expected-fingerprints.txt`     | Two anchors, in order: the OpenPGP primary fingerprint, then the minisign public-blob SHA-256.          |
-| `../../keys/expected-fingerprints.ndjson`  | The checker's fingerprint records for the same two keys.                                                |
-| `../../config/release/tagger-identity.txt` | The exact tagger name and email a release tag must carry.                                               |
+| File                                          | What it is                                                                                              |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `release-signing-keys.asc`                    | Public OpenPGP export: the approved primary key and exactly one signing subkey. This key signs the tag. |
+| `crucible-minisign.pub`                       | Minisign public pin for lanytehq releases. It signs no crucible release file.                           |
+| `../../keys/expected-fingerprints.txt`        | Two anchors, in order: the OpenPGP primary fingerprint, then the minisign public-blob SHA-256.          |
+| `../../keys/expected-fingerprints.ndjson`     | The checker's fingerprint records for the same two keys.                                                |
+| `../../config/release/tagger-identity.txt`    | The exact tagger name and email a release tag must carry.                                               |
+| `fulmenhq-goneat-minisign.pub`                | Third-party pin: fulmenhq/goneat's release minisign key.                                                |
+| `../../config/release/decernor-ci-sha256.txt` | SHA-256 of the decernor archives CI downloads.                                                          |
+| `../../config/release/goneat-ci-sha256.txt`   | SHA-256 of the goneat archives CI downloads.                                                            |
 
 ## Which keys these are
 
@@ -94,6 +97,27 @@ Tags up to and including `v0.3.0` predate these pins: their tagged commits
 hold no `docs/security/` or `keys/` files, so this check refuses them. Verify
 one of those tags with the release scripts from its own commit. Historical
 tags are not re-signed.
+
+## CI tools
+
+CI installs decernor and goneat from their release archives, by the digests
+in `config/release/*-ci-sha256.txt` (`scripts/release-fetch-tool.sh`). The
+committed digest is the trust root: an archive that does not match is not
+installed.
+
+Before a goneat digest is committed, it is checked against goneat's own
+signed `SHA256SUMS`, with the signature verified by
+`fulmenhq-goneat-minisign.pub` rather than a key from the release:
+
+```bash
+make release-check-goneat-pin   # needs minisign on PATH
+```
+
+`fulmenhq-goneat-minisign.pub` is goneat's current release key (goneat
+rotated keys at v0.6.1). It matches the copy 3leaps/crucible commits and the
+key goneat publishes with its releases, byte for byte. SHA-256
+`8d6f8404b2a48bdbca9bbc755e0b54e83c6e58dd3be2fe7219fc2c9d4c68913d`.
+Replacing this file replaces the trusted key and is reviewed as a key change.
 
 ## Authorization
 

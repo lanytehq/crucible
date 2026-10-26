@@ -31,3 +31,7 @@ release-check-anchors: ## Re-derive the fingerprint anchors with decernor and co
 .PHONY: release-guard-tag-version
 release-guard-tag-version: ## Verify release tag matches VERSION file
 	@./scripts/release-guard-tag-version.sh
+
+.PHONY: release-check-goneat-pin
+release-check-goneat-pin: ## Check the goneat CI digests against goneat's signed SHA256SUMS (needs minisign)
+	@./scripts/release-verify-goneat-pin.sh
