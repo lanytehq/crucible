@@ -3,11 +3,6 @@
 
 from __future__ import annotations
 
-import sys
-
-# Never leave bytecode caches beside the validator or vendored files.
-sys.dont_write_bytecode = True
-
 import datetime
 import decimal
 import fractions
@@ -16,6 +11,7 @@ import json
 import math
 import pathlib
 import re
+import sys
 
 try:
     from jsonschema import Draft202012Validator, FormatChecker
@@ -26,6 +22,9 @@ except ImportError:  # pragma: no cover
         "(try: uv run --with jsonschema scripts/validate-content-v0.py)\n"
     )
     sys.exit(1)
+
+# Never leave bytecode caches beside the validator or vendored files.
+sys.dont_write_bytecode = True
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 FAMILY = REPO / "schemas/agentic/content/v0"
