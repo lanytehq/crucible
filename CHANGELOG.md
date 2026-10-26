@@ -10,6 +10,29 @@ entries are archived in `docs/releases/vX.Y.Z.md`.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-26
+
+Contract release since v0.2.0. It adds the agentic content family, a
+classifiers structure, and a shared secret-shaped name and value rule.
+Existing families and numbered IPC schema files are unchanged. DDR-0002
+and ADR-0019 remain Proposed.
+
+Full notes: [`docs/releases/v0.3.0.md`](docs/releases/v0.3.0.md).
+
+### Added
+
+- Agentic content v0 under `schemas/agentic/content/v0/`: entries as a
+  durable-record/v1 profile, payload contracts per kind, a kind
+  registry, optional structured goals for week and day lists, semantic
+  rules, digest and sort vectors, and `make check-content-v0`.
+- `config/classifiers/`: `content-kind` and `week-start` dimensions, and
+  pinned copies of the 3leaps sensitivity, access-tier,
+  retention-lifecycle, and volatility dimensions.
+- `schemas/common/v0/secret-keys`: shared secret-shaped member-name and
+  credential-value patterns with a cross-engine conformance table.
+- DDR-0002 (agent content contract family) and ADR-0019 (ordering ranks
+  on a binary grid), both Proposed.
+
 ## [0.2.0] - 2026-10-19
 
 Contract release since v0.1.0. It adds local runtime-control, Chanvoy
@@ -124,7 +147,8 @@ tag time.)
   supervisor per the release-signing manual baseline policy; CI never
   signs.
 
-[Unreleased]: https://github.com/lanytehq/crucible/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/lanytehq/crucible/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/lanytehq/crucible/releases/tag/v0.3.0
 [0.2.0]: https://github.com/lanytehq/crucible/releases/tag/v0.2.0
 [0.1.0]: https://github.com/lanytehq/crucible/releases/tag/v0.1.0
 [0.0.1]: https://github.com/lanytehq/crucible/releases/tag/v0.0.1

@@ -9,6 +9,29 @@ Current release notes for Lanyte Crucible. For complete history, see
 
 ---
 
+## v0.3.0 (2026-10-26)
+
+Contract release since v0.2.0. Three additions, and the limit that
+travels with them.
+
+- **Agentic content v0** — what a seat captures so work can continue
+  across sessions, as a durable-record/v1 profile with a kind registry
+  and `make check-content-v0`. Week and day lists accept optional
+  structured goals; ranks are multiples of 1/16 (ADR-0019). DDR-0002
+  remains Proposed.
+- **Classifiers** — `content-kind` and `week-start` dimensions, and
+  pinned copies of four 3leaps dimensions, under `config/classifiers/`.
+- **Secret-shaped names and values** — one shared rule in
+  `schemas/common/v0/secret-keys`, with a conformance table every regex
+  engine must match.
+
+Publishing the contracts does not qualify an implementation. `make check`
+qualifies this repository only.
+
+See [docs/releases/v0.3.0.md](docs/releases/v0.3.0.md).
+
+---
+
 ## v0.2.0 (2026-10-19)
 
 Contract release since v0.1.0. Three additions, and two limits that
@@ -53,47 +76,3 @@ unchanged.
 - **No schema bumps** — contract families are unchanged from `v0.0.1`.
 
 See [docs/releases/v0.1.0.md](docs/releases/v0.1.0.md).
-
----
-
-## v0.0.1 (2026-07-15)
-
-First tagged release of the platform schema repository. The tag is
-signed manually by the supervisor per the release-signing manual
-baseline policy (`docs/policies/release-signing-manual-baseline-policy.md`);
-CI never signs.
-
-### Contract surface at this tag
-
-| Family             | Version  | Contents                                                                                                                                                                                                                                                                                                                                             |
-| ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `agentic/dispatch` | v0       | **New.** `run-envelope.schema.json` (supervised harness-run envelope: discriminated outcome model, per-field trust taxonomy, bounded sensitive surfaces) + `harness-profile.schema.json` (capability/posture evidence with validity-condition expiry) + semantic-validation layer `dispatch/v0-semantics` 0.1.1 + conforming/negative fixture suites |
-| `agentic`          | v0, v0.1 | role-prompt, ledger-entry, agent-state (unchanged this release)                                                                                                                                                                                                                                                                                      |
-| `common`, `ipc`    | v0       | unchanged this release                                                                                                                                                                                                                                                                                                                               |
-
-### Verification
-
-```bash
-make check     # repo guards + dispatch family gate (schema lint,
-               # fixtures incl. negatives matched to stated reasons,
-               # semantic suite, engagement-blind gate)
-```
-
-Consumers embedding the dispatch family should pin to this signed tag
-and validate their pinned copies byte-for-byte (see the family README
-for the dual-validator conformance expectations).
-
-### Notes
-
-- Schemas enforced through vendor structured-output boundaries follow
-  the strictest-common-subset policy; tool-validated contract schemas
-  use the portable core plus explicitly justified constructs — each
-  construct is documented and justified in the family README
-  (`schemas/agentic/dispatch/v0/README.md`).
-- Fixture corpus is synthetic and engagement-blind: every identity and
-  engagement label is a placeholder, never a real name; the validation
-  gate enforces this.
-- This release establishes the repository's release-documentation
-  convention: `CHANGELOG.md` (Keep a Changelog format) and
-  `RELEASE_NOTES.md` at the repo root, with per-release notes archived
-  under `docs/releases/`.
