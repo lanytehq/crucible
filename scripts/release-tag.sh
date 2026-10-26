@@ -11,7 +11,8 @@
 #
 # Environment variables:
 # - LANYTE_CRUCIBLE_RELEASE_TAG: the tag to create (required; never derived)
-# - LANYTE_CRUCIBLE_GPG_HOMEDIR: dedicated signing keyring directory
+# - LANYTE_CRUCIBLE_GPG_HOMEDIR: dedicated signing keyring directory (required;
+#     absolute, existing, not a symlink, and never the default keyring)
 # - LANYTE_CRUCIBLE_PGP_KEY_ID: specific key id/email/fingerprint
 # - LANYTE_CRUCIBLE_TAGGER_EMAIL: tagger email stamped on the tag object
 #     For GitHub to show the tag as "Verified" this MUST match a user ID (UID)
@@ -140,14 +141,11 @@ main() {
     exit 1
   fi
 
-  # Set up GPG homedir if specified
-  if [[ -n "${LANYTE_CRUCIBLE_GPG_HOMEDIR:-}" ]]; then
-    if [[ ! -d "${LANYTE_CRUCIBLE_GPG_HOMEDIR}" ]]; then
-      echo "error: GPG homedir '${LANYTE_CRUCIBLE_GPG_HOMEDIR}' is not a directory" >&2
-      exit 1
-    fi
-    export GNUPGHOME="${LANYTE_CRUCIBLE_GPG_HOMEDIR}"
-  fi
+  # Dedicated keyring only, exported before any gpg or git signing call; git
+  # must sign with plain gpg so GNUPGHOME is honored.
+  require_signing_keyring
+  require_signing_gpg_program
+  export GNUPGHOME="${RELEASE_GNUPGHOME}"
 
   setup_gpg_tty
   ensure_gpg_signing_ready
@@ -173,7 +171,7 @@ main() {
   tag_err="$(mktemp)"
 
   if [[ -n "${key_id}" ]]; then
-    if ! git tag -s -a "$tag" -u "${key_id}" -m "Release $tag" 2>"${tag_err}"; then
+    if ! git -c gpg.program=gpg tag -s -a "$tag" -u "${key_id}" -m "Release $tag" 2>"${tag_err}"; then
       cat "${tag_err}" >&2
       if grep -qi "no secret key" "${tag_err}"; then
         echo "hint: no secret key available for signing" >&2
@@ -183,7 +181,7 @@ main() {
       exit 1
     fi
   else
-    if ! git tag -s -a "$tag" -m "Release $tag" 2>"${tag_err}"; then
+    if ! git -c gpg.program=gpg tag -s -a "$tag" -m "Release $tag" 2>"${tag_err}"; then
       cat "${tag_err}" >&2
       if grep -qi "no secret key" "${tag_err}"; then
         echo "hint: no secret key available for signing" >&2
@@ -197,7 +195,7 @@ main() {
   rm -f "${tag_err}"
 
   echo "Verifying tag signature: $tag"
-  git verify-tag "$tag" >/dev/null
+  git -c gpg.program=gpg verify-tag "$tag" >/dev/null
 
   # Safety check: the tagger email must match a UID on the signing key, or
   # GitHub will not mark the tag "Verified" even though the signature is good.
