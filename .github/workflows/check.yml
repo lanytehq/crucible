@@ -26,16 +26,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Install goneat and format backends (fmt-check hard requirement of make check)
-        run: |
-          # goneat orchestrates yamlfmt (yaml/json) + prettier (markdown)
-          go install github.com/fulmenhq/goneat@v0.5.16
-          go install github.com/google/yamlfmt/cmd/yamlfmt@v0.16.0
-          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
-          npm install -g prettier@3.9.6
-          goneat version
-          command -v yamlfmt
-          prettier --version
+      - name: Install goneat by digest and format backends (fmt-check hard requirement of make check)
+        run: ./scripts/ci-install-goneat.sh
       - name: Repo Checks
         run: |
           make check

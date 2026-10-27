@@ -3,3 +3,9 @@
 config/classifiers/vendor/
 schemas/vendor/
 scripts/vendor/
+# Release identity: committed public pins and fingerprint anchors are verified
+# byte for byte by decernor (make release-check-anchors); never reformat them.
+keys/
+docs/security/*.asc
+docs/security/*.pub
+config/release/

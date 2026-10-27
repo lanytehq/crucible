@@ -1,51 +1,32 @@
 #!/usr/bin/env bash
-# release-verify-tag.sh - Verify a signed git tag
+# release-verify-tag.sh - Verify a signed release tag against the committed pin
+#
+# Verification uses only scripts/verify-pinned-tag.sh, which imports the
+# committed public pin into a throwaway keyring and removes it afterwards. The
+# default GPG keyring and any ambient GNUPGHOME are never consulted.
 #
 # Environment variables:
-# - LANYTE_CRUCIBLE_RELEASE_TAG: override tag to verify (default: v$(cat VERSION))
-# - LANYTE_CRUCIBLE_GPG_HOMEDIR: dedicated signing keyring directory
+# - LANYTE_CRUCIBLE_RELEASE_TAG: the tag to verify (required; never derived)
+# - LANYTE_CRUCIBLE_DECERNOR_BIN: absolute path to the designated checker
+#     (required; see scripts/release-env.sh)
+#
+# Tags up to v0.3.0 predate the committed pins; verify those with the script in
+# their own tagged commit.
 
 set -euo pipefail
 
-repo_root() {
-  git rev-parse --show-toplevel
-}
-
-read_version() {
-  if [[ ! -f VERSION ]]; then
-    echo "error: VERSION file not found" >&2
-    exit 1
-  fi
-  tr -d ' \t\r\n' <VERSION
-}
-
 main() {
-  local root
-  root="$(repo_root)"
-  cd "$root"
+  cd "$(git rev-parse --show-toplevel)"
 
-  local version
-  version="$(read_version)"
-
-  local tag="${LANYTE_CRUCIBLE_RELEASE_TAG:-v${version}}"
-
-  # Set up GPG homedir if specified
-  if [[ -n "${LANYTE_CRUCIBLE_GPG_HOMEDIR:-}" ]]; then
-    if [[ ! -d "${LANYTE_CRUCIBLE_GPG_HOMEDIR}" ]]; then
-      echo "error: GPG homedir '${LANYTE_CRUCIBLE_GPG_HOMEDIR}' is not a directory" >&2
-      exit 1
-    fi
-    export GNUPGHOME="${LANYTE_CRUCIBLE_GPG_HOMEDIR}"
-  fi
+  # shellcheck source=scripts/release-env.sh
+  source scripts/release-env.sh
+  refuse_legacy_release_env
+  local tag
+  tag="$(require_release_tag)"
+  resolve_release_decernor
 
   echo "Verifying tag signature: $tag"
-  if git verify-tag "$tag" 2>/dev/null; then
-    echo ""
-    echo "[ok] Tag verified: $tag"
-  else
-    echo "error: tag verification failed for $tag" >&2
-    exit 1
-  fi
+  ./scripts/verify-pinned-tag.sh "$tag"
 }
 
 main "$@"

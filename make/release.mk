@@ -3,22 +3,51 @@
 # Policy: docs/policies/release-signing-manual-baseline-policy.md
 #
 # Environment variables (full details in the scripts/release-*.sh headers):
-#   LANYTE_CRUCIBLE_RELEASE_TAG      override tag (default: v$(cat VERSION))
-#   LANYTE_CRUCIBLE_GPG_HOMEDIR      dedicated signing keyring directory
+#   LANYTE_CRUCIBLE_RELEASE_TAG      the release tag (required; never derived from VERSION or git)
+#   LANYTE_CRUCIBLE_DECERNOR_BIN     absolute path to decernor >= 0.1.8 (required for
+#                                    anchor and tag verification; no PATH fallback)
+#   LANYTE_CRUCIBLE_GPG_HOMEDIR      dedicated signing keyring (required to sign; never the
+#                                    default keyring)
 #   LANYTE_CRUCIBLE_PGP_KEY_ID       key id/email/fingerprint for signing
 #   LANYTE_CRUCIBLE_TAGGER_NAME      tagger name stamped on the tag object
 #   LANYTE_CRUCIBLE_TAGGER_EMAIL     tagger email stamped on the tag object
 #   LANYTE_CRUCIBLE_ALLOW_NON_MAIN   set to 1 to allow tagging off main
-#   LANYTE_CRUCIBLE_REQUIRE_TAG      set to 1 to make the guard fail without a tag (CI)
+#
+# Retired, unprefixed, and 3leaps release variables are refused, not ignored
+# (scripts/release-env.sh).
 
 .PHONY: release-tag
 release-tag: ## Create signed release tag with safety checks
 	@./scripts/release-tag.sh
 
 .PHONY: release-verify-tag
-release-verify-tag: ## Verify signed tag signature
+release-verify-tag: ## Verify the tag against the committed pin in a throwaway keyring
 	@./scripts/release-verify-tag.sh
+
+.PHONY: release-check-anchors
+release-check-anchors: ## Re-derive the fingerprint anchors with decernor and compare
+	@./scripts/release-derive-anchors.sh --check
 
 .PHONY: release-guard-tag-version
 release-guard-tag-version: ## Verify release tag matches VERSION file
 	@./scripts/release-guard-tag-version.sh
+
+.PHONY: release-check-goneat-pin
+release-check-goneat-pin: ## Admit goneat CI digests: check them against goneat's signed SHA256SUMS (needs minisign; CI trusts the digest)
+	@./scripts/release-verify-goneat-pin.sh
+
+.PHONY: release-guard-tag-ruleset
+release-guard-tag-ruleset: ## Verify the live version-tag ruleset, bypass actors included (gh via org-root direnv)
+	@./scripts/release-guard-tag-ruleset.sh
+
+.PHONY: release-push-tag
+release-push-tag: ## Verify and push the signed tag over HTTPS with the org token (direnv exec the org root)
+	@./scripts/release-push-tag.sh
+
+.PHONY: release-delete-remote-tag
+release-delete-remote-tag: ## Rollback: delete the remote tag with the same credential and transport checks
+	@./scripts/release-push-tag.sh --delete
+
+.PHONY: test-release-tag-pinned
+test-release-tag-pinned: ## Signing-path control (needs a pty and LANYTE_CRUCIBLE_DECERNOR_BIN): unverified tag is deleted
+	@bash scripts/test-release-tag-pinned.sh

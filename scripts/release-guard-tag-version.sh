@@ -4,8 +4,7 @@
 # Use in CI to ensure version consistency, or before tagging locally.
 #
 # Environment variables:
-# - LANYTE_CRUCIBLE_RELEASE_TAG: override tag to check
-# - LANYTE_CRUCIBLE_REQUIRE_TAG: set to 1 to fail if no tag found (for CI)
+# - LANYTE_CRUCIBLE_RELEASE_TAG: the tag to check (required; never derived)
 
 set -euo pipefail
 
@@ -21,35 +20,21 @@ read_version() {
   tr -d ' \t\r\n' <VERSION
 }
 
-detect_tag() {
-  if [[ -n "${LANYTE_CRUCIBLE_RELEASE_TAG:-}" ]]; then
-    printf '%s' "${LANYTE_CRUCIBLE_RELEASE_TAG}"
-    return 0
-  fi
-  # Try to detect from current HEAD
-  git describe --tags --exact-match 2>/dev/null || true
-}
-
 main() {
   local root
   root="$(repo_root)"
   cd "$root"
+
+  # shellcheck source=scripts/release-env.sh
+  source scripts/release-env.sh
+  refuse_legacy_release_env
 
   local version
   version="$(read_version)"
 
   local expected="v${version}"
   local tag
-  tag="$(detect_tag)"
-
-  if [[ -z "$tag" ]]; then
-    if [[ "${LANYTE_CRUCIBLE_REQUIRE_TAG:-}" == "1" ]]; then
-      echo "error: no exact tag found for HEAD and no LANYTE_CRUCIBLE_RELEASE_TAG provided" >&2
-      exit 1
-    fi
-    echo "[--] release guard: no tag detected (set LANYTE_CRUCIBLE_REQUIRE_TAG=1 to enforce in CI)"
-    exit 0
-  fi
+  tag="$(require_release_tag)"
 
   if [[ "$tag" != "$expected" ]]; then
     echo "error: release tag/version mismatch" >&2

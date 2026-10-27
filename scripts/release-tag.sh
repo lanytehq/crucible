@@ -10,8 +10,12 @@
 # - Automatic signature verification after creation
 #
 # Environment variables:
-# - LANYTE_CRUCIBLE_RELEASE_TAG: override tag (default: v$(cat VERSION))
-# - LANYTE_CRUCIBLE_GPG_HOMEDIR: dedicated signing keyring directory
+# - LANYTE_CRUCIBLE_RELEASE_TAG: the tag to create (required; never derived)
+# - LANYTE_CRUCIBLE_DECERNOR_BIN: absolute path to the designated checker
+#     (required; checked before any side effect, then used to verify the new
+#     tag against the committed pin; see scripts/release-env.sh)
+# - LANYTE_CRUCIBLE_GPG_HOMEDIR: dedicated signing keyring directory (required;
+#     absolute, existing, not a symlink, and never the default keyring)
 # - LANYTE_CRUCIBLE_PGP_KEY_ID: specific key id/email/fingerprint
 # - LANYTE_CRUCIBLE_TAGGER_EMAIL: tagger email stamped on the tag object
 #     For GitHub to show the tag as "Verified" this MUST match a user ID (UID)
@@ -104,16 +108,23 @@ main() {
   root="$(repo_root)"
   cd "$root"
 
+  # shellcheck source=scripts/release-env.sh
+  source scripts/release-env.sh
+  refuse_legacy_release_env
+
+  local tag
+  tag="$(require_release_tag)"
+
+  # The tag must agree with VERSION; VERSION never supplies it.
   local version
   version="$(read_version)"
-
-  local tag="${LANYTE_CRUCIBLE_RELEASE_TAG:-v${version}}"
-
-  # Validate tag format
-  if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "error: invalid release tag '$tag' (expected vMAJOR.MINOR.PATCH)" >&2
+  if [[ "$tag" != "v${version}" ]]; then
+    echo "error: LANYTE_CRUCIBLE_RELEASE_TAG ($tag) does not match VERSION ($version)" >&2
     exit 1
   fi
+
+  # The checker is bound before any side effect; it verifies the new tag below.
+  resolve_release_decernor
 
   # Check clean working tree
   if [[ -n "$(git status --porcelain)" ]]; then
@@ -136,14 +147,11 @@ main() {
     exit 1
   fi
 
-  # Set up GPG homedir if specified
-  if [[ -n "${LANYTE_CRUCIBLE_GPG_HOMEDIR:-}" ]]; then
-    if [[ ! -d "${LANYTE_CRUCIBLE_GPG_HOMEDIR}" ]]; then
-      echo "error: GPG homedir '${LANYTE_CRUCIBLE_GPG_HOMEDIR}' is not a directory" >&2
-      exit 1
-    fi
-    export GNUPGHOME="${LANYTE_CRUCIBLE_GPG_HOMEDIR}"
-  fi
+  # Dedicated keyring only, exported before any gpg or git signing call; git
+  # must sign with plain gpg so GNUPGHOME is honored.
+  require_signing_keyring
+  require_signing_gpg_program
+  export GNUPGHOME="${RELEASE_GNUPGHOME}"
 
   setup_gpg_tty
   ensure_gpg_signing_ready
@@ -169,7 +177,7 @@ main() {
   tag_err="$(mktemp)"
 
   if [[ -n "${key_id}" ]]; then
-    if ! git tag -s -a "$tag" -u "${key_id}" -m "Release $tag" 2>"${tag_err}"; then
+    if ! git -c gpg.program=gpg tag -s -a "$tag" -u "${key_id}" -m "Release $tag" 2>"${tag_err}"; then
       cat "${tag_err}" >&2
       if grep -qi "no secret key" "${tag_err}"; then
         echo "hint: no secret key available for signing" >&2
@@ -179,7 +187,7 @@ main() {
       exit 1
     fi
   else
-    if ! git tag -s -a "$tag" -m "Release $tag" 2>"${tag_err}"; then
+    if ! git -c gpg.program=gpg tag -s -a "$tag" -m "Release $tag" 2>"${tag_err}"; then
       cat "${tag_err}" >&2
       if grep -qi "no secret key" "${tag_err}"; then
         echo "hint: no secret key available for signing" >&2
@@ -193,7 +201,15 @@ main() {
   rm -f "${tag_err}"
 
   echo "Verifying tag signature: $tag"
-  git verify-tag "$tag" >/dev/null
+  git -c gpg.program=gpg verify-tag "$tag" >/dev/null
+
+  # The tag must pass the same pinned check CI runs. A tag that does not is
+  # removed here rather than left for a push.
+  if ! (unset GNUPGHOME && ./scripts/verify-pinned-tag.sh "$tag"); then
+    git tag -d "$tag" >/dev/null
+    echo "error: $tag does not verify against the committed pin; the local tag was deleted" >&2
+    exit 1
+  fi
 
   # Safety check: the tagger email must match a UID on the signing key, or
   # GitHub will not mark the tag "Verified" even though the signature is good.
@@ -216,9 +232,8 @@ main() {
   echo ""
   echo "[ok] Created and verified signed tag: $tag"
   echo ""
-  echo "Next steps:"
-  echo "  git push origin main"
-  echo "  git push origin $tag"
+  echo "Next step (pushes the tag only, over HTTPS with the org token; never origin):"
+  echo "  direnv exec <org root> make release-push-tag"
 }
 
 main "$@"

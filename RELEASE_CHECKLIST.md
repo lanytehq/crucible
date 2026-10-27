@@ -11,8 +11,14 @@ drafts the GitHub Release, but never signs. Signing keys never touch CI.
 
 ## Variables (Quick Reference)
 
-- `LANYTE_CRUCIBLE_RELEASE_TAG`: optional override tag (e.g., `v0.0.1`)
-- `LANYTE_CRUCIBLE_GPG_HOMEDIR`: dedicated signing keyring directory (recommended)
+- `LANYTE_CRUCIBLE_RELEASE_TAG`: the release tag (e.g., `v0.3.1`). **Required** for
+  every release target; it is never derived from `VERSION`, `git describe`, or the
+  branch. It must match `VERSION`.
+- `LANYTE_CRUCIBLE_GPG_HOMEDIR`: dedicated signing keyring directory. **Required**
+  to sign; the default GPG keyring is refused, as are an inherited `GNUPGHOME`
+  naming a different directory and a `gpg.program` other than `gpg`.
+- `LANYTE_CRUCIBLE_DECERNOR_BIN`: absolute path to decernor 0.1.8 or newer.
+  **Required** to verify a tag or check the anchors; there is no `PATH` lookup.
 - `LANYTE_CRUCIBLE_PGP_KEY_ID`: key id for signing. Set this to the
   **dedicated signing subkey** — the entry carrying the `[S]` usage flag in
   `gpg --list-secret-keys --keyid-format LONG` — suffixed with `!` to force
@@ -23,8 +29,9 @@ drafts the GitHub Release, but never signs. Signing keys never touch CI.
 - `LANYTE_CRUCIBLE_TAGGER_NAME`: tagger name stamped on signed tag objects
 - `LANYTE_CRUCIBLE_TAGGER_EMAIL`: tagger email stamped on signed tag objects
 - `LANYTE_CRUCIBLE_ALLOW_NON_MAIN`: set to `1` to allow tagging from non-main branch
-- `LANYTE_CRUCIBLE_REQUIRE_TAG`: set to `1` to make the tag/VERSION guard fail when
-  HEAD carries no tag (used in CI)
+- Retired, unprefixed, and 3leaps (`THREELEAPS_CRUCIBLE_*`) release variables are
+  **refused**, not ignored, including the former `LANYTE_CRUCIBLE_REQUIRE_TAG`
+  (see `scripts/release-env.sh`).
 
 > **Why `LANYTE_CRUCIBLE_`?** The prefix disambiguates this repository's release
 > environment from other Crucible-style repositories and avoids generic environment
@@ -56,7 +63,17 @@ Note: These are not secrets and typically aren't stored in encrypted env bundles
 - [ ] CI (`check` workflow) passes on `main`
 - [ ] Guard: ensure tag/version match:
   ```bash
+  export LANYTE_CRUCIBLE_RELEASE_TAG=vX.Y.Z   # the tag you intend to create
   make release-guard-tag-version
+  ```
+- [ ] Committed pins match their anchors:
+  ```bash
+  export LANYTE_CRUCIBLE_DECERNOR_BIN=/absolute/path/to/decernor
+  make release-check-anchors
+  ```
+- [ ] Version-tag ruleset is the full policy (bypass actors included):
+  ```bash
+  direnv exec . make release-guard-tag-ruleset
   ```
 
 ## Tagging (Signed Tag Required)
@@ -68,7 +85,7 @@ Note: These are not secrets and typically aren't stored in encrypted env bundles
 export GPG_TTY="$(tty)"
 gpg-connect-agent updatestartuptty /bye
 
-# Point to dedicated signing keyring (recommended)
+# Dedicated signing keyring (required; never the default keyring)
 export LANYTE_CRUCIBLE_GPG_HOMEDIR="/path/to/signing-keyring"
 export LANYTE_CRUCIBLE_PGP_KEY_ID="your-key-id"
 
@@ -84,64 +101,86 @@ GNUPGHOME="${LANYTE_CRUCIBLE_GPG_HOMEDIR}" gpg --list-secret-keys --keyid-format
 ### 2. Create the signed tag (with safety checks)
 
 ```bash
+export LANYTE_CRUCIBLE_RELEASE_TAG=vX.Y.Z   # required; must match VERSION
 make release-tag
 ```
 
 The script performs these safety checks before creating the tag:
 
+- `LANYTE_CRUCIBLE_RELEASE_TAG` is set (never derived) and matches `VERSION`;
+  retired or unprefixed release variables are refused
 - Tag format validation (`vMAJOR.MINOR.PATCH`)
 - Clean working tree required
 - Must be on `main` branch (set `LANYTE_CRUCIBLE_ALLOW_NON_MAIN=1` to override)
 - Tag must not already exist
+- Dedicated signing keyring and plain `gpg` required
 - GPG signing key availability verified
 - Automatic signature verification after creation
 
-### 3. Verify the signed tag (optional manual check)
+### 3. Verify the signed tag against the committed pin
 
 ```bash
 make release-verify-tag
-# or:
-git tag -v v$(cat VERSION)
 ```
 
-Expected output includes:
-
-- `gpg: Signature made ...`
-- `gpg: Good signature from ...`
+This imports `docs/security/release-signing-keys.asc` from the tagged commit
+into a throwaway keyring and requires one good signature by the pinned signing
+subkey, with the committed tagger identity. Your own keyring is not consulted.
 
 ### 4. Push
 
 ```bash
-git push origin main
-git push origin v$(cat VERSION)
+direnv exec . make release-push-tag
 ```
+
+The target pushes only the tag ref to `https://github.com/lanytehq/crucible.git`,
+never the clone's `origin` (an SSH remote is common on maintainer clones). Before
+the push it requires:
+
+- `GH_TOKEN` from the org root's direnv; gh's stored logins and other token
+  variables are not used, and a missing token stops the push
+- git with global and system config ignored, so no `url.*.insteadOf` rewrite or
+  credential helper outside the repository applies; repository config that
+  rewrites URLs, sets credentials, or sets any `http.*` option (such as
+  `http.extraheader`, a second credential) is refused
+- the version-tag ruleset is the full policy, and a fresh read reports
+  `current_user_can_bypass: "always"` for this credential
+- the local annotated tag verifies against the committed pin, its commit is on
+  `main` at that URL, and the remote tag does not already exist
+
+After the push it requires the remote tag object to equal the local one, then
+reads GitHub's verified flag. Do not push the tag by hand.
 
 ## Post-Release
 
 - [ ] Verify tag appears on GitHub: https://github.com/lanytehq/crucible/tags
 - [ ] Verify the `release` workflow (`.github/workflows/release.yml`) runs on the tag
-      push: it re-checks tag/VERSION consistency, release notes, CHANGELOG entry, and
-      quality gates, then creates a **draft** GitHub Release from
+      push: it verifies the tag against the pin in the tagged commit (decernor and
+      goneat installed by digest), re-checks tag/VERSION consistency, release notes,
+      CHANGELOG entry, and quality gates, then creates a **draft** GitHub Release from
       `docs/releases/vX.Y.Z.md`
 - [ ] Review the draft release, then publish it:
   ```bash
-  gh release edit v$(cat VERSION) --repo lanytehq/crucible --draft=false
+  gh release edit "${LANYTE_CRUCIBLE_RELEASE_TAG}" --repo lanytehq/crucible --draft=false
   ```
 - [ ] Spot-check release notes render correctly
 
 ### Verify tag signature (optional)
 
-**Local git** (most reliable):
+**Against the committed pin** (independent check, from a separate clone):
 
 ```bash
-git fetch --tags origin
-git tag -v v$(cat VERSION)
+export LANYTE_CRUCIBLE_DECERNOR_BIN=/absolute/path/to/decernor
+./scripts/verify-pinned-tag.sh "${LANYTE_CRUCIBLE_RELEASE_TAG}"
 ```
+
+Tags up to and including `v0.3.0` predate the pins; verify those with the
+scripts in their own commit.
 
 **GitHub API** (CI-friendly):
 
 ```bash
-TAG_SHA=$(gh api repos/lanytehq/crucible/git/ref/tags/v$(cat VERSION) --jq .object.sha)
+TAG_SHA=$(gh api repos/lanytehq/crucible/git/ref/tags/"${LANYTE_CRUCIBLE_RELEASE_TAG}" --jq .object.sha)
 gh api repos/lanytehq/crucible/git/tags/$TAG_SHA --jq .verification
 ```
 
@@ -160,8 +199,8 @@ If issues are discovered after release:
 # Delete the draft/published GitHub release (if created)
 gh release delete v<VERSION> --repo lanytehq/crucible
 
-# Delete remote tag
-git push origin --delete v<VERSION>
+# Delete remote tag: same credential, transport, and ruleset checks as the push
+LANYTE_CRUCIBLE_RELEASE_TAG=v<VERSION> direnv exec . make release-delete-remote-tag
 
 # Delete local tag
 git tag -d v<VERSION>
@@ -174,11 +213,16 @@ git revert <commit-hash>
 
 ### Make Targets
 
-| Target                           | Purpose                                       |
-| -------------------------------- | --------------------------------------------- |
-| `make release-tag`               | Create signed git tag with all safety checks  |
-| `make release-verify-tag`        | Verify an existing signed tag                 |
-| `make release-guard-tag-version` | Verify tag matches VERSION file (CI-friendly) |
+| Target                           | Purpose                                                      |
+| -------------------------------- | ------------------------------------------------------------ |
+| `make release-tag`               | Create signed git tag with all safety checks                 |
+| `make release-verify-tag`        | Verify a tag against the committed pin                       |
+| `make release-guard-tag-version` | Verify tag matches VERSION file (CI-friendly)                |
+| `make release-check-anchors`     | Re-derive the fingerprint anchors with decernor and compare  |
+| `make release-guard-tag-ruleset` | Verify the live version-tag ruleset, full policy only        |
+| `make release-push-tag`          | Verify and push the signed tag over HTTPS with the org token |
+| `make release-delete-remote-tag` | Rollback: delete the remote tag through the same checks      |
+| `make release-check-goneat-pin`  | Admit goneat CI digests against goneat's signed checksums    |
 
 ### Scripts
 
@@ -186,7 +230,9 @@ All scripts are in `scripts/` and can be run directly if needed.
 
 **`scripts/release-tag.sh`** - The primary release script. Safety checks:
 
-1. Validates tag format (`vMAJOR.MINOR.PATCH`)
+1. Requires `LANYTE_CRUCIBLE_RELEASE_TAG` (never derived); refuses retired or
+   unprefixed release variables; validates `vMAJOR.MINOR.PATCH` and that it
+   matches `VERSION`
 2. Ensures working tree is clean (no uncommitted changes)
 3. Ensures on `main` branch (override with `LANYTE_CRUCIBLE_ALLOW_NON_MAIN=1`)
 4. Ensures tag doesn't already exist
@@ -196,14 +242,19 @@ All scripts are in `scripts/` and can be run directly if needed.
 
 **`scripts/release-guard-tag-version.sh`** - Version consistency check:
 
-- Compares current git tag (or `LANYTE_CRUCIBLE_RELEASE_TAG` env var) against `VERSION` file
-- Use in CI with `LANYTE_CRUCIBLE_REQUIRE_TAG=1` to enforce tag presence
-- Exits 0 if match, exits 1 if mismatch
+- Compares `LANYTE_CRUCIBLE_RELEASE_TAG` (required) against the `VERSION` file;
+  there is no `git describe` fallback
+- CI passes the pushed tag explicitly: `LANYTE_CRUCIBLE_RELEASE_TAG="${GITHUB_REF_NAME}"`
+- Exits 0 if match, exits 1 if mismatch or the tag is missing
 
 **`scripts/release-verify-tag.sh`** - Signature verification:
 
-- Verifies GPG signature on the tag for `VERSION` (or `LANYTE_CRUCIBLE_RELEASE_TAG`)
-- Respects `LANYTE_CRUCIBLE_GPG_HOMEDIR` for dedicated keyrings
+- Verifies `LANYTE_CRUCIBLE_RELEASE_TAG` (required) with
+  `scripts/verify-pinned-tag.sh`: pins, anchors, and tagger identity from the
+  tagged commit, a throwaway keyring, and the checker from
+  `LANYTE_CRUCIBLE_DECERNOR_BIN`
+
+Adoption choices and deviations: [ADR-0020](docs/decisions/adr-0020-release-identity-adoption.md).
 
 ---
 
