@@ -20,7 +20,9 @@ surfaces=(
   docs/security/README.md
   docs/decisions/adr-0020-release-identity-adoption.md
 )
-pattern='(^|[^_[:alnum:]])git[[:space:]]+(-[^[:space:]]+[[:space:]]+)*push([[:space:]]|$)|push[[:space:]]+origin|push[[:space:]].*--delete'
+# Any git invocation whose words include push, so options and their values
+# (git -c key=value push, git -C dir push) are matched; release_git is not.
+pattern='(^|[^_[:alnum:]])git([[:space:]]+[^[:space:]]+)*[[:space:]]+push([[:space:]]|$)|push[[:space:]]+origin|push[[:space:]].*--delete'
 
 hits=""
 for f in "${surfaces[@]}"; do

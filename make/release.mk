@@ -47,3 +47,7 @@ release-push-tag: ## Verify and push the signed tag over HTTPS with the org toke
 .PHONY: release-delete-remote-tag
 release-delete-remote-tag: ## Rollback: delete the remote tag with the same credential and transport checks
 	@./scripts/release-push-tag.sh --delete
+
+.PHONY: test-release-tag-pinned
+test-release-tag-pinned: ## Signing-path control (needs a pty and LANYTE_CRUCIBLE_DECERNOR_BIN): unverified tag is deleted
+	@bash scripts/test-release-tag-pinned.sh

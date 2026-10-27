@@ -132,6 +132,19 @@ target must assert on a fresh read of the same field before it pushes.
   `verify-pinned-tag.sh` refuses them. Verify each with the scripts in its
   own commit. They are not re-signed.
 
+### Controls
+
+Each release guard has an offline control in `make check`, and each control
+fails when its guard is removed. A refusal control asserts the stated reason,
+not only a non-zero exit. A positive control asserts that it reached its
+subject, not merely that nothing refused it. A control that stops at an
+earlier check otherwise passes while testing nothing.
+
+`scripts/test-release-tag-pinned.sh` drives the real signing path under a
+terminal with a throwaway key, and requires `release-tag` to delete a tag that
+does not verify against the committed pin. It needs a checker and a pty, so it
+runs by hand (`make test-release-tag-pinned`) rather than in `make check`.
+
 ## Consequences
 
 - Positive: a release tag is checked against keys committed in its own
