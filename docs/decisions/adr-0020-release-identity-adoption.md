@@ -110,7 +110,8 @@ The explicit URL is only explicit if nothing between the script and the
 wire rewrites it. `make release-push-tag` therefore runs git with global and
 system config ignored and injected configuration removed, which clears both
 credential helpers and `url.*.insteadOf` for the invocation. It refuses
-repository config that sets either. gh sees only `GH_TOKEN`, never its stored
+repository config that sets either, or any `http.*` option: `http.extraheader`
+can carry a second credential that the bypass check never saw. gh sees only `GH_TOKEN`, never its stored
 logins, and a missing token stops the push. Deleting a tag goes through the
 same checks (`make release-delete-remote-tag`), since deletion is in the
 ruleset too.

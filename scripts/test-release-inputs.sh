@@ -79,6 +79,31 @@ assert_accepts() {
 }
 
 mkdir -p "$WORK/home"
+printf '#!/bin/sh\necho "notdecernor 9.9.9"\n' >"$WORK/impostor"
+chmod +x "$WORK/impostor"
+# A well-formed decernor identity, only below the minimum version, so the
+# version comparison is what refuses it.
+cat >"$WORK/old-decernor" <<'FAKE'
+#!/bin/sh
+if [ "$2" = "-e" ]; then
+  printf 'Version: 0.1.0\nCommit: abc1234\nBuild Date: 2026-01-01\nGo Version: go1.24\nGofulmen: 0.1.0\nCrucible: 0.1.0\n'
+else
+  echo "decernor 0.1.0"
+fi
+FAKE
+chmod +x "$WORK/old-decernor"
+ln -s "$WORK/impostor" "$WORK/decernor-link"
+# A checker that passes resolve_release_decernor, so release-tag controls
+# reach the check they name rather than stopping at the checker.
+cat >"$WORK/good-decernor" <<'FAKE'
+#!/bin/sh
+if [ "$2" = "-e" ]; then
+  printf 'Version: 0.1.9\nCommit: abc1234\nBuild Date: 2026-01-01\nGo Version: go1.24\nGofulmen: 0.1.0\nCrucible: 0.1.0\n'
+else
+  echo "decernor 0.1.9"
+fi
+FAKE
+chmod +x "$WORK/good-decernor"
 
 # The tag is never derived: VERSION is present in every repository.
 for script in release-tag.sh release-verify-tag.sh release-guard-tag-version.sh; do
@@ -107,42 +132,56 @@ assert_accepts "release-guard-tag-version.sh: explicit matching tag" \
 # Signing keyring (release-tag only). These checks run before any TTY or key
 # lookup, so each refusal is reachable and asserted by its message.
 OK_TAG=LANYTE_CRUCIBLE_RELEASE_TAG=v1.2.3
+OK_CHECKER=LANYTE_CRUCIBLE_DECERNOR_BIN="$WORK/good-decernor"
+
+# release-tag binds the checker before any side effect, with otherwise valid
+# inputs (matching tag, dedicated keyring).
+for case in "unset|LANYTE_CRUCIBLE_DECERNOR_BIN is required|" \
+  "relative path|must be an absolute path to a regular, executable, non-symlink file|LANYTE_CRUCIBLE_DECERNOR_BIN=bin/decernor" \
+  "symlink|must be an absolute path to a regular, executable, non-symlink file|LANYTE_CRUCIBLE_DECERNOR_BIN=$WORK/decernor-link" \
+  "not decernor|is not decernor|LANYTE_CRUCIBLE_DECERNOR_BIN=$WORK/impostor" \
+  "below minimum version|decernor >= 0.1.8 required|LANYTE_CRUCIBLE_DECERNOR_BIN=$WORK/old-decernor"; do
+  IFS='|' read -r label reason checker <<<"$case"
+  assert_refuses "release-tag.sh: checker $label" release-tag.sh "$reason" "$OK_TAG" \
+    LANYTE_CRUCIBLE_GPG_HOMEDIR="$WORK/dedicated-keyring" ${checker:+"$checker"}
+done
 DED="$WORK/dedicated-keyring"
 mkdir -p "$DED" "$WORK/fakehome" "$WORK/realhome/.gnupg"
 ln -s "$DED" "$WORK/keyring-link"
 REAL_GNUPG="$(python3 -I -c 'import os, pwd; print(pwd.getpwuid(os.getuid()).pw_dir)')/.gnupg"
 
 assert_refuses "keyring: unset" release-tag.sh \
-  "LANYTE_CRUCIBLE_GPG_HOMEDIR is required" "$OK_TAG"
+  "LANYTE_CRUCIBLE_GPG_HOMEDIR is required" "$OK_TAG" "$OK_CHECKER"
 assert_refuses "keyring: relative path" release-tag.sh \
-  "must be an absolute path to an existing, non-symlink directory" "$OK_TAG" \
+  "must be an absolute path to an existing, non-symlink directory" "$OK_TAG" "$OK_CHECKER" \
   LANYTE_CRUCIBLE_GPG_HOMEDIR=relative/keyring
 assert_refuses "keyring: missing directory" release-tag.sh \
-  "must be an absolute path to an existing, non-symlink directory" "$OK_TAG" \
+  "must be an absolute path to an existing, non-symlink directory" "$OK_TAG" "$OK_CHECKER" \
   LANYTE_CRUCIBLE_GPG_HOMEDIR="$WORK/no-such-dir"
 assert_refuses "keyring: symlink" release-tag.sh \
-  "must be an absolute path to an existing, non-symlink directory" "$OK_TAG" \
+  "must be an absolute path to an existing, non-symlink directory" "$OK_TAG" "$OK_CHECKER" \
   LANYTE_CRUCIBLE_GPG_HOMEDIR="$WORK/keyring-link"
 # The account's real .gnupg is refused even when HOME points elsewhere: gpgconf
 # follows HOME, so only the account-home anchor catches this.
 if [[ -d "$REAL_GNUPG" ]]; then
   assert_refuses "keyring: real default with HOME relocated (no .gnupg)" release-tag.sh \
-    "resolves to the default GPG keyring" "$OK_TAG" \
+    "resolves to the default GPG keyring" "$OK_TAG" "$OK_CHECKER" \
     LANYTE_CRUCIBLE_GPG_HOMEDIR="$REAL_GNUPG"
 fi
 assert_refuses "keyring: GNUPGHOME names a different directory" release-tag.sh \
-  "GNUPGHOME is set to a different directory" "$OK_TAG" \
+  "GNUPGHOME is set to a different directory" "$OK_TAG" "$OK_CHECKER" \
   LANYTE_CRUCIBLE_GPG_HOMEDIR="$DED" GNUPGHOME="$WORK/fakehome"
 # GNUPGHOME equal to the dedicated keyring is allowed, and the default is
 # resolved with GNUPGHOME unset. Were it not scrubbed, gpgconf would report the
-# dedicated keyring as the default and refuse it. The run fails later (no key),
-# so the control asserts only that no keyring refusal was the reason.
+# dedicated keyring as the default and refuse it. The run must get past every
+# keyring check and stop at a later step: the TTY check, or (on a terminal)
+# the lookup in the empty keyring.
 keyring_accepted_with_gnupghome() {
   local repo
   repo="$(new_repo "$pass-$fail")"
-  run_scrubbed "$repo" release-tag.sh "$OK_TAG" LANYTE_CRUCIBLE_GPG_HOMEDIR="$DED" GNUPGHOME="$DED" \
+  run_scrubbed "$repo" release-tag.sh "$OK_TAG" "$OK_CHECKER" LANYTE_CRUCIBLE_GPG_HOMEDIR="$DED" GNUPGHOME="$DED" \
     >"$WORK/out" 2>"$WORK/err" || true
-  if grep -qE "LANYTE_CRUCIBLE_GPG_HOMEDIR|GNUPGHOME|default GPG keyring" "$WORK/err"; then
+  if ! grep -qE "no TTY available for interactive gpg signing|no usable GPG secret key found" "$WORK/err"; then
     echo "[FAIL] keyring: GNUPGHOME equal to the dedicated keyring was refused" >&2
     sed 's/^/       /' "$WORK/err" >&2
     fail=$((fail + 1))
@@ -156,7 +195,7 @@ keyring_accepted_with_gnupghome() {
 }
 keyring_accepted_with_gnupghome
 assert_refuses "keyring: other repository's keyring variable" release-tag.sh \
-  "retired, unprefixed, or other-repository release variable set" "$OK_TAG" \
+  "retired, unprefixed, or other-repository release variable set" "$OK_TAG" "$OK_CHECKER" \
   LANYTE_CRUCIBLE_GPG_HOMEDIR="$DED" THREELEAPS_CRUCIBLE_GPG_HOMEDIR="$DED"
 
 # git must sign with plain gpg.
@@ -164,7 +203,7 @@ assert_refuses_gpg_program() {
   local repo
   repo="$(new_repo "$pass-$fail")"
   git -C "$repo" config gpg.program /usr/bin/false
-  if run_scrubbed "$repo" release-tag.sh "$OK_TAG" LANYTE_CRUCIBLE_GPG_HOMEDIR="$DED" \
+  if run_scrubbed "$repo" release-tag.sh "$OK_TAG" "$OK_CHECKER" LANYTE_CRUCIBLE_GPG_HOMEDIR="$DED" \
     >"$WORK/out" 2>"$WORK/err"; then
     echo "[FAIL] expected refusal: configured gpg.program" >&2
     fail=$((fail + 1))
@@ -199,20 +238,6 @@ check_decernor() {
     pass=$((pass + 1))
   fi
 }
-printf '#!/bin/sh\necho "notdecernor 9.9.9"\n' >"$WORK/impostor"
-chmod +x "$WORK/impostor"
-# A well-formed decernor identity, only below the minimum version, so the
-# version comparison is what refuses it.
-cat >"$WORK/old-decernor" <<'FAKE'
-#!/bin/sh
-if [ "$2" = "-e" ]; then
-  printf 'Version: 0.1.0\nCommit: abc1234\nBuild Date: 2026-01-01\nGo Version: go1.24\nGofulmen: 0.1.0\nCrucible: 0.1.0\n'
-else
-  echo "decernor 0.1.0"
-fi
-FAKE
-chmod +x "$WORK/old-decernor"
-ln -s "$WORK/impostor" "$WORK/decernor-link"
 check_decernor "checker: unset" "LANYTE_CRUCIBLE_DECERNOR_BIN is required"
 check_decernor "checker: relative path" "must be an absolute path to a regular, executable, non-symlink file" \
   LANYTE_CRUCIBLE_DECERNOR_BIN=bin/decernor

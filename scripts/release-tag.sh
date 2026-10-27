@@ -11,6 +11,9 @@
 #
 # Environment variables:
 # - LANYTE_CRUCIBLE_RELEASE_TAG: the tag to create (required; never derived)
+# - LANYTE_CRUCIBLE_DECERNOR_BIN: absolute path to the designated checker
+#     (required; checked before any side effect, then used to verify the new
+#     tag against the committed pin; see scripts/release-env.sh)
 # - LANYTE_CRUCIBLE_GPG_HOMEDIR: dedicated signing keyring directory (required;
 #     absolute, existing, not a symlink, and never the default keyring)
 # - LANYTE_CRUCIBLE_PGP_KEY_ID: specific key id/email/fingerprint
@@ -120,6 +123,9 @@ main() {
     exit 1
   fi
 
+  # The checker is bound before any side effect; it verifies the new tag below.
+  resolve_release_decernor
+
   # Check clean working tree
   if [[ -n "$(git status --porcelain)" ]]; then
     echo "error: working tree is not clean (commit or stash changes before tagging)" >&2
@@ -196,6 +202,14 @@ main() {
 
   echo "Verifying tag signature: $tag"
   git -c gpg.program=gpg verify-tag "$tag" >/dev/null
+
+  # The tag must pass the same pinned check CI runs. A tag that does not is
+  # removed here rather than left for a push.
+  if ! (unset GNUPGHOME && ./scripts/verify-pinned-tag.sh "$tag"); then
+    git tag -d "$tag" >/dev/null
+    echo "error: $tag does not verify against the committed pin; the local tag was deleted" >&2
+    exit 1
+  fi
 
   # Safety check: the tagger email must match a UID on the signing key, or
   # GitHub will not mark the tag "Verified" even though the signature is good.

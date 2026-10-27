@@ -141,7 +141,8 @@ the push it requires:
   variables are not used, and a missing token stops the push
 - git with global and system config ignored, so no `url.*.insteadOf` rewrite or
   credential helper outside the repository applies; repository config that
-  rewrites URLs or sets credentials is refused
+  rewrites URLs, sets credentials, or sets any `http.*` option (such as
+  `http.extraheader`, a second credential) is refused
 - the version-tag ruleset is the full policy, and a fresh read reports
   `current_user_can_bypass: "always"` for this credential
 - the local annotated tag verifies against the committed pin, its commit is on

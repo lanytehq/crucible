@@ -59,12 +59,15 @@ release_git() {
 }
 
 # Refuse repository config that could reroute or authenticate the push, and
-# require git to resolve URL to itself.
+# require git to resolve URL to itself. http.* is refused whole: extraheader
+# (also URL-scoped, http.<url>.extraheader) can carry a second credential, and
+# cookie, client-certificate, proxy, and TLS keys change who or what is on the
+# wire. None has a role in a release push.
 require_isolated_transport() {
     local url="$1" keys resolved
-    keys="$(isolated_git config --get-regexp '^(url|credential)\.' 2>/dev/null || true)"
+    keys="$(isolated_git config --get-regexp '^(url|credential|http)\.' 2>/dev/null || true)"
     [[ -z "$keys" ]] ||
-        die "repository git config rewrites URLs or sets credentials ($(awk '{print $1}' <<<"$keys" | tr '\n' ' ')); remove it before pushing"
+        die "repository git config rewrites URLs, sets credentials, or sets http options ($(awk '{print $1}' <<<"$keys" | tr '\n' ' ')); remove it before pushing"
     resolved="$(isolated_git ls-remote --get-url "$url")"
     [[ "$resolved" == "$url" ]] || die "git rewrites $url to $resolved; refusing to push"
 }
@@ -92,26 +95,6 @@ require_bypass_now() {
 
 # Succeeds when COMMIT is on URL's main.
 require_on_remote_main() {
-    local url="$1" commit="$2" main
-    release_git fetch --quiet --no-tags "$url" refs/heads/main ||
-        die "could not fetch main from $url; nothing was pushed"
-    main="$(git rev-parse FETCH_HEAD)"
-    git merge-base --is-ancestor "$commit" "$main" ||
-        die "tagged commit $commit is not on main at $url"
-}
-
-# Succeeds when TAG is absent at URL; a failed read is not absence.
-require_remote_tag_absent() {
-    local url="$1" tag="$2" rc=0
-    release_git ls-remote --exit-code --tags "$url" "refs/tags/${tag}" >/dev/null || rc=$?
-    case "$rc" in
-    2) ;;
-    0) die "remote tag ${tag} already exists at $url" ;;
-    *) die "could not read tags from $url (git exit $rc); nothing was pushed" ;;
-    esac
-}
-
-main() {
     local url="$1" commit="$2" main
     release_git fetch --quiet --no-tags "$url" refs/heads/main ||
         die "could not fetch main from $url; nothing was pushed"

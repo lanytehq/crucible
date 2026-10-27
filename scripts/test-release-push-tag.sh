@@ -90,29 +90,51 @@ repo_rewrite() {
   cd "$repo" && git config url.git@github.com:.insteadOf https://github.com/
   require_isolated_transport "$url"
 }
-expect_refusal "transport: repository insteadOf" "rewrites URLs or sets credentials" repo_rewrite
+expect_refusal "transport: repository insteadOf" "rewrites URLs, sets credentials, or sets http options" repo_rewrite
 git -C "$repo" config --unset url.git@github.com:.insteadOf
 
 repo_pushinsteadof() {
   cd "$repo" && git config url.git@github.com:.pushInsteadOf https://github.com/
   require_isolated_transport "$url"
 }
-expect_refusal "transport: repository pushInsteadOf" "rewrites URLs or sets credentials" repo_pushinsteadof
+expect_refusal "transport: repository pushInsteadOf" "rewrites URLs, sets credentials, or sets http options" repo_pushinsteadof
 git -C "$repo" config --unset url.git@github.com:.pushInsteadOf
 
 repo_helper() {
   cd "$repo" && git config credential.helper osxkeychain
   require_isolated_transport "$url"
 }
-expect_refusal "transport: repository credential helper" "rewrites URLs or sets credentials" repo_helper
+expect_refusal "transport: repository credential helper" "rewrites URLs, sets credentials, or sets http options" repo_helper
 git -C "$repo" config --unset credential.helper
+
+repo_extraheader() {
+  cd "$repo" && git config http.extraheader "AUTHORIZATION: bearer second-credential"
+  [[ "$(isolated_git ls-remote --get-url "$url")" == "$url" ]] || { echo "fixture: URL not clean" >&2; exit 1; } # the URL alone looks clean
+  require_isolated_transport "$url"
+}
+expect_refusal "transport: repository http.extraheader" "sets http options" repo_extraheader
+git -C "$repo" config --unset http.extraheader
+
+repo_scoped_extraheader() {
+  cd "$repo" && git config http.https://github.com/.extraheader "AUTHORIZATION: bearer second-credential"
+  require_isolated_transport "$url"
+}
+expect_refusal "transport: URL-scoped http.<url>.extraheader" "sets http options" repo_scoped_extraheader
+git -C "$repo" config --unset http.https://github.com/.extraheader
+
+repo_proxy() {
+  cd "$repo" && git config http.proxy http://127.0.0.1:9
+  require_isolated_transport "$url"
+}
+expect_refusal "transport: repository http.proxy" "sets http options" repo_proxy
+git -C "$repo" config --unset http.proxy
 
 included_rewrite() {
   printf '[url "git@github.com:"]\n\tinsteadOf = https://github.com/\n' >"$WORK/included"
   cd "$repo" && git config include.path "$WORK/included"
   require_isolated_transport "$url"
 }
-expect_refusal "transport: rewrite through an included file" "rewrites URLs or sets credentials" included_rewrite
+expect_refusal "transport: rewrite through an included file" "rewrites URLs, sets credentials, or sets http options" included_rewrite
 git -C "$repo" config --unset include.path
 rm -f "$HOME/.gitconfig"
 
