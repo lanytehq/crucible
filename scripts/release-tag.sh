@@ -218,9 +218,8 @@ main() {
   echo ""
   echo "[ok] Created and verified signed tag: $tag"
   echo ""
-  echo "Next steps:"
-  echo "  git push origin main"
-  echo "  git push origin $tag"
+  echo "Next step (pushes the tag only, over HTTPS with the org token; never origin):"
+  echo "  direnv exec <org root> make release-push-tag"
 }
 
 main "$@"
